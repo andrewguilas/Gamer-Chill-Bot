@@ -7,10 +7,10 @@ from discord import Color as discord_color
 import pytz
 from datetime import datetime
 
-def create_embed(title, color = discord_color.default(), fields = {}):
+def create_embed(title, color = discord_color.blue(), fields = {}):
     embed = discord.Embed(
         title = title,
-        colour = color or discord_color.default()
+        colour = color or discord_color.blue()
     )
 
     for name, value in fields.items():
