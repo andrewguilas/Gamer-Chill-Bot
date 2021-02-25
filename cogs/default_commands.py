@@ -84,7 +84,7 @@ class default_commands(commands.Cog):
             "clearwebhooks <CHANNEL>": "Deletes all the webhooks for that CHANNEL. `Manage Webooks` permissions required. Included in the `server` set.",
         }))
 
-        await context.send(embed = create_embed("Bot Management", None, {
+        await context.send(embed = create_embed("Moderation", None, {
             "clear <AMOUNT = 1>": "Deletes AMOUNT of messages in the channel. `Manage Messages` permissions required. Included in the `moderation_commands` set.",
             "kick <MEMBER> <REASON = None>": "Kicks a MEMBER from the server with an optional reason. `Kick Members` permissions required. Included in the `moderation_commands` set.",
             "ban <MEMBER> <REASON>": "Bans a MEMBER from the server with an optional reason, preventing them from rejoining. `Ban Members` permissions required. Included in the `moderation_commands` set.",
@@ -94,11 +94,17 @@ class default_commands(commands.Cog):
             "deafen <MEMBER = Self>": "Deafens or undeafens the member. `Deafen Members` permissions required.",
         }))
 
+        await context.send(embed = create_embed("Bot", None, {
+            "execute <CODE>": "Executes CODE. `Bot Creator` permissions required. Included in the `bot` set.",
+            "cls": "Clears the terminal in the code editor. `Bot Creator` permissions required. Included in the `bot` set."
+        }))
+
         await context.send(embed = create_embed("Fun", None, {
             "8ball <QUESTION>": "Returns a random response to a question. No permissions required. Included in the `fun_commands` set.",
             "roll <MAX_NUM = 6>": "Chooses a random number between 1 and MAX_NUM. No permissions required. Included in the `fun_commands` set.",
             "choose <CHOICES: List>": "Chooses a random item from the list. Items are seperated by spaces. No permissions required. Included in the `fun_commands` set.",
             "impersonate <MEMBER> <CHANNEL> <MESSAGE>": "Sends a MESSAGE disguised as the MEMBER in the CHANNEL. No permissions required. Included in the `fun_commands` set.",
+            "tictactoe": "Create a game of tic tac toe. No permissions required. Included in the `tictactoe` set."
         }))
 
 def setup(client):

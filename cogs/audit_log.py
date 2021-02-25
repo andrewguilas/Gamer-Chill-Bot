@@ -192,6 +192,8 @@ class audit_log(commands.Cog):
             "Type": "Ready"
         }))
 
+    """
+
     @commands.Cog.listener()
     async def on_error(self, event):
         logs_channel = self.client.get_channel(CHANNEL_ID)
@@ -215,6 +217,8 @@ class audit_log(commands.Cog):
         embed.set_footer(text = f"#{logs_channel}")
         embed.set_author(name = context.author, icon_url = context.author.avatar_url)
         await logs_channel.send(embed = embed) 
+
+    """
 
     # message
 
@@ -314,7 +318,7 @@ class audit_log(commands.Cog):
         embed = create_embed(f"{user} has added the reaction `{reaction}` to a message by {context.author} in #{context.channel}", None, {
             "Type": "Reaction Add",
             "User": user.mention,
-            "Message": context.content,
+            "Message": context.content or str(context.embeds),
             "Message ID": context.jump_url,
             "Author": context.author.mention,
             "Created At": context.created_at,
@@ -331,7 +335,7 @@ class audit_log(commands.Cog):
         embed = create_embed(f"{user} has removed the reaction `{reaction}` from a message by {context.author} in #{context.channel}", None, {
             "Type": "Reaction Remove",
             "User": user.mention,
-            "Message": context.content,
+            "Message": context.content or str(context.embeds),
             "Message ID": context.jump_url,
             "Author": context.author.mention,
             "Created At": context.created_at,
@@ -344,10 +348,11 @@ class audit_log(commands.Cog):
     @commands.Cog.listener()
     async def on_reaction_clear(self, context, reactions):
         logs_channel = self.client.get_channel(CHANNEL_ID)
-        context = reactions[1].message
-        embed = create_embed(f"The reactions `{reactions}` were removed from a message by {context.author} in #{context.channel}", None, {
+        context = reactions[0].message
+        embed = create_embed(f"{len(reactions)} reactions were removed from a message by {context.author} in #{context.channel}", None, {
             "Type": "Reaction Clear",
-            "Message": context.content,
+            "Reactions": str(reactions),
+            "Message": context.content or str(context.embeds),
             "Message ID": context.jump_url,
             "Author": context.author.mention,
             "Created At": context.created_at,
@@ -537,8 +542,13 @@ class audit_log(commands.Cog):
     @commands.Cog.listener()
     async def on_member_remove(self, member):
         logs_channel = self.client.get_channel(CHANNEL_ID)
-        await logs_channel.send(embed = embed)    
-        
+        embed = create_embed(f"{member} has left the server", None, {
+            "Type": "Member Remove",
+            "Account Created": member.created_at
+        })
+        embed.set_footer(text = f"#{logs_channel}")
+        embed.set_author(name = member, icon_url = member.avatar_url)
+        await logs_channel.send(embed = embed)
 
     @commands.Cog.listener()
     async def on_member_update(self, before_user, after_user):

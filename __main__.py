@@ -87,5 +87,8 @@ def main():
 
     client.run(TOKEN)
 
+    while True:
+        exec(input("EXECUTE: "))
+
 if __name__ == "__main__":
     main()
