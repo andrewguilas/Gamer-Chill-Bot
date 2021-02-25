@@ -7,7 +7,6 @@ import discord
 from discord.ext import commands
 from discord import Color as discord_color
 
-import sys
 import asyncio
 import pytz
 from datetime import datetime
