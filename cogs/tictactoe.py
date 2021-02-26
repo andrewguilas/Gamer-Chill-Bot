@@ -1,7 +1,7 @@
 NUMBERS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"]
 PLAYER_1_EMOJI = "❎"
 PLAYER_2_EMOJI = "🅾️"
-JOIN_EMOJI = "➡️"
+JOIN_EMOJI = "🟩"
 
 import discord
 from discord.ext import commands
