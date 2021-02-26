@@ -242,7 +242,7 @@ class audit_log(commands.Cog):
         logs_channel = self.client.get_channel(CHANNEL_ID)
         embed = create_embed(f"{context.author} has sent a message in #{context.channel}", None, {
             "Type": "Message",
-            "Message": context.content,
+            "Message": context.content or str(context.embeds),
             "Message ID": context.jump_url,
             "Author": context.author.mention,
             "Channel": context.channel.mention,
@@ -260,7 +260,7 @@ class audit_log(commands.Cog):
         logs_channel = self.client.get_channel(CHANNEL_ID)
         embed = create_embed(f"{context.author}'s' message was deleted in #{context.channel}", None, {
             "Type": "Message Delete",
-            "Message": context.content,
+            "Message": context.content or str(context.embeds),
             "Message ID": context.jump_url,
             "Author": context.author.mention,
             "Channel": context.channel.mention,
@@ -279,7 +279,7 @@ class audit_log(commands.Cog):
                 
             embed = create_embed(f"{context.author}'s' message was deleted in #{context.channel}", None, {
                 "Type": "Bulk Message Delete",
-                "Message": context.content,
+                "Message": context.content or str(context.embeds),
                 "Message ID": context.jump_url,
                 "Author": context.author.mention,
                 "Channel": context.channel.mention,
@@ -298,8 +298,8 @@ class audit_log(commands.Cog):
         logs_channel = self.client.get_channel(CHANNEL_ID)
         embed = create_embed(f"{new_context.author} has edited a message in #{new_context.channel}", None, {
             "Type": "Message Edit",
-            "Previous Message": previous_context.content,
-            "New Message": new_context.content,
+            "Previous Message": previous_context.content or str(previous_context.embeds),
+            "New Message": new_context.content or str(new_context.embeds),
             "Message ID": new_context.jump_url,
             "Author": new_context.author.mention,
             "Created At": new_context.created_at,
@@ -318,7 +318,7 @@ class audit_log(commands.Cog):
         embed = create_embed(f"{user} has added the reaction `{reaction}` to a message by {context.author} in #{context.channel}", None, {
             "Type": "Reaction Add",
             "User": user.mention,
-            "Message": context.content or str(context.embeds),
+            "Message": context.content or str(context.embeds) or str(context.embeds),
             "Message ID": context.jump_url,
             "Author": context.author.mention,
             "Created At": context.created_at,
@@ -335,7 +335,7 @@ class audit_log(commands.Cog):
         embed = create_embed(f"{user} has removed the reaction `{reaction}` from a message by {context.author} in #{context.channel}", None, {
             "Type": "Reaction Remove",
             "User": user.mention,
-            "Message": context.content or str(context.embeds),
+            "Message": context.content or str(context.embeds) or str(context.embeds),
             "Message ID": context.jump_url,
             "Author": context.author.mention,
             "Created At": context.created_at,
@@ -352,7 +352,7 @@ class audit_log(commands.Cog):
         embed = create_embed(f"{len(reactions)} reactions were removed from a message by {context.author} in #{context.channel}", None, {
             "Type": "Reaction Clear",
             "Reactions": str(reactions),
-            "Message": context.content or str(context.embeds),
+            "Message": context.content or str(context.embeds) or str(context.embeds),
             "Message ID": context.jump_url,
             "Author": context.author.mention,
             "Created At": context.created_at,

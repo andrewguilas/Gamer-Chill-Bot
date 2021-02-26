@@ -73,5 +73,75 @@ class server(commands.Cog):
             "Channel": channel.mention
         }))   
 
+    @commands.command()
+    async def messageleaderboard(self, context):
+        BLACKLISTED_CHANNELS = ["army-command", "logs"]
+
+        # create status embed
+        embed = create_embed("Message Leaderboard", discord_color.gold(), {
+            "Status": "Starting"
+        })
+        embed.set_footer(text = f"#{context.channel}")
+        embed.set_author(name = context.author, icon_url = context.author.avatar_url)
+        status = await context.send(embed = embed)
+
+        # get messages
+        messages = []
+        for channel in context.guild.text_channels:
+            if channel.name in BLACKLISTED_CHANNELS:
+                continue
+
+            embed = create_embed("Message Leaderboard", discord_color.gold(), {
+                "Status": f"Scanning {channel.mention}"
+            })
+            embed.set_footer(text = f"#{context.channel}")
+            embed.set_author(name = context.author, icon_url = context.author.avatar_url)
+            await status.edit(embed = embed)
+
+            messages = messages + await channel.history(limit = None).flatten()
+
+        # scan saved messages
+        embed = create_embed("Message Leaderboard", discord_color.gold(), {
+            "Status": "Counting Scanned Messages: 0%"
+        })
+        embed.set_footer(text = f"#{context.channel}")
+        embed.set_author(name = context.author, icon_url = context.author.avatar_url)
+        await status.edit(embed = embed)
+        
+        member_history = {}
+        message_count = len(messages)
+        for index, message in enumerate(messages):
+            if not member_history.get(message.author.name):
+                member_history[message.author.name] = 1
+            else:
+                member_history[message.author.name] += 1
+
+            if index % 100 == 0:
+                embed = create_embed("Message Leaderboard", discord_color.gold(), {
+                    "Status": f"Counting Scanned Messages: {round(index / message_count, 3) * 100}%"
+                })
+                embed.set_footer(text = f"#{context.channel}")
+                embed.set_author(name = context.author, icon_url = context.author.avatar_url)
+                await status.edit(embed = embed)
+        
+        # sort
+        embed = create_embed("Message Leaderboard", discord_color.gold(), {
+            "Status": f"Sorting Data"
+        })
+        embed.set_footer(text = f"#{context.channel}")
+        embed.set_author(name = context.author, icon_url = context.author.avatar_url)
+        await status.edit(embed = embed)
+
+        sorted_member_history = {}
+        sorted_keys = sorted(member_history, key = member_history.get, reverse = True)
+
+        for w in sorted_keys:
+            sorted_member_history[w] = member_history[w]
+
+        # send data
+        embed = create_embed("Message Leaderboard", discord_color.green(), sorted_member_history)
+        embed.insert_field_at(index = -1, name = "TOTAL", value = message_count, inline = False)
+        await status.edit(embed = embed)
+
 def setup(client):
     client.add_cog(server(client))
