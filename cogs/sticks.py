@@ -2,6 +2,7 @@ JOIN_EMOJI = "🟩"
 LEFT_EMOJI = "◀️"
 RIGHT_EMOJI = "▶️"
 OUT_EMOJI = "❌"
+ADD_EMOJI = "➕"
 NUMBERS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]
 PLAYER_2_JOIN_TIMEOUT = 30
 MOVE_TIMEOUT = 30

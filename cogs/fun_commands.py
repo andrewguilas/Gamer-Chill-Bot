@@ -4,6 +4,7 @@ from discord import Color as discord_color
 
 import random
 import pytz
+import random
 from datetime import datetime
 
 def create_embed(title, color = discord_color.blue(), fields = {}):
@@ -79,6 +80,21 @@ class fun_commands(commands.Cog):
         webhooks = await context.channel.webhooks()
         for webhook in webhooks:
             await webhook.delete()
+
+    @commands.command()
+    async def whohasbigpp(self, context):
+        member = random.choice(context.guild.members)
+        await context.send(embed = create_embed(f"Legends say, {member.name} has the biggest pp"))
+
+    @commands.command()
+    async def whohassmallpp(self, context):
+        member = random.choice(context.guild.members)
+        await context.send(embed = create_embed(f"{member.name} flashed the smallest pp I've ever seen"))
+
+    @commands.command()
+    async def randomperson(self, context):
+        member = random.choice(context.guild.members)
+        await context.send(embed = create_embed(member.name))
 
 def setup(client):
     client.add_cog(fun_commands(client))

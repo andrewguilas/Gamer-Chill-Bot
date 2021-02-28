@@ -3,6 +3,8 @@ from discord.ext import commands
 from discord import Color as discord_color
 
 import pytz
+import asyncio
+import re
 from datetime import datetime
 
 def create_embed(title, color = discord_color.blue(), fields = {}):
@@ -142,6 +144,88 @@ class server(commands.Cog):
         embed = create_embed("Message Leaderboard", discord_color.green(), sorted_member_history)
         embed.insert_field_at(index = -1, name = "TOTAL", value = message_count, inline = False)
         await status.edit(embed = embed)
+    
+    @commands.command()
+    async def emojileaderboard(self, context):
+        try:
+            BLACKLISTED_CHANNELS = ["army-command", "logs"]
+
+            # send embed
+
+            embed = await context.send(embed = create_embed("Emoji Leaderboard", discord_color.gold(), {
+                "Status": "Starting"
+            }))
+            await asyncio.sleep(2)
+
+            # get messages
+            messages = []
+            channel_amount = len(context.guild.text_channels)
+            for index, channel in enumerate(context.guild.text_channels):
+                if channel.name in BLACKLISTED_CHANNELS:
+                     continue
+
+                await embed.edit(embed = create_embed("Emoji Leaderboard", discord_color.gold(), {
+                    "Status": f"Retrieving messages from {channel.mention} ({round(index / channel_amount, 4) * 100}%)"
+                }))
+
+                messages = messages + await channel.history(limit = None).flatten()
+
+            # get emojis
+
+            await embed.edit(embed = create_embed("Emoji Leaderboard", discord_color.gold(), {
+                "Status": f"Getting emojis"
+            }))
+
+            custom_emojis = await context.guild.fetch_emojis()
+            custom_emojis_id = []
+            for emoji in custom_emojis:
+                custom_emojis_id.append(emoji.id)
+
+            # scan messages
+            emoji_history = {}
+            message_amount = len(messages)
+            for index, message in enumerate(messages):
+                for emoji_id in custom_emojis_id:
+                    occurances = len(re.findall(str(emoji_id), message.content))
+                    if occurances == 0:
+                        continue
+
+                    if not emoji_history.get(emoji_id):
+                        emoji_history[emoji_id] = occurances
+                    else:
+                        emoji_history[emoji_id] += occurances
+
+                    if message_amount % 100 == 100:
+                        await embed.edit(embed = create_embed("Emoji Leaderboard", discord_color.gold(), {
+                            "Status": f"Scanning messages ({round(index / message_amount, 4) * 100}%)"
+                        }))
+
+            # sort
+
+            await embed.edit(embed = create_embed("Emoji Leaderboard", discord_color.gold(), {
+                "Status": f"Sorting Data"
+            }))
+
+            sorted_emoji_history = {}
+            sorted_keys = sorted(emoji_history, key = emoji_history.get, reverse = True)
+
+            for w in sorted_keys:
+                sorted_emoji_history[w] = emoji_history[w]
+
+            # get emoji name
+            fields = {}
+            for emoji_id, count in sorted_emoji_history.items():
+                for emoji in custom_emojis:
+                    if emoji.id == emoji_id:
+                        fields[str(emoji)] = count
+                        break
+
+            # send embed
+            await embed.edit(embed = create_embed("Emoji Leaderboard", None, fields))
+        except Exception as error_message:
+            await embed.edit(embed = create_embed(f"Error: Something went wrong when retrieving emoji leaderboard", discord_color.red(), {
+                "Error Message": str(error_message)
+            }))
 
 def setup(client):
     client.add_cog(server(client))
