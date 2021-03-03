@@ -6,6 +6,7 @@ from discord import Color as discord_color
 
 import os
 import pytz
+import threading
 from datetime import datetime
 
 def create_embed(title, color = discord_color.blue(), fields = {}):
@@ -86,9 +87,6 @@ def main():
                 client.load_extension(f"cogs.{file_name[:-3]}")
 
     client.run(TOKEN)
-
-    while True:
-        exec(input("EXECUTE: "))
 
 if __name__ == "__main__":
     main()

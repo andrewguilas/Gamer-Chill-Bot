@@ -39,11 +39,12 @@ class default_commands(commands.Cog):
 
             "default_embed": create_embed("Default", None, {
                 "help": "Returns a list of bot commands. No permissions required. Included in the `default_commands` set.",
-                "helpold": "A legacy help command. No permissions required. Included in the `default_commands set.",
+                "helpold": "A legacy help command. No permissions required. Included in the `default_commands set`.",
                 "ping": "Returns the user's ping. No permissions required. Included in the `default_commands` set.",
                 "invitebot": "Returns an invite link for the bot. This bot was designed for this server specifically. No permissions required. Included in the `default_commands` set.",
                 "invitetoserver": "Returns an invite link for the server (first text channel). Invite permissions required. Included in the `default_commands` set.",
                 "invitetochannel": "Returns an invite link for the current channel. Invite permissions required. Included in the `default_commands` set.",
+                "acas": "Gives the member a role to be notified when class starts and 5 minutes before. No permissions required. Included in the `class_alert` set.",
             }),
 
             "fun_embed": create_embed("Fun", None, {
@@ -51,7 +52,11 @@ class default_commands(commands.Cog):
                 "roll <MAX_NUM = 6>": "Chooses a random number between 1 and MAX_NUM. No permissions required. Included in the `fun_commands` set.",
                 "choose <CHOICES: List>": "Chooses a random item from the list. Items are seperated by spaces. No permissions required. Included in the `fun_commands` set.",
                 "impersonate <MEMBER> <CHANNEL> <MESSAGE>": "Sends a MESSAGE disguised as the MEMBER in the CHANNEL. No permissions required. Included in the `fun_commands` set.",
-                "tictactoe": "Create a game of tic tac toe. No permissions required. Included in the `tictactoe` set."
+                "tictactoe": "Creates a game of tic tac toe requiring two players. No permissions required. Included in the `tictactoe` set.",
+                "sticks": "Creates a game of sticks requiring two players. No permissions required. Included in the `sticks` set.",
+                "whohasbigpp": "Returns a random person in the server. No permissions required. Included in the `fun_commands` set.",
+                "whohassmallpp": "Returns a random person in the server. No permissions required. Included in the `fun_commands` set.",
+                "randomperson": "Returns a random person in the server. No permissions required. Included in the `fun_commands` set.",
             }),
 
             "moderation_embed": create_embed("Moderation", None, {
@@ -61,12 +66,15 @@ class default_commands(commands.Cog):
                 "unban <MEMBER>": "Unbans a MEMBER from the server allowing them to rejoin. `Ban Members` permissions required. Included in the `moderation_commands` set.",
                 "nick <MEMBER = Self> <NICKNAME = None>": "Adds a nickname to the member if provided, else, it would remove its nickname. `Manage Messages` permissions required. Included in the `moderation_commands` set.",
                 "mute <MEMBER = Self>": "Mutes or unmutes the member. `Mute Members` permissions required. Included in the `moderation_commands` set.",
-                "deafen <MEMBER = Self>": "Deafens or undeafens the member. `Deafen Members` permissions required.",
+                "deafen <MEMBER = Self>": "Deafens or undeafens the member. `Deafen Members` permissions required. Included in the `moderation_commands` set.",
+                "move <MEMBER>": "Moves the member into the specified voice channel. `Move Member` permissions required. Included in the `moderation_commands` set.",
             }),
 
             "server_embed": create_embed("Server", None, {
                 "listwebhooks <CHANNEL>": "Lists the webhooks for that CHANNEL. `Manage Webooks` permissions required. Included in the `server` set.",
                 "clearwebhooks <CHANNEL>": "Deletes all the webhooks for that CHANNEL. `Manage Webooks` permissions required. Included in the `server` set.",
+                "messageleaderboard": "Returns a sorted list of people and the amount of messages they've sent in the server. Unscanned channels are #logs and #army-command. Will take several minutes to finish running. No permissions required. Included in the `server` set.",
+                "emojileaderboard": "Returns a sorted list of custom emojis and the amount of messages which included that emoji. Unscanned channels are #logs and #army-command. Will take several minutes to finish running. No permissions required. Included in the `server` set.",
             }),
 
             "bot_embed": create_embed("Bot", None, {

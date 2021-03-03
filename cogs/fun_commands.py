@@ -5,6 +5,7 @@ from discord import Color as discord_color
 import random
 import pytz
 import random
+import asyncio
 from datetime import datetime
 
 def create_embed(title, color = discord_color.blue(), fields = {}):

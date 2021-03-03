@@ -201,5 +201,11 @@ class moderation_commands(commands.Cog):
             fill = will_deafen and "deafened" or "undeafened"
             await context.send(embed = create_embed(f"Success: {member} was {fill}", color = discord_color.green()))
 
+    @commands.command()
+    @commands.check_any(commands.is_owner(), commands.has_permissions(move_members = True))
+    async def move(self, context, member: discord.Member = None, *, voice_channel): 
+        channel = discord.utils.get(context.guild.voice_channels, name = voice_channel)
+        await member.move_to(channel)
+
 def setup(client):
     client.add_cog(moderation_commands(client))
