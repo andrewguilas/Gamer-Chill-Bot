@@ -58,7 +58,7 @@ class class_alert(commands.Cog):
             current_time = str(now.strftime("%H:%M:%S"))
 
             if current_time in BLOCK_TIMES:
-                await channel.send(f"{role.mention} **Block {int(BLOCK_TIMES.index(current_time)) + 1} is starting now!**")
+                await channel.send(f"{role.mention} **Block {int(REMINDER_BLOCK_TIMES.index(current_time)) + 1} is starting now!**")
             elif current_time in REMINDER_BLOCK_TIMES:
                 await channel.send(f"{role.mention} Block {int(BLOCK_TIMES.index(current_time)) + 1} is starting in 5 minutes")
 
