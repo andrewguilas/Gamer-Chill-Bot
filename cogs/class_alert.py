@@ -39,23 +39,25 @@ class class_alert(commands.Cog):
     @tasks.loop(seconds = 1)
     async def class_alert(self):
         REMINDER_BLOCK_TIMES = ["09:20:00", "10:50:00", "12:35:00", "14:35:00"]
-        BLOCK_TIMES = ["09:25:00", "10:55:00", "12:40:00", "14:40:00"]
-        ROLE_ID = 816706859015995432
+        # BLOCK_TIMES = ["09:25:00", "10:55:00", "12:40:00", "14:40:00"]
+        BLOCK_TIMES = ["09:25:00", "10:55:00", "11:50:00", "14:40:00"]
+        GUILD_ID = 651133204492845066
+        # ROLE_ID = 816706859015995432
+        ROLE_ID = 813259107317448775
         CHANNEL_ID = 816702193675403324
 
-        for guild in self.client.guilds:
-            role = discord.utils.get(guild.roles, id = ROLE_ID)
-            channel = discord.utils.get(guild.channels, id = CHANNEL_ID)
+        guild = await self.client.fetch_guild(GUILD_ID)
+        role = guild.get_role(ROLE_ID)
+        channel = self.client.get_channel(CHANNEL_ID)
 
-            now = datetime.now(tz = pytz.timezone("US/Eastern"))
-            current_time = now.strftime("%H:%M:%S")
+        now = datetime.now(tz = pytz.timezone("US/Eastern"))
+        current_time = now.strftime("%H:%M:%S")
 
-            if current_time in BLOCK_TIMES:
-                message = f"{role.mention} **Block {int(BLOCK_TIMES.index(current_time)) + 1} is starting now!**"
-                await channel.send(message)
-            elif current_time in REMINDER_BLOCK_TIMES:
-                message = f"{role.mention} Block {int(BLOCK_TIMES.index(current_time)) + 1} is starting in 5 minutes"
-                await channel.send(message)
+        if current_time in BLOCK_TIMES:
+            await channel.send(f"{role.mention} **Block {int(BLOCK_TIMES.index(current_time)) + 1} is starting now!**")
+        elif current_time in REMINDER_BLOCK_TIMES:
+            await channel.send(f"{role.mention} Block {int(BLOCK_TIMES.index(current_time)) + 1} is starting in 5 minutes")
+
 
     @commands.command()
     async def acas(self, context):
