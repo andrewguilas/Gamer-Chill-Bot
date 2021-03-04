@@ -40,7 +40,7 @@ class class_alert(commands.Cog):
     async def class_alert(self):
         await self.client.wait_until_ready()
 
-        AUDIT_CHANNEL_ID = 813757261045563432
+        AUDIT_CHANNEL_ID = 813453150886428742
         logs_channel = self.client.get_channel(AUDIT_CHANNEL_ID)
 
         try:
@@ -61,8 +61,6 @@ class class_alert(commands.Cog):
                 await channel.send(f"{role.mention} **Block {int(REMINDER_BLOCK_TIMES.index(current_time)) + 1} is starting now!**")
             elif current_time in REMINDER_BLOCK_TIMES:
                 await channel.send(f"{role.mention} Block {int(BLOCK_TIMES.index(current_time)) + 1} is starting in 5 minutes")
-
-            await self.client.change_presence(activity = discord.Game(name = current_time))
         except Exception as error_message:
             await logs_channel.send(embed = create_embed("ERROR: Something went wrong when running a class alert", discord_color.red(), {
                 "Error Message": error_message
