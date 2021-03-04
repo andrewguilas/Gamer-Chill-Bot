@@ -51,11 +51,12 @@ class class_alert(commands.Cog):
         now = datetime.now(tz = pytz.timezone("US/Eastern"))
         current_time = now.strftime("%H:%M:%S")
 
-        if current_time in BLOCK_TIMES:
+        if str(current_time) in BLOCK_TIMES:
             await channel.send(f"{role.mention} **Block {int(BLOCK_TIMES.index(current_time)) + 1} is starting now!**")
-        elif current_time in REMINDER_BLOCK_TIMES:
+        elif str(current_time) in REMINDER_BLOCK_TIMES:
             await channel.send(f"{role.mention} Block {int(BLOCK_TIMES.index(current_time)) + 1} is starting in 5 minutes")
 
+        await self.client.change_presence(activity = discord.Game(name = current_time))
 
     @commands.command()
     async def acas(self, context):
