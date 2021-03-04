@@ -55,11 +55,11 @@ class class_alert(commands.Cog):
             channel = self.client.get_channel(CHANNEL_ID)
 
             now = datetime.now(tz = pytz.timezone("US/Eastern"))
-            current_time = now.strftime("%H:%M:%S")
+            current_time = str(now.strftime("%H:%M:%S"))
 
-            if str(current_time) in BLOCK_TIMES:
+            if current_time in BLOCK_TIMES:
                 await channel.send(f"{role.mention} **Block {int(BLOCK_TIMES.index(current_time)) + 1} is starting now!**")
-            elif str(current_time) in REMINDER_BLOCK_TIMES:
+            elif current_time in REMINDER_BLOCK_TIMES:
                 await channel.send(f"{role.mention} Block {int(BLOCK_TIMES.index(current_time)) + 1} is starting in 5 minutes")
 
             await self.client.change_presence(activity = discord.Game(name = current_time))
