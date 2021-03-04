@@ -39,11 +39,9 @@ class class_alert(commands.Cog):
     @tasks.loop(seconds = 1)
     async def class_alert(self):
         REMINDER_BLOCK_TIMES = ["09:20:00", "10:50:00", "12:35:00", "14:35:00"]
-        # BLOCK_TIMES = ["09:25:00", "10:55:00", "12:40:00", "14:40:00"]
-        BLOCK_TIMES = ["09:25:00", "10:55:00", "11:50:00", "14:40:00"]
+        BLOCK_TIMES = ["09:25:00", "10:55:00", "12:40:00", "14:40:00"]
         GUILD_ID = 651133204492845066
-        # ROLE_ID = 816706859015995432
-        ROLE_ID = 813259107317448775
+        ROLE_ID = 816706859015995432
         CHANNEL_ID = 816702193675403324
 
         guild = await self.client.fetch_guild(GUILD_ID)
