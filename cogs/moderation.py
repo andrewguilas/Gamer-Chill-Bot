@@ -38,7 +38,7 @@ class moderation_commands(commands.Cog):
                 "Error Message": str(error_message)
             }))
         else:
-            await context.send(embed = create_embed(f"Success: {str(deleted_messages_count)} messages were deleted", discord_color.green()))
+            await context.send(embed = create_embed(f"Success: {str(deleted_messages_count)} messages were deleted", discord_color.green()), delete_after = 3)
 
     @commands.command()
     @commands.check_any(commands.is_owner(), commands.has_permissions(kick_members = True))
