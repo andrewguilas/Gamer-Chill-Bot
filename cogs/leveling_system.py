@@ -6,6 +6,7 @@ LEVEL_DIFFICULTY = 20
 MAX_BOXES_FOR_RANK_EMBED = 20
 MAX_FIELDS_FOR_LEADERBOARD_EMBED = 10
 BOT_CHANNEL = 813757261045563432
+MESSAGE_COOLDOWN = 30
 
 import discord
 from discord import Color as discord_color
@@ -16,11 +17,13 @@ import pytz
 import os
 import random
 import asyncio
+import time
 from datetime import datetime
 from pymongo import MongoClient
 
 cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
 leveling = cluster.discord.leveling
+recent_messagers = {}
 
 def create_embed(title, color = discord_color.blue(), fields = {}):
     embed = discord.Embed(
@@ -53,6 +56,15 @@ def insert_data(data):
 
 def give_experience(user_id, amount):
     new_level = False
+
+    # cooldown for gaining EXP
+    if recent_messagers.get(user_id):
+        if time.time() - recent_messagers[user_id] < MESSAGE_COOLDOWN:
+            return new_level
+        else:
+            recent_messagers[user_id] = None
+    else:
+        recent_messagers[user_id] = time.time()   
 
     stats = get_data(user_id)
     if not stats:
