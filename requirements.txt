@@ -3,4 +3,4 @@ pandas
 dnspython==1.16.0
 async-timeout==3.0.1
 pytz
-pymongo==4.4.4
+pymongo==3.11.2
