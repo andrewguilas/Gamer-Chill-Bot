@@ -74,5 +74,41 @@ class bot(commands.Cog):
             embed.set_author(name = context.author, icon_url = context.author.avatar_url)
             await context.send(embed = embed)
 
+    @commands.command()
+    @commands.check_any(commands.is_owner())
+    async def changeactivity(self, context, *, activity = ""):
+        try:
+            await self.client.change_presence(activity = discord.Game(name = activity))
+        except Exception as error_message:
+            embed = create_embed(f"Error: Something went when changing the bot's activity to `{activity}`", discord_color.red(), {
+                "Error Message": str(error_message),
+            })
+            embed.set_footer(text = f"#{context.channel}")
+            embed.set_author(name = context.author, icon_url = context.author.avatar_url)
+            await context.send(embed = embed)
+        else:
+            embed = create_embed(f"Success: Bot's activity changed to `{activity}`", discord_color.green())
+            embed.set_footer(text = f"#{context.channel}")
+            embed.set_author(name = context.author, icon_url = context.author.avatar_url)
+            await context.send(embed = embed)
+
+    @commands.command()
+    @commands.check_any(commands.is_owner())
+    async def changestatus(self, context, *, status = "online"):
+        try:
+            await self.client.change_presence(status = discord.Status[status])
+        except Exception as error_message:
+            embed = create_embed(f"Error: Something went when changing the bot's status to `{status}`", discord_color.red(), {
+                "Error Message": str(error_message),
+            })
+            embed.set_footer(text = f"#{context.channel}")
+            embed.set_author(name = context.author, icon_url = context.author.avatar_url)
+            await context.send(embed = embed)
+        else:
+            embed = create_embed(f"Success: Bot's status changed to `{status}`", discord_color.green())
+            embed.set_footer(text = f"#{context.channel}")
+            embed.set_author(name = context.author, icon_url = context.author.avatar_url)
+            await context.send(embed = embed)
+
 def setup(client):
     client.add_cog(bot(client))

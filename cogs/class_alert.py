@@ -51,7 +51,7 @@ class class_alert(commands.Cog):
 
         now = datetime.now(tz = pytz.timezone("US/Eastern"))
         
-        if (now.datetime.today().weekday() in BLACKLISTED_DAYS) or (self.is_paused):
+        if (now.today().weekday() in BLACKLISTED_DAYS) or (self.is_paused):
             return
 
         try:
