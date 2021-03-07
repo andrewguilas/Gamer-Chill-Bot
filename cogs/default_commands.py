@@ -33,9 +33,10 @@ class default_commands(commands.Cog):
                 "2 - Default": "In general commands",
                 "3 - Fun": "Commands for fun and games",
                 "4 - Leveling System": "Commands for using and managing the leveling system",
-                "5 - Moderation": "Commands for moderation",
-                "6 - Server": "Commands for server management",
-                "7 - Bot": "Commands for bot management"
+                "5 - Economy System": "Commands for using and managing the economy system.",
+                "6 - Moderation": "Commands for moderation",
+                "7 - Server": "Commands for server management",
+                "8 - Bot": "Commands for bot management"
             }),
 
             "default_embed": create_embed("Default", None, {
@@ -64,6 +65,18 @@ class default_commands(commands.Cog):
                 "rank <MEMBER>": "Returns the rank of the member. No permissions required. Included in the `leveling_system set`.",
                 "leaderboard": "Returns the leaderboard of the server. No permissions required. Included in the `leveling_system` set.",
                 "addexperience <MEMBER> <AMOUNT>": "Gives a member a specified amount of experience. `Bot Owner` or `Administrator` permissions required. Included in the `leveling_system` set.",
+            }),
+
+            "economy_system_embed": create_embed("Economy System", None, {
+                "pocket <MEMBER = SELF>": "Returns the amount of money in the member's pocket. No permissions required. Included in the `economy_system` set.",
+                "bank <MEMBER = SELF>": "Returns the amount of money in the member's bank account. No permissions required. Included in the `economy_system` set.",
+                "wealth <MEMBER = SELF>": "Returns the net worth of the member. The net worth includes their pocket and bank account. No permissions required. Included in the `economy_system` set.",
+                "forbes": "Returns a list of the richest people on the server and their net worth. No permissions required. Included in the `economy_system` set.",
+                "withdraw <AMOUNT>": "Transfers money from the member's bank account to their pocket. No permissions required. Included in the `economy_system` set.",
+                "deposit <AMOUNT>": "Transfers money from the member's pocket to their bank account. No permissions required. Included in the `economy_system` set.",
+                "give <RECEIVER = SELF> <AMOUNT>": "Transfers money from the user's pocket to the receiver's pocket. No permissions required. the Included in the `economy_system` set.",
+                "wire <RECEIVER = SELF> <AMOUNT>": "Transfers money from hte user's bank account to the receiver's bank account. No permissions required. Included in the `economy_system` set.",
+                "addmoney <MEMBER> <AMOUNT>": "Prints and gives money to the specified member. `Bot Creator` or `Administrator` permissions required. Included in the `economy_system` set.",
             }),
 
             "moderation_embed": create_embed("Moderation", None, {
@@ -101,6 +114,7 @@ class default_commands(commands.Cog):
             self.help_embeds["default_embed"],
             self.help_embeds["fun_embed"],
             self.help_embeds["leveling_system_embed"],
+            self.help_embeds["economy_system_embed"],
             self.help_embeds["moderation_embed"],
             self.help_embeds["server_embed"],
             self.help_embeds["bot_embed"],
@@ -187,7 +201,7 @@ class default_commands(commands.Cog):
 
     @commands.command()
     async def help(self, context):
-        EMOJIS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣"]
+        EMOJIS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣"]
         
         current_page = 0
         new_embed = self.ordered_help_embeds[current_page]

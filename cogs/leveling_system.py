@@ -128,7 +128,7 @@ class leveling_system(commands.Cog):
         await self.client.wait_until_ready()
 
         guild = self.client.guilds[0]
-        audit_log_channel = logs_channel = self.client.get_channel(LOG_CHANNEL)
+        audit_log_channel = self.client.get_channel(LOG_CHANNEL)
         for voice_channel in guild.voice_channels:
             games = {}
             for member in voice_channel.members:
@@ -148,38 +148,43 @@ class leveling_system(commands.Cog):
                             "Party Members": members
                         }))
                         
-
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author.bot or message.channel.id in BLACKLISTED_MESSAGE_CHANNELS:
             return
-
+        
+        audit_log_channel = self.client.get_channel(LOG_CHANNEL)
         random_experience_gain = random.randint(MIN_MSG_EXP_GAIN, MAX_MSG_EXP_GAIN)
+        await audit_log_channel.send(embed = create_embed(f"Awarding {message.author} {random_experience_gain} EXP for sending a message", None, {
+            "Channel": message.channel.mention,
+        }))
+
         new_level = give_experience(message.author.id, random_experience_gain)
         if new_level:
-            await message.channel.send(embed = create_embed(f"{message.author} leveled to level {new_level}"))
+            await message.channel.send(embed = create_embed(f"{message.author} leveled up to level {new_level}"))
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, user, before, after):
-        level_up_channel = self.client.get_channel(BOT_CHANNEL)
+        audit_log_channel = self.client.get_channel(LOG_CHANNEL)
 
         # check if user joined the vc
         if before.channel != after.channel and after.channel:
             while True:
                 await asyncio.sleep(UPDATE_VC_STATUS)
 
-                # check if user left the vc
-                if not user.voice:
+                if not user.voice: # check if user left the vc
                     break
-                
-                # check if the vc is deafened
-                if user.voice.self_deaf or len(user.voice.channel.users) <= 1:
+                elif user.voice.self_deaf or len(user.voice.channel.users) <= 1: # check if the vc is deafened
                     continue
 
                 random_experience_gain = random.randint(MIN_VC_EXP_GAIN, MAX_VC_EXP_GAIN)
+                await audit_log_channel.send(embed = create_embed(f"Awarding {user} {random_experience_gain} EXP for staying in a voice channel", None, {
+                    "Voice Channel": after.channel
+                }))
+
                 new_level = give_experience(user.id, random_experience_gain)
                 if new_level:
-                    await level_up_channel.send(embed = create_embed(f"{user} leveled to level {new_level}"))
+                    await audit_log_channel.send(embed = create_embed(f"{user} leveled up to level {new_level}"))
 
     @commands.command()
     async def rank(self, context, member: discord.Member = None):
