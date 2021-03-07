@@ -63,9 +63,6 @@ class default_commands(commands.Cog):
             "leveling_system_embed": create_embed("Leveling System", None, {
                 "rank <MEMBER>": "Returns the rank of the member. No permissions required. Included in the `leveling_system set`.",
                 "leaderboard": "Returns the leaderboard of the server. No permissions required. Included in the `leveling_system` set.",
-                "setlevel <MEMBER> <AMOUNT>": "Changes the member's level to the specified amount. Command is unstable and not recommended. Use `addexperience` instead. `Bot Owner` or `Administrator` permissions required. Included in the `leveling_system` set.",
-                "setexperience <MEMBER> <AMOUNT>": "Changes the member's experience to the specified amount. Command is unstable and not recommended. Use `addexperience` instead. `Bot Owner` or `Administrator` permissions required. Included in the `leveling_system` set.",
-                "settotalexperience <MEMBER> <AMOUNT>": "Changes the member's total experience to the specified amount. Command is unstable and not recommended. Use `addexperience` instead. `Bot Owner` or `Administrator` permissions required. Included in the `leveling_system` set.",
                 "addexperience <MEMBER> <AMOUNT>": "Gives a member a specified amount of experience. `Bot Owner` or `Administrator` permissions required. Included in the `leveling_system` set.",
             }),
 

@@ -1,12 +1,17 @@
 MIN_MSG_EXP_GAIN, MAX_MSG_EXP_GAIN = 4, 8
 MIN_VC_EXP_GAIN, MAX_VC_EXP_GAIN = 1, 2
+
 STARTING_LEVEL = 1
 STARTING_EXPERIENCE = 0
+
+MESSAGE_COOLDOWN = 1
 LEVEL_DIFFICULTY = 20
+
 MAX_BOXES_FOR_RANK_EMBED = 20
 MAX_FIELDS_FOR_LEADERBOARD_EMBED = 10
+
 BOT_CHANNEL = 813757261045563432
-MESSAGE_COOLDOWN = 30
+BLACKLISTED_MESSAGE_CHANNELS = [] #[673714091466031113, 813757261045563432, 813261215081562182]
 
 import discord
 from discord import Color as discord_color
@@ -71,6 +76,7 @@ def give_experience(user_id, amount):
     else:
         recent_messagers[user_id] = time.time()   
 
+    # get data / set default data
     stats = get_data(user_id)
     if not stats:
         insert_data({
@@ -85,10 +91,13 @@ def give_experience(user_id, amount):
     experience = stats["experience"] + amount
     total_experience = stats["total_experience"] + amount
 
-    if experience >= get_total_experience_of_level(level):
-        level += 1
-        experience = 0
-        new_level = level
+    while True:
+        if experience >= get_total_experience_of_level(level):
+            experience -= get_total_experience_of_level(level)
+            level += 1
+            new_level = level
+        else:
+            break
 
     save_data(user_id, {
         "level": level,
@@ -104,7 +113,7 @@ class leveling_system(commands.Cog):
     
     @commands.Cog.listener()
     async def on_message(self, message):
-        if message.author.bot:
+        if message.author.bot or message.channel.id in BLACKLISTED_MESSAGE_CHANNELS:
             return
 
         random_experience_gain = random.randint(MIN_MSG_EXP_GAIN, MAX_MSG_EXP_GAIN)
@@ -126,7 +135,7 @@ class leveling_system(commands.Cog):
                     break
                 
                 # check if the vc is deafened
-                if user.voice.self_deaf:
+                if user.voice.self_deaf or len(user.voice.channel.users) <= 1:
                     continue
 
                 random_experience_gain = random.randint(MIN_VC_EXP_GAIN, MAX_VC_EXP_GAIN)
@@ -139,25 +148,30 @@ class leveling_system(commands.Cog):
         if not member:
             member = context.author
 
-        stats = leveling.find_one({"id": member.id})
+        # get data
+        stats = get_data(member.id)
         level = stats and stats["level"] or STARTING_LEVEL
         experience = stats and stats["experience"] or STARTING_EXPERIENCE
+
+        # get rank
         rank = 0
-
-        boxes = int(experience / get_total_experience_of_level(level) * MAX_BOXES_FOR_RANK_EMBED)
-
         member_stats = leveling.find().sort("experience", -1)
         for member_stat in member_stats:
             rank += 1
             if stats["id"] == member_stat["id"]:
                 break
 
+        # create boxes
+        blue_boxes = int(experience / get_total_experience_of_level(level) * MAX_BOXES_FOR_RANK_EMBED)
+        white_boxes = (MAX_BOXES_FOR_RANK_EMBED - blue_boxes)
+
+        # create embed
         embed = create_embed(f"{member}'s rank", None, {
             "Name": member.mention,
             "Level": level,
             "Experience": f"{experience}/{get_total_experience_of_level(level)}",
             "Rank": rank,
-            "Progress Bar": boxes * ":blue_square:" + (MAX_BOXES_FOR_RANK_EMBED - boxes) * ":white_large_square:"
+            "Progress Bar": blue_boxes * ":blue_square:" + white_boxes * ":white_large_square:"
         })
         embed.set_author(name = member, icon_url = member.avatar_url)
         embed.set_thumbnail(url = member.avatar_url)
@@ -168,10 +182,12 @@ class leveling_system(commands.Cog):
         if context.author.bot:
             return
 
+        # create loading embed
         embed = await context.send(embed = create_embed("Leaderboard", discord_color.gold(), {
             "Status": "Loading leaderboard..."
         }))
 
+        # create fields
         member_stats = leveling.find().sort("total_experience", -1)
         fields = {}
         for place, member_stat in enumerate(member_stats):
@@ -186,46 +202,8 @@ class leveling_system(commands.Cog):
             if place == MAX_FIELDS_FOR_LEADERBOARD_EMBED - 1:
                 break
 
+        # update embed
         await embed.edit(embed = create_embed("Leaderboard", None, fields))
-
-    @commands.command()
-    @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
-    async def setlevel(self, context, member: discord.Member, amount: int = None):
-        if not amount:
-            return
-
-        data = get_data(member.id)
-        data["level"] += amount
-        save_data(member.id, data)
-        await context.send(embed = create_embed(f"Set {member}'s level to {amount}"))
-
-    @commands.command()
-    @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
-    async def setexperience(self, context, member: discord.Member, amount: int = None):
-        data = get_data(member.id)
-        data["experience"] += amount
-        data["total_experience"] += amount
-
-        if data["experience"] >= get_total_experience_of_level(data["level"]):
-            data["level"] += 1
-            data["experience"] = 0
-
-        save_data(member.id, data)
-        await context.send(embed = create_embed(f"Set {member}'s experience to {amount}"))
-
-    @commands.command()
-    @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
-    async def settotalexperience(self, context, member: discord.Member, amount: int = None):
-        data = get_data(member.id)
-        data["experience"] += amount
-        data["total_experience"] += amount
-
-        if data["experience"] >= get_total_experience_of_level(data["level"]):
-            data["level"] += 1
-            data["experience"] = 0
-
-        save_data(member.id, data)
-        await context.send(embed = create_embed(f"Set {member}'s total experience to {amount}"))
 
     @commands.command()
     @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
