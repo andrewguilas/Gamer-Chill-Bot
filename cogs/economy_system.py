@@ -111,7 +111,7 @@ class economy_system(commands.Cog):
         bank = stats["bank"]
 
         # create embed
-        embed = create_embed(f"{member}'s bank account", None, {
+        embed = create_embed(f"{member}'s Bank Account", None, {
             "Name": member.mention,
             "Amount": f"${bank}"
         }, member)
@@ -129,7 +129,7 @@ class economy_system(commands.Cog):
         pocket = stats["pocket"]
 
         # create embed
-        embed = create_embed(f"{member}'s bank account", None, {
+        embed = create_embed(f"{member}'s Wealth", None, {
             "Name": member.mention,
             "Bank": f"${bank}",
             "Pocket": f"${pocket}",
