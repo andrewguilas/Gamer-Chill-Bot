@@ -7,6 +7,7 @@ STARTING_EXPERIENCE = 0
 
 MESSAGE_COOLDOWN = 1
 LEVEL_DIFFICULTY = 20
+MONEY_DIFFICULTY = 50
 UPDATE_VC_STATUS = 60
 UPDATE_WATCH_PLAYERS = 60
 
@@ -30,6 +31,10 @@ import asyncio
 import time
 from datetime import datetime
 from pymongo import MongoClient
+
+from importlib.machinery import SourceFileLoader
+economy_system = SourceFileLoader("economy_system", "cogs\economy_system.py").load_module()
+give_money = economy_system.give_money
 
 cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
 leveling = cluster.discord.leveling
@@ -56,6 +61,9 @@ def is_guild_owner():
     def predicate(ctx):
         return ctx.guild is not None and ctx.guild.owner_id == ctx.author.id
     return commands.check(predicate)
+
+def get_money_for_leveling(level):
+    return level * MONEY_DIFFICULTY
 
 def get_total_experience_of_level(level):
     return level * LEVEL_DIFFICULTY
@@ -101,6 +109,7 @@ def give_experience(user_id, amount):
             experience -= get_total_experience_of_level(level)
             level += 1
             new_level = level
+            give_money(user_id, "bank", get_money_for_leveling(level))
         else:
             break
 
@@ -132,6 +141,8 @@ class leveling_system(commands.Cog):
         for voice_channel in guild.voice_channels:
             games = {}
             for member in voice_channel.members:
+                if not member.activity:
+                    continue
                 activity_name = member.activity.name
                 if activity_name and not games.get(activity_name):
                     games[activity_name] = [member]
@@ -174,7 +185,7 @@ class leveling_system(commands.Cog):
 
                 if not user.voice: # check if user left the vc
                     break
-                elif user.voice.self_deaf or len(user.voice.channel.users) <= 1: # check if the vc is deafened
+                elif user.voice.self_deaf or len(user.voice.channel.members) <= 1: # check if the vc is deafened or there's only 1 person (lonely loser)
                     continue
 
                 random_experience_gain = random.randint(MIN_VC_EXP_GAIN, MAX_VC_EXP_GAIN)
