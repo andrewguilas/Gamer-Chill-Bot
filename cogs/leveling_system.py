@@ -1,21 +1,26 @@
 MIN_MSG_EXP_GAIN, MAX_MSG_EXP_GAIN = 4, 8
 MIN_VC_EXP_GAIN, MAX_VC_EXP_GAIN = 1, 2
+MIN_PARTY_EXP_GAIN, MAX_PARTY_EXP_GAIN = 2, 4
 
 STARTING_LEVEL = 1
 STARTING_EXPERIENCE = 0
 
 MESSAGE_COOLDOWN = 1
 LEVEL_DIFFICULTY = 20
+UPDATE_VC_STATUS = 60
+UPDATE_WATCH_PLAYERS = 60
 
 MAX_BOXES_FOR_RANK_EMBED = 20
 MAX_FIELDS_FOR_LEADERBOARD_EMBED = 10
+MIN_PARTY_AMOUNT = 2
 
-BOT_CHANNEL = 813757261045563432
-BLACKLISTED_MESSAGE_CHANNELS = [] #[673714091466031113, 813757261045563432, 813261215081562182]
+GUILD_ID = 651133204492845066
+LOG_CHANNEL = 813453150886428742
+BLACKLISTED_MESSAGE_CHANNELS = [673714091466031113, 813757261045563432, 813261215081562182]
 
 import discord
 from discord import Color as discord_color
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 import math
 import pytz
@@ -110,7 +115,38 @@ def give_experience(user_id, amount):
 class leveling_system(commands.Cog):
     def __init__(self, client):
         self.client = client
-    
+        self.watch_players.start()
+
+    def cog_unload(self):
+        self.watch_players.cancel()
+
+    def cog_load(self):
+        self.watch_players.start()
+
+    @tasks.loop(seconds = UPDATE_WATCH_PLAYERS)
+    async def watch_players(self):
+        guild = self.client.guilds[0]
+        audit_log_channel = logs_channel = self.client.get_channel(LOG_CHANNEL)
+        for voice_channel in guild.voice_channels:
+            games = {}
+            for member in voice_channel.members:
+                activity_name = member.activity.name
+                if activity_name and not games.get(activity_name):
+                    games[activity_name] = [member]
+                elif games.get(activity_name):
+                    games[activity_name].append(member) 
+
+            for game_name, members in games.items():
+                if len(members) >= MIN_PARTY_AMOUNT:
+                    for member in members:
+                        random_amount = random.randint(MIN_PARTY_EXP_GAIN, MAX_PARTY_EXP_GAIN)
+                        give_experience(member.id,  random_amount)
+                        await audit_log_channel.send(embed = create_embed(f"Awarding {member} {random_amount} EXP for playing in a party", None, {
+                            "Game": game_name,
+                            "Party Members": members
+                        }))
+                        
+
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author.bot or message.channel.id in BLACKLISTED_MESSAGE_CHANNELS:
@@ -128,7 +164,7 @@ class leveling_system(commands.Cog):
         # check if user joined the vc
         if before.channel != after.channel and after.channel:
             while True:
-                await asyncio.sleep(60)
+                await asyncio.sleep(UPDATE_VC_STATUS)
 
                 # check if user left the vc
                 if not user.voice:
