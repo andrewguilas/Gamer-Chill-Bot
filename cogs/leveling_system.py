@@ -10,7 +10,7 @@ LEVEL_DIFFICULTY = 20
 UPDATE_VC_STATUS = 60
 UPDATE_WATCH_PLAYERS = 60
 
-MAX_BOXES_FOR_RANK_EMBED = 20
+MAX_BOXES_FOR_RANK_EMBED = 10
 MAX_FIELDS_FOR_LEADERBOARD_EMBED = 10
 MIN_PARTY_AMOUNT = 2
 
@@ -125,6 +125,8 @@ class leveling_system(commands.Cog):
 
     @tasks.loop(seconds = UPDATE_WATCH_PLAYERS)
     async def watch_players(self):
+        await self.client.wait_until_ready()
+
         guild = self.client.guilds[0]
         audit_log_channel = logs_channel = self.client.get_channel(LOG_CHANNEL)
         for voice_channel in guild.voice_channels:
@@ -190,12 +192,12 @@ class leveling_system(commands.Cog):
         experience = stats and stats["experience"] or STARTING_EXPERIENCE
 
         # get rank
-        rank = 0
+        rank = 1
         member_stats = leveling.find().sort("experience", -1)
         for member_stat in member_stats:
-            rank += 1
             if stats["id"] == member_stat["id"]:
                 break
+            rank += 1
 
         # create boxes
         blue_boxes = int(experience / get_total_experience_of_level(level) * MAX_BOXES_FOR_RANK_EMBED)
