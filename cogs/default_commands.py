@@ -17,7 +17,7 @@ def create_embed(title, color = discord_color.blue(), fields = {}):
         embed.add_field(
             name = name,
             value = value,
-            inline = False
+            inline = True
         )
 
     embed.timestamp = datetime.now(tz = pytz.timezone("US/Eastern"))
@@ -32,9 +32,10 @@ class default_commands(commands.Cog):
                 "1 - Table of Contents": "List of command categories",
                 "2 - Default": "In general commands",
                 "3 - Fun": "Commands for fun and games",
-                "4 - Moderation": "Commands for moderation",
-                "5 - Server": "Commands for server management",
-                "6 - Bot": "Commands for bot management"
+                "4 - Leveling System": "Commands for using and managing the leveling system",
+                "5 - Moderation": "Commands for moderation",
+                "6 - Server": "Commands for server management",
+                "7 - Bot": "Commands for bot management"
             }),
 
             "default_embed": create_embed("Default", None, {
@@ -57,6 +58,15 @@ class default_commands(commands.Cog):
                 "whohasbigpp": "Returns a random person in the server. No permissions required. Included in the `fun_commands` set.",
                 "whohassmallpp": "Returns a random person in the server. No permissions required. Included in the `fun_commands` set.",
                 "randomperson": "Returns a random person in the server. No permissions required. Included in the `fun_commands` set.",
+            }),
+
+            "leveling_system_embed": create_embed("Leveling System", None, {
+                "rank <MEMBER>": "Returns the rank of the member. No permissions required. Included in the `leveling_system set`.",
+                "leaderboard": "Returns the leaderboard of the server. No permissions required. Included in the `leveling_system` set.",
+                "setlevel <MEMBER> <AMOUNT>": "Changes the member's level to the specified amount. Command is unstable and not recommended. Use `addexperience` instead. `Bot Owner` or `Administrator` permissions required. Included in the `leveling_system` set.",
+                "setexperience <MEMBER> <AMOUNT>": "Changes the member's experience to the specified amount. Command is unstable and not recommended. Use `addexperience` instead. `Bot Owner` or `Administrator` permissions required. Included in the `leveling_system` set.",
+                "settotalexperience <MEMBER> <AMOUNT>": "Changes the member's total experience to the specified amount. Command is unstable and not recommended. Use `addexperience` instead. `Bot Owner` or `Administrator` permissions required. Included in the `leveling_system` set.",
+                "addexperience <MEMBER> <AMOUNT>": "Gives a member a specified amount of experience. `Bot Owner` or `Administrator` permissions required. Included in the `leveling_system` set.",
             }),
 
             "moderation_embed": create_embed("Moderation", None, {
@@ -83,14 +93,17 @@ class default_commands(commands.Cog):
                 "reload <SET>": "Unloads and loads <SET> to update. `Administrator` permissions required. Not included in a set.",
                 "update": "Unloads and loads all sets to update. `Administrator` permissions required. Not included in a set.",
                 "listevents": "Lists events that can be triggered in the audit log. No permissions required. Included in the audit_log set.",
-                "execute <CODE>": "Executes CODE. `Bot Creator` permissions required. Included in the `bot` set.",
-                "cls": "Clears the terminal in the code editor. `Bot Creator` permissions required. Included in the `bot` set."
+                "execute <CODE>": "Executes CODE. `Bot Creator` or `Server Owner` permissions required. Included in the `bot` set.",
+                "cls": "Clears the terminal in the code editor. `Bot Creator` permissions required. Included in the `bot` set.",
+                "changeactivity <STRING>": "Changes the bot's activity. `Bot Creator` or `Server Owner` permissions required. Included in the `bot` set.",
+                "changestatus <online/idle/dnd/offline>": "Changes the bot's status. `Bot Creator` or `Server Owner` permissions required. Included in the `bot` set."
             }),
         }
         self.ordered_help_embeds = [
             self.help_embeds["table_of_contents_embed"],
             self.help_embeds["default_embed"],
             self.help_embeds["fun_embed"],
+            self.help_embeds["leveling_system_embed"],
             self.help_embeds["moderation_embed"],
             self.help_embeds["server_embed"],
             self.help_embeds["bot_embed"],
@@ -177,7 +190,7 @@ class default_commands(commands.Cog):
 
     @commands.command()
     async def help(self, context):
-        EMOJIS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣"]
+        EMOJIS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣"]
         
         current_page = 0
         new_embed = self.ordered_help_embeds[current_page]

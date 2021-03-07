@@ -17,7 +17,7 @@ def create_embed(title, color = discord_color.blue(), fields = {}):
         embed.add_field(
             name = name,
             value = value,
-            inline = False
+            inline = True
         )
 
     embed.timestamp = datetime.now(tz = pytz.timezone("US/Eastern"))
@@ -27,148 +27,103 @@ def create_embed(title, color = discord_color.blue(), fields = {}):
 class audit_log(commands.Cog):
     def __init__(self, client):
         self.client = client
+        self.help_embeds = {
+            "table_of_contents_embed": create_embed("Table of Contents", None, {
+                "1 - Table of Contents": "List of event categories.",
+                "2 - Bot": "Events for bot management.",
+                "3 - Message": "Events for member sent messages.",
+                "4 - Reaction": "Events for member reactions for messages.",
+                "5 - Channel": "Events for server channels.",
+                "6 - Member": "Events for server members.",
+                "7 - Role": "Events for server roles.",
+                "8 - Guild": "Events for server management."
+            }),
+
+            "bot_embed": create_embed("Bot", None, {
+                "connect": "Fires when the bot is started. Events will run but commands will not run.",
+                "disconnect": "Fires when the bot's connection has diconnected. Bot will not run.",
+                "resumed": "Fires when the bot's connected was disconnected and has reconnected. Bot will run.",
+                "ready": "Fires when the bot is ready to be used. Events and commands will run.",
+            }),
+            "message_embed": create_embed("Message", None, {
+                "on_type": "Fires when a member starts typing in a text channel.",
+                "message": "Fires when a member sends in a message in a text channel.",
+                "message_delete": "Fires when a member's message is deleted.",
+                "bulk_message_delete": "Fires when several messages were deleted.",
+                "message_edit": "Fires when a member edit's their message.",
+            }),
+            "reaction_embed": create_embed("Reaction", None, {
+                "reaction_add": "Fires when a member adds a reaction to a message.",
+                "reaction_remove": "Fires when a member removes their reaction from a message.",
+                "reaction_clear": "Fires when all of the reactions of a message were removed.",
+            }),
+            "channel_embed": create_embed("Channel", None, {
+                "guild_channel_delete": "Fires when a channel was deleted.",
+                "guild_change_create": "Fires when a channel was created.",
+                "guild_change_update": "Fires when a channel's category, permissions, name, position; or a text channel's slow mode delay or topic; or a voice channel's bitrate or user limit; or a category's channels were updated.",
+            }),
+            "member_embed": create_embed("Member", None, {
+                "member_join": "Fires when a member joins the server.",
+                "member_remove": "Fires when a member leaves the server",
+                "member_update": "Fires when a member's activity, nickname, roles, or pending status was updated.",
+                "user_update": "Fires when a user's name or avatar was changed.",
+            }),
+            "role_embed": create_embed("Role", None, {
+                "guild_role_create": "Fires when a role was created.",
+                "guild_role_delete": "Fires when a role was deleted.",
+                "guild_role_update": "Fires when a role's color, ability to mention, name, position, and permissions were changed.",
+            }),
+            "guild_embed": create_embed("Guild", None, {
+                "guild_update": "please remind to finish this, there's about 50+ sub-events",
+                "guild_emojis_update": "Fires when a guild adds or removes an emoji.",
+                "voice_state_update": "Fires when a member joins, leaves, mutes, unmutes, is server muted, is unserver muted, is deafened, is undeafened, is server deafened, is unserver deafened, starts streaming, stops streaming, turns on their camera, turns off their camera a voice channel.",
+                "member_ban": "Fires when a member was banned from the server.",
+                "member_unban": "Fires when a member was unbanned from the server.",
+                "invite_create": "Fires when an invite was created for the server.",
+                "invite_delete": "Fires when an invite was deleted for the server.",
+            }),
+        }
+        
+        self.ordered_help_embeds = [
+            self.help_embeds["table_of_contents_embed"],
+            self.help_embeds["bot_embed"],
+            self.help_embeds["message_embed"],
+            self.help_embeds["reaction_embed"],
+            self.help_embeds["channel_embed"],
+            self.help_embeds["member_embed"],
+            self.help_embeds["role_embed"],
+            self.help_embeds["guild_embed"],
+        ]
 
     @commands.command()
     async def listevents(self, context):
-        bot_events_embed = discord.Embed(
-            title = "Bot Events"
-        )
-
-        bot_events_embed.add_field(
-            name = "Connect", 
-            value = "Fires when the bot has started internally. Not recorded in logs.", 
-            inline = False
-        )
-            
-        bot_events_embed.add_field(
-            name = "Disconnect", 
-            value = "Fires when the bot has been stoppped internally. Not recorded in logs.", 
-            inline = False
-        )
-            
-        bot_events_embed.add_field(
-            name = "Ready", 
-            value = "Fires when the bot is ready to be used.", 
-            inline = False
-        )
-            
-        bot_events_embed.add_field(
-            name = "Error", 
-            value = "Fires when an interal error has occured.", 
-            inline = False
-        )
-            
-        bot_events_embed.add_field(
-            name = "Command Error", 
-            value = "Fires when an error occured while running a command.", 
-            inline = False
-        )
-            
-        message_events_embed = discord.Embed(
-            title = "Message Events"
-        )
-
-        message_events_embed.add_field(
-            name = "Typing", 
-            value = "Fires when a user started typing.", 
-            inline = False
-        )
-            
-        message_events_embed.add_field(
-            name = "Message", 
-            value = "Fires when a user sends a message.", 
-            inline = False
-        )
-            
-        message_events_embed.add_field(
-            name = "Message Delete", 
-            value = "Fires when a user deletes a message.", 
-            inline = False
-        )
-            
-        message_events_embed.add_field(
-            name = "Bulk Message Delete", 
-            value = "Fires when several messages were deleted.", 
-            inline = False
-        )
-            
-        message_events_embed.add_field(
-            name = "Message Edit", 
-            value = "Fires when a user edits a message.", 
-            inline = False
-        )
-            
-        reaction_events_embed = discord.Embed(
-            title = "Reaction Events"
-        )
-
-        reaction_events_embed.add_field(
-            name = "Reaction Added", 
-            value = "Fires when a user adds a reaction to a message.", 
-            inline = False
-        )
-            
-        reaction_events_embed.add_field(
-            name = "Reaction Removed", 
-            value = "Fires when a user removes a reaction to a message.", 
-            inline = False
-        )
-            
-        reaction_events_embed.add_field(
-            name = "Reaction Cleared", 
-            value = "Fires when all the reactions of a message were removed.", 
-            inline = False
-        ) 
-
-        channel_events_embed = discord.Embed(
-            title = "Channel Events"
-        )
-
-        channel_events_embed.add_field(
-            name = "Guild Channel Delete", 
-            value = "Fires when a channel was deleted.", 
-            inline = False
-        )
+        EMOJIS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣"]
         
-        channel_events_embed.add_field(
-            name = "Guild Channel Create", 
-            value = "Fires when a channel was created.", 
-            inline = False
-        )
+        current_page = 0
+        new_embed = self.ordered_help_embeds[current_page]
+        new_embed.set_footer(text = f"Page {current_page + 1}/{len(self.ordered_help_embeds)}", icon_url = "")
+        message = await context.send(embed = new_embed)
 
-        channel_events_embed.add_field(
-            name = "Guild Channel Update", 
-            value = "Fires when a channel was updated.", 
-            inline = False
-        )
+        for emoji in EMOJIS:
+            await message.add_reaction(emoji)
 
-        member_events_embed = discord.Embed(
-            title = "Member Events"
-        )
+        while True:
+            def check_reaction(reaction, user):
+                if user == context.author and reaction.message.channel == context.channel:
+                    if str(reaction.emoji) in EMOJIS:
+                        return True
 
-        member_events_embed.add_field(
-            name = "Member Join", 
-            value = "Fires when a member joins the server.", 
-            inline = False
-        )
+            chosen_reaction, user = await self.client.wait_for("reaction_add", check = check_reaction)
 
-        member_events_embed.add_field(
-            name = "Member Remove", 
-            value = "Fires when a member leaves the server.", 
-            inline = False
-        )
+            for index, emoji in enumerate(EMOJIS):
+                if emoji == chosen_reaction.emoji:
+                    current_page = index
+                    break
 
-        member_events_embed.add_field(
-            name = "Member Update", 
-            value = "Fires when a member updates their profile (status, activity, nickname, roles, pending).", 
-            inline = False
-        )
-
-        await context.send(embed = bot_events_embed)
-        await context.send(embed = message_events_embed)
-        await context.send(embed = reaction_events_embed)
-        await context.send(embed = channel_events_embed)
-        await context.send(embed = member_events_embed)
+            new_embed = self.ordered_help_embeds[current_page]
+            new_embed.set_footer(text = f"Page {current_page + 1}/{len(self.ordered_help_embeds)}", icon_url = "")
+            await message.edit(embed = new_embed)
+            await chosen_reaction.remove(user)
 
     # bot
 

@@ -35,12 +35,17 @@ def create_embed(title, color = discord_color.blue(), fields = {}):
         embed.add_field(
             name = name,
             value = value,
-            inline = False
+            inline = True
         )
 
     embed.timestamp = datetime.now(tz = pytz.timezone("US/Eastern"))
 
     return embed
+
+def is_guild_owner():
+    def predicate(ctx):
+        return ctx.guild is not None and ctx.guild.owner_id == ctx.author.id
+    return commands.check(predicate)
 
 def get_total_experience_of_level(level):
     return level * LEVEL_DIFFICULTY
@@ -130,8 +135,11 @@ class leveling_system(commands.Cog):
                     await level_up_channel.send(embed = create_embed(f"{user} leveled to level {new_level}"))
 
     @commands.command()
-    async def rank(self, context):
-        stats = leveling.find_one({"id": context.author.id})
+    async def rank(self, context, member: discord.Member = None):
+        if not member:
+            member = context.author
+
+        stats = leveling.find_one({"id": member.id})
         level = stats and stats["level"] or STARTING_LEVEL
         experience = stats and stats["experience"] or STARTING_EXPERIENCE
         rank = 0
@@ -144,15 +152,15 @@ class leveling_system(commands.Cog):
             if stats["id"] == member_stat["id"]:
                 break
 
-        embed = create_embed(f"{context.author}'s rank", None, {
-            "Name": context.author.mention,
+        embed = create_embed(f"{member}'s rank", None, {
+            "Name": member.mention,
             "Level": level,
             "Experience": f"{experience}/{get_total_experience_of_level(level)}",
             "Rank": rank,
             "Progress Bar": boxes * ":blue_square:" + (MAX_BOXES_FOR_RANK_EMBED - boxes) * ":white_large_square:"
         })
-        embed.set_author(name = context.author, icon_url = context.author.avatar_url)
-        embed.set_thumbnail(url = context.author.avatar_url)
+        embed.set_author(name = member, icon_url = member.avatar_url)
+        embed.set_thumbnail(url = member.avatar_url)
         await context.send(embed = embed)
 
     @commands.command()
@@ -179,6 +187,51 @@ class leveling_system(commands.Cog):
                 break
 
         await embed.edit(embed = create_embed("Leaderboard", None, fields))
+
+    @commands.command()
+    @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
+    async def setlevel(self, context, member: discord.Member, amount: int = None):
+        if not amount:
+            return
+
+        data = get_data(member.id)
+        data["level"] += amount
+        save_data(member.id, data)
+        await context.send(embed = create_embed(f"Set {member}'s level to {amount}"))
+
+    @commands.command()
+    @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
+    async def setexperience(self, context, member: discord.Member, amount: int = None):
+        data = get_data(member.id)
+        data["experience"] += amount
+        data["total_experience"] += amount
+
+        if data["experience"] >= get_total_experience_of_level(data["level"]):
+            data["level"] += 1
+            data["experience"] = 0
+
+        save_data(member.id, data)
+        await context.send(embed = create_embed(f"Set {member}'s experience to {amount}"))
+
+    @commands.command()
+    @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
+    async def settotalexperience(self, context, member: discord.Member, amount: int = None):
+        data = get_data(member.id)
+        data["experience"] += amount
+        data["total_experience"] += amount
+
+        if data["experience"] >= get_total_experience_of_level(data["level"]):
+            data["level"] += 1
+            data["experience"] = 0
+
+        save_data(member.id, data)
+        await context.send(embed = create_embed(f"Set {member}'s total experience to {amount}"))
+
+    @commands.command()
+    @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
+    async def addexperience(self, context, member: discord.Member, amount: int = None):
+        give_experience(member.id, amount)
+        await context.send(embed = create_embed(f"Gave {member} {amount} experience"))
 
 def setup(client):
     client.add_cog(leveling_system(client))

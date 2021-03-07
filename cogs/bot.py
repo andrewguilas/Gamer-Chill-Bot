@@ -17,19 +17,24 @@ def create_embed(title, color = discord_color.blue(), fields = {}):
         embed.add_field(
             name = name,
             value = value,
-            inline = False
+            inline = True
         )
 
     embed.timestamp = datetime.now(tz = pytz.timezone("US/Eastern"))
 
     return embed
 
+def is_guild_owner():
+    def predicate(ctx):
+        return ctx.guild is not None and ctx.guild.owner_id == ctx.author.id
+    return commands.check(predicate)
+
 class bot(commands.Cog):
     def __init__(self, client):
         self.client = client
 
     @commands.command()
-    @commands.check_any(commands.is_owner())
+    @commands.check_any(commands.is_owner(), is_guild_owner())
     async def execute(self, context, *, code):
         embed = create_embed("Executing Code", discord_color.gold(), {
             "Code": code,
@@ -75,7 +80,7 @@ class bot(commands.Cog):
             await context.send(embed = embed)
 
     @commands.command()
-    @commands.check_any(commands.is_owner())
+    @commands.check_any(commands.is_owner(), is_guild_owner())
     async def changeactivity(self, context, *, activity = ""):
         try:
             await self.client.change_presence(activity = discord.Game(name = activity))
@@ -93,7 +98,7 @@ class bot(commands.Cog):
             await context.send(embed = embed)
 
     @commands.command()
-    @commands.check_any(commands.is_owner())
+    @commands.check_any(commands.is_owner(), is_guild_owner())
     async def changestatus(self, context, *, status = "online"):
         try:
             await self.client.change_presence(status = discord.Status[status])

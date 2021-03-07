@@ -17,7 +17,7 @@ def create_embed(title, color = discord_color.blue(), fields = {}):
         embed.add_field(
             name = name,
             value = value,
-            inline = False
+            inline = True
         )
 
     embed.timestamp = datetime.now(tz = pytz.timezone("US/Eastern"))
@@ -142,7 +142,7 @@ class server(commands.Cog):
 
         # send data
         embed = create_embed("Message Leaderboard", discord_color.green(), sorted_member_history)
-        embed.insert_field_at(index = -1, name = "TOTAL", value = message_count, inline = False)
+        embed.insert_field_at(index = -1, name = "TOTAL", value = message_count, inline = True)
         await status.edit(embed = embed)
     
     @commands.command()
