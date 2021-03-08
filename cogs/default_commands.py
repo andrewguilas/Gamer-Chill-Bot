@@ -253,7 +253,7 @@ class default_commands(commands.Cog):
         for role in user.roles:
             roles.append(role.name)
 
-        await context.send(embed = create_embed(f"{user}'s User Info", None, {
+        embed = create_embed(f"{user}'s User Info", None, {
             "Name": user,
             "User ID": user.id,
             "Nickname": user.nick,
@@ -268,7 +268,9 @@ class default_commands(commands.Cog):
             "Device": user.desktop_status and "Desktop" or user.mobile_status and "Mobile" or user.web_status and "Web" or "Unknown",
             "Status": user.status,
             "Is In Voice Channel": user.voice and user.voice.channel or "False",
-        }, user))
+        }, user)
+        embed.set_thumbnail(url = user.avatar_url)
+        await context.send(embed = embed)
 
     @commands.command()
     async def serverinfo(self, context):
