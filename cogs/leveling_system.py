@@ -32,9 +32,7 @@ import time
 from datetime import datetime
 from pymongo import MongoClient
 
-from importlib.machinery import SourceFileLoader
-economy_system = SourceFileLoader("economy_system", "cogs\economy_system.py").load_module()
-give_money = economy_system.give_money
+from cogs.economy_system import give_money
 
 cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
 leveling = cluster.discord.leveling
