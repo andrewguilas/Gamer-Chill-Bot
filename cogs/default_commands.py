@@ -34,9 +34,10 @@ class default_commands(commands.Cog):
                 "3 - Fun": "Commands for fun and games",
                 "4 - Leveling System": "Commands for using and managing the leveling system",
                 "5 - Economy System": "Commands for using and managing the economy system.",
-                "6 - Moderation": "Commands for moderation",
-                "7 - Server": "Commands for server management",
-                "8 - Bot": "Commands for bot management"
+                "6 - Stock Market": "Commands for trading on the simulated stock market.",
+                "7 - Moderation": "Commands for moderation",
+                "8 - Server": "Commands for server management",
+                "9 - Bot": "Commands for bot management"
             }),
 
             "default_embed": create_embed("Default", None, {
@@ -79,6 +80,13 @@ class default_commands(commands.Cog):
                 "addmoney <MEMBER> <AMOUNT>": "Prints and gives money to the specified member. `Bot Creator` or `Administrator` permissions required. Included in the `economy_system` set.",
             }),
 
+            "stock_market_embed": create_embed("Economy System", None, {
+                "getprice <TICKER>": "Returns the most recent closed price of the stock. No permissions required. Included in the `stock_market` set.",
+                "portfolio": "Returns the portfolio of the user. No permissions required. Included in the `stock_market` set.",
+                "buyshares <TICKER> <SHARES>": "Buys the amount of shares of a stock using money from their bank account and sends the shares to their portfolio. No permissions required. Included in the `stock_market` set.",
+                "sellshares <TICKER> <SHARES>": "Sells the amount of shares from a person's portfolio and sends the money to their bank account. No permissions required. Included in the `stock_market` set.",
+            }),
+
             "moderation_embed": create_embed("Moderation", None, {
                 "clear <AMOUNT = 1>": "Deletes AMOUNT of messages in the channel. `Manage Messages` permissions required. Included in the `moderation_commands` set.",
                 "kick <MEMBER> <REASON = None>": "Kicks a MEMBER from the server with an optional reason. `Kick Members` permissions required. Included in the `moderation_commands` set.",
@@ -115,6 +123,7 @@ class default_commands(commands.Cog):
             self.help_embeds["fun_embed"],
             self.help_embeds["leveling_system_embed"],
             self.help_embeds["economy_system_embed"],
+            self.help_embeds["stock_market_embed"],
             self.help_embeds["moderation_embed"],
             self.help_embeds["server_embed"],
             self.help_embeds["bot_embed"],
@@ -201,7 +210,7 @@ class default_commands(commands.Cog):
 
     @commands.command()
     async def help(self, context):
-        EMOJIS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣"]
+        EMOJIS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"]
         
         current_page = 0
         new_embed = self.ordered_help_embeds[current_page]
@@ -213,7 +222,7 @@ class default_commands(commands.Cog):
 
         while True:
             def check_reaction(reaction, user):
-                if user == context.author and reaction.message.channel == context.channel:
+                if user == context.author and reaction.message.channel == context.channel and reaction.message.id == message.id:
                     if str(reaction.emoji) in EMOJIS:
                         return True
 

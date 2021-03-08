@@ -168,7 +168,7 @@ class stock_market(commands.Cog):
         save_stock_data(user_id, stock_data)
 
         # give money        
-        economy_data = get_econom?y_data(user_id)
+        economy_data = get_economy_data(user_id)
         economy_data["bank"] += market_value
         save_economy_data(user_id, economy_data)
 

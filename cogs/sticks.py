@@ -171,8 +171,6 @@ class sticks(commands.Cog):
             else:
                 number_to_add = current_player_hand[1]
 
-            print(chosen_enemy_hand == LEFT_EMOJI)
-            print(f"Attacking: {chosen_enemy_hand} {hand_to_attack}")
             if enemy_player_hand[hand_to_attack] + number_to_add >= 5:
                 enemy_player_hand[hand_to_attack] = None
             else:

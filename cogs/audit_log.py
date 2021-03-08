@@ -109,7 +109,7 @@ class audit_log(commands.Cog):
 
         while True:
             def check_reaction(reaction, user):
-                if user == context.author and reaction.message.channel == context.channel:
+                if user == context.author and reaction.message.channel == context.channel and reaction.message.id == message.id:
                     if str(reaction.emoji) in EMOJIS:
                         return True
 
@@ -189,7 +189,7 @@ class audit_log(commands.Cog):
         embed.set_author(name = user, icon_url = user.avatar_url)
         await logs_channel.send(embed = embed)
 
-    @commands.Cog.  listener()
+    @commands.Cog.listener()
     async def on_message(self, context):
         if (context.author.bot):
             return
