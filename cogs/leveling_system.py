@@ -1,11 +1,12 @@
 MIN_MSG_EXP_GAIN, MAX_MSG_EXP_GAIN = 4, 8
+MIN_BOT_USAGE_EXP_GAIN, MAX_BOT_USAGE_EXP_GAIN = 5, 8
 MIN_VC_EXP_GAIN, MAX_VC_EXP_GAIN = 1, 2
 MIN_PARTY_EXP_GAIN, MAX_PARTY_EXP_GAIN = 2, 4
 
 STARTING_LEVEL = 1
 STARTING_EXPERIENCE = 0
 
-MESSAGE_COOLDOWN = 1
+MESSAGE_COOLDOWN = 30
 LEVEL_DIFFICULTY = 20
 MONEY_DIFFICULTY = 50
 UPDATE_VC_STATUS = 60
@@ -76,16 +77,7 @@ def insert_data(data):
     leveling.insert_one(data)
 
 def give_experience(user_id, amount):
-    new_level = False
-
-    # cooldown for gaining EXP
-    if recent_messagers.get(user_id):
-        if time.time() - recent_messagers[user_id] < MESSAGE_COOLDOWN:
-            return new_level
-        else:
-            recent_messagers[user_id] = None
-    else:
-        recent_messagers[user_id] = time.time()   
+    new_level = False   
 
     # get data / set default data
     stats = get_data(user_id)
@@ -159,15 +151,34 @@ class leveling_system(commands.Cog):
                         
     @commands.Cog.listener()
     async def on_message(self, message):
-        if message.author.bot or message.channel.id in BLACKLISTED_MESSAGE_CHANNELS:
+        user_id = message.author.id
+        if message.author.bot:
             return
-        
-        audit_log_channel = self.client.get_channel(LOG_CHANNEL)
-        random_experience_gain = random.randint(MIN_MSG_EXP_GAIN, MAX_MSG_EXP_GAIN)
-        await audit_log_channel.send(embed = create_embed(f"Awarding {message.author} {random_experience_gain} EXP for sending a message", None, {
-            "Channel": message.channel.mention,
-        }))
+        elif recent_messagers.get(user_id):
+            if time.time() - recent_messagers[user_id] < MESSAGE_COOLDOWN:
+                return
+            else:
+                recent_messagers[user_id] = None
+        else:
+            recent_messagers[user_id] = time.time()
 
+        audit_log_channel = self.client.get_channel(LOG_CHANNEL)
+        random_experience_gain = 0
+
+        if message.content.startswith("?"):
+            random_experience_gain = random.randint(MIN_BOT_USAGE_EXP_GAIN, MAX_BOT_USAGE_EXP_GAIN)
+            await audit_log_channel.send(embed = create_embed(f"Awarding {message.author} {random_experience_gain} EXP for using the bot", None, {
+                "Channel": message.channel.mention,
+            }))
+        else:
+            if message.channel.id in BLACKLISTED_MESSAGE_CHANNELS:
+                return
+
+            random_experience_gain = random.randint(MIN_MSG_EXP_GAIN, MAX_MSG_EXP_GAIN)
+            await audit_log_channel.send(embed = create_embed(f"Awarding {message.author} {random_experience_gain} EXP for sending a message", None, {
+                "Channel": message.channel.mention,
+            }))
+        
         new_level = give_experience(message.author.id, random_experience_gain)
         if new_level:
             await message.channel.send(embed = create_embed(f"{message.author} leveled up to level {new_level}"))

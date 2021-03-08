@@ -1,5 +1,7 @@
 PERIOD = "2h"
 INTERVAL = "1m"
+STARTING_POCKET_MONEY = 20
+STARTING_BANK_MONEY = 500
 
 # discord
 import discord
@@ -132,24 +134,26 @@ class stock_market(commands.Cog):
         else:
             stock_data["shares"][ticker] = shares
         save_stock_data(user_id, stock_data)
+        
+        total_shares = round(stock_data["shares"][ticker], 2)
 
         # send status
         await context.send(embed = create_embed(f"SUCCESS: {shares} shares of {ticker} were bought at ${current_price}", discord_color.green(), {
             "Average Price": f"${current_price}",
-            "Total Shares": round(stock_data["shares"][ticker], 2),
-            "Equity": f"${round(shares * current_price, 2)}"
+            "Total Shares": total_shares,
+            "Equity": f"${round(total_shares * current_price, 2)}"
         }))
 
     @commands.command()
     async def sellshares(self, context, ticker: str, shares: int):
         ticker = ticker.upper()
-        shares = round(stock_data["shares"][ticker], 2)
         user_id = context.author.id
+        stock_data = get_stock_data(user_id)
+        shares = round(stock_data["shares"][ticker], 2)
         current_price = getprice(ticker)
         market_value = round(current_price * shares, 2)
 
         # take shares
-        stock_data = get_stock_data(user_id)
         ticker_data = stock_data["shares"].get(ticker)
         if not ticker_data:
             await context.send(embed = create_embed(f"ERROR: You do not have any shares in {ticker}", discord_color.red(), {
