@@ -107,6 +107,7 @@ class stock_market(commands.Cog):
     @commands.command()
     async def buyshares(self, context, ticker: str, shares: int):
         ticker = ticker.upper()
+        shares = round(shares, 2)
         user_id = context.author.id
         current_price = getprice(ticker)
         market_value = round(current_price * shares, 2)
@@ -116,11 +117,11 @@ class stock_market(commands.Cog):
         if economy_data["bank"] < market_value:
             await context.send(embed = create_embed(f"ERROR: You do not have enough money to purchase {shares} shares of {ticker}", discord_color.red(), {
                 "Market Value": "$" + str(market_value),
-                "Buying Power": "$" + str(economy_data["bank"])
+                "Buying Power": "$" + str(round(economy_data["bank"], 2))
             }))
             return
 
-        economy_data["bank"] -= market_value
+        economy_data["bank"] -= round(market_value, 2)
         save_economy_data(user_id, economy_data)
 
         # give shares
@@ -135,13 +136,14 @@ class stock_market(commands.Cog):
         # send status
         await context.send(embed = create_embed(f"SUCCESS: {shares} shares of {ticker} were bought at ${current_price}", discord_color.green(), {
             "Average Price": f"${current_price}",
-            "Total Shares": stock_data["shares"][ticker],
+            "Total Shares": round(stock_data["shares"][ticker], 2),
             "Equity": f"${round(shares * current_price, 2)}"
         }))
 
     @commands.command()
     async def sellshares(self, context, ticker: str, shares: int):
         ticker = ticker.upper()
+        shares = round(stock_data["shares"][ticker], 2)
         user_id = context.author.id
         current_price = getprice(ticker)
         market_value = round(current_price * shares, 2)
@@ -152,7 +154,7 @@ class stock_market(commands.Cog):
         if not ticker_data:
             await context.send(embed = create_embed(f"ERROR: You do not have any shares in {ticker}", discord_color.red(), {
                 "Shares to Sell": shares,
-                "Shares Holding": ticker_data
+                "Shares Holding": round(ticker_data, 2)
             }))
             return
         elif ticker_data < shares:
@@ -164,7 +166,6 @@ class stock_market(commands.Cog):
         stock_data["shares"][ticker] -= shares
         if stock_data["shares"][ticker] == 0:
             stock_data["shares"].pop(ticker)
-
         save_stock_data(user_id, stock_data)
 
         # give money        
@@ -174,7 +175,7 @@ class stock_market(commands.Cog):
 
         await context.send(embed = create_embed(f"SUCCESS: {shares} shares of {ticker} were sold", discord_color.green(), {
             "Equity Earned": f"${market_value}",
-            "Shares Remaining": stock_data["shares"].get(ticker) or "0"
+            "Shares Remaining": stock_data["shares"].get(ticker) and round(stock_data["shares"].get(ticker), 2) or "0"
         }))
 
     @commands.command()
@@ -189,7 +190,7 @@ class stock_market(commands.Cog):
         fields = {}
         for ticker, shares in stock_data["shares"].items():
             current_price = getprice(ticker)
-            title = f"{ticker}: {shares} Shares"
+            title = f"{ticker}: {round(shares, 2)} Shares"
             fields[title] = f"Equity: ${round(shares * current_price, 2)}"
 
         await context.send(embed = create_embed(f"{context.author.name}'s portfolio", None, fields))
