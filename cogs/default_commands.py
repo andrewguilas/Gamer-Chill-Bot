@@ -52,6 +52,8 @@ class default_commands(commands.Cog):
                 "userinfo <USER>": "Returns info on the user. No permissions required. Included in the `default_commands set`.",
                 "serverinfo": "Returns info on the server. No permissions required. Included in the `default_commands set`.",
                 "acas": "Gives the member a role to be notified when class starts and 5 minutes before. No permissions required. Included in the `class_alert` set.",
+                "pauseacas": "Stops the alarm system from running. No permissions required. Included in the `class_alert` set.",
+                "resumecas": "Resumes the alarm system. No permissions required. Included in the `class_alert` set.",
             }),
 
             "fun_embed": create_embed("Fun", None, {
