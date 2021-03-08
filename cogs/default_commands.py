@@ -7,7 +7,7 @@ from discord import Color as discord_color
 import pytz
 from datetime import datetime
 
-def create_embed(title, color = discord_color.blue(), fields = {}):
+def create_embed(title, color = discord_color.blue(), fields = {}, member: discord.Member = None):
     embed = discord.Embed(
         title = title,
         colour = color or discord_color.blue()
@@ -21,6 +21,8 @@ def create_embed(title, color = discord_color.blue(), fields = {}):
         )
 
     embed.timestamp = datetime.now(tz = pytz.timezone("US/Eastern"))
+    if member:
+        embed.set_author(name = member.name, icon_url = member.avatar_url)
 
     return embed
 
@@ -47,6 +49,8 @@ class default_commands(commands.Cog):
                 "invitebot": "Returns an invite link for the bot. This bot was designed for this server specifically. No permissions required. Included in the `default_commands` set.",
                 "invitetoserver": "Returns an invite link for the server (first text channel). Invite permissions required. Included in the `default_commands` set.",
                 "invitetochannel": "Returns an invite link for the current channel. Invite permissions required. Included in the `default_commands` set.",
+                "userinfo <USER>": "Returns info on the user. No permissions required. Included in the `default_commands set`.",
+                "serverinfo": "Returns info on the server. No permissions required. Included in the `default_commands set`.",
                 "acas": "Gives the member a role to be notified when class starts and 5 minutes before. No permissions required. Included in the `class_alert` set.",
             }),
 
@@ -237,6 +241,81 @@ class default_commands(commands.Cog):
             new_embed.set_footer(text = f"Page {current_page + 1}/{len(self.ordered_help_embeds)}", icon_url = "")
             await message.edit(embed = new_embed)
             await chosen_reaction.remove(user)
+
+    @commands.command()
+    async def userinfo(self, context, user: discord.Member = None):
+        if not user:
+            user = context.author
+
+        roles = []
+        for role in user.roles:
+            roles.append(role.name)
+
+        await context.send(embed = create_embed(f"{user}'s User Info", None, {
+            "Name": user,
+            "User ID": user.id,
+            "Nickname": user.nick,
+            "Account Creation Date": user.created_at,
+            "Join Date": user.joined_at,
+            "Premium Join Date": user.premium_since,
+            "Is a Bot": user.bot,
+            "Is Pending": user.pending,
+            "Roles": roles,
+            "Top Role": user.top_role,
+            "Activity": user.activity and user.activity.name or "None",
+            "Device": user.desktop_status and "Desktop" or user.mobile_status and "Mobile" or user.web_status and "Web" or "Unknown",
+            "Status": user.status,
+            "Is In Voice Channel": user.voice and user.voice.channel or "False",
+        }, user))
+
+    @commands.command()
+    async def serverinfo(self, context):
+        guild = context.guild
+
+        humans = 0
+        bots = 0
+
+        online = 0
+        idle = 0
+        dnd = 0
+        offline = 0
+
+        for member in guild.members:
+            if member.bot:
+                bots += 1
+            else:
+                humans += 1
+
+            if str(member.status) == "online":
+                online += 1
+            elif str(member.status) == "idle":
+                idle += 1
+            elif str(member.status) == "dnd":
+                dnd += 1
+            elif str(member.status) == "offline":
+                offline += 1
+
+        embed = create_embed("Server Info", None, {
+            "Name": guild.name,
+            "ID": guild.id,
+            "Creation Date": guild.created_at,
+            "Owner": guild.owner.mention,
+            "Region": guild.region,
+            "Invites": len(await guild.invites()),
+            "Member Count": guild.member_count,
+            "Human Count": humans,
+            "Bot Count": bots,
+            "Ban Count": len(await guild.bans()),
+            "Member Statuses": f"🟩 {online} 🟨 {idle} 🟥 {dnd} ⬜ {offline}",
+            "Category Count": len(guild.categories),
+            "Channel Count": len(guild.channels),
+            "Text Channel Count": len(guild.text_channels),
+            "Voice Channel Count": len(guild.voice_channels),
+            "Emoji Count": len(guild.emojis),
+            "Role Count": len(guild.roles)
+        })
+        embed.set_thumbnail(url = guild.icon_url)
+        await context.send(embed = embed)
 
 def setup(client):
     client.add_cog(default_commands(client))

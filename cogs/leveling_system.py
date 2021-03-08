@@ -206,12 +206,12 @@ class leveling_system(commands.Cog):
         experience = stats and stats["experience"] or STARTING_EXPERIENCE
 
         # get rank
-        rank = 1
-        member_stats = leveling.find().sort("experience", -1)
-        for member_stat in member_stats:
+        rank = None
+        member_stats = leveling.find().sort("total_experience", -1)
+        for index, member_stat in enumerate(member_stats):
             if stats["id"] == member_stat["id"]:
+                rank = index + 1
                 break
-            rank += 1
 
         # create boxes
         blue_boxes = int(experience / get_total_experience_of_level(level) * MAX_BOXES_FOR_RANK_EMBED)
