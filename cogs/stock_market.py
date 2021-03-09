@@ -47,7 +47,7 @@ def is_guild_owner():
         return ctx.guild is not None and ctx.guild.owner_id == ctx.author.id
     return commands.check(predicate)
 
-def getprice(ticker: str):
+def get_price(ticker: str):
     ticker = ticker.upper()
     try:
         data = yf.download(tickers = ticker, period = PERIOD, interval = INTERVAL)
@@ -100,7 +100,7 @@ class stock_market(commands.Cog):
     @commands.command()
     async def getprice(self, context, ticker):
         ticker = ticker.upper()
-        current_price = getprice(ticker)
+        current_price = get_price(ticker)
         if current_price:
             await context.send(embed = create_embed(f"{ticker}: ${current_price}"))
         else:
@@ -111,7 +111,7 @@ class stock_market(commands.Cog):
         ticker = ticker.upper()
         shares = round(shares, 2)
         user_id = context.author.id
-        current_price = getprice(ticker)
+        current_price = get_price(ticker)
         market_value = round(current_price * shares, 2)
 
         # transaction
@@ -148,7 +148,7 @@ class stock_market(commands.Cog):
     async def sellshares(self, context, ticker: str, shares: int):
         ticker = ticker.upper()
         user_id = context.author.id
-        current_price = getprice(ticker)
+        current_price = get_price(ticker)
         market_value = round(current_price * shares, 2)
 
         # take shares
@@ -193,8 +193,9 @@ class stock_market(commands.Cog):
 
         fields = {}
         for ticker, shares in stock_data["shares"].items():
-            current_price = getprice(ticker)
+            current_price = get_price(ticker)
             title = f"{ticker}: {round(shares, 2)} Shares"
+            print(shares, current_price)
             fields[title] = f"Equity: ${round(shares * current_price, 2)}"
 
         await context.send(embed = create_embed(f"{context.author.name}'s portfolio", None, fields))
