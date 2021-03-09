@@ -30,10 +30,9 @@ import os
 import random
 import asyncio
 import time
+import cogs.economy_system as economy_system
 from datetime import datetime
 from pymongo import MongoClient
-
-import cogs.economy_system as economy_system
 
 cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
 leveling = cluster.discord.leveling
