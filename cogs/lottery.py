@@ -1,6 +1,5 @@
-STARTING_POCKET_MONEY = 20
-STARTING_BANK_MONEY = 500
 ANNOUNCEMENT_CHANNEL = 813757261045563432
+UPDATE_TIME = 60
 
 # discord
 import discord
@@ -12,14 +11,14 @@ import pytz
 from datetime import datetime
 
 # other
-import time
 import random
-import asyncio
+import time
+from collections import Counter
 from pymongo import MongoClient
+import cogs.economy_system as economy_system
 
 cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
-economy_data_base = cluster.discord.economy
-misc_data_base = cluster.discord.misc
+misc_data_store = cluster.discord.misc
 
 def create_embed(title, fields: {} = {}, info: {} = {}):
     embed = discord.Embed(
@@ -40,23 +39,95 @@ def create_embed(title, fields: {} = {}, info: {} = {}):
 
     return embed
 
+def delete_lottery_data():
+    misc_data_store.delete_many({"key": "current_lottery"})
+
+def save_lottery_data(data):
+    misc_data_store.update_one({"key": "current_lottery"}, {"$set": data})
+    
+def insert_lottery_data(data):
+    misc_data_store.insert_one(data)
+
+def get_lottery_data():
+    return misc_data_store.find_one({"key": "current_lottery"}) 
+
 class lottery(commands.Cog):
     def __init__(self, client):
         self.client = client
+        self.check_lottery_duration.start()
+
+    def cog_unload(self):
+        self.check_lottery_duration.cancel()
+
+
+    def cog_load(self):
+        self.check_lottery_duration.start()
+
+    @tasks.loop(seconds = UPDATE_TIME)
+    async def check_lottery_duration(self):
+        await self.client.wait_until_ready()
+
+        guild = self.client.guilds[0]
+        current_lottery_data = get_lottery_data()
+
+        if not current_lottery_data or time.time() < current_lottery_data["timestamp_ending"]:
+            return
+
+        announcement_channel = self.client.get_channel(ANNOUNCEMENT_CHANNEL)
+        tickets = current_lottery_data["tickets"]
+        tickets_circulating = len(tickets)
+        ticket_price = current_lottery_data["ticket_price"]
+        lottery_creator = guild.get_member(current_lottery_data["creator"])
+        money_pool = tickets_circulating * ticket_price
+
+        if tickets_circulating == 0:
+            await announcement_channel.send(embed = create_embed("Lottery Ended", {
+                "Winner": "None",
+                "Grand Prize": "${}".format(money_pool),
+                "Ticket Price": f"${ticket_price}",
+                "Creator": lottery_creator and lottery_creator.mention or "Could Not Find",
+                "Tickets Circulating": tickets_circulating,
+            }))
+            delete_lottery_data()
+            return
+
+        winner = None
+        winner_id = None
+        while True:
+            winner_id = random.choice(tickets)
+            winner = guild.get_member(winner_id)
+            if winner:
+                break
+
+        member_money_data = economy_system.get_economy_data(winner_id)
+        member_money_data["bank"] += money_pool
+        economy_system.save_economy_data(winner_id, member_money_data)
+
+        await announcement_channel.send(embed = create_embed("Lottery Ended", {
+            "Winner": f"||{winner.mention}||",
+            "Grand Prize": "${}".format(money_pool),
+            "Ticket Price": f"${ticket_price}",
+            "Creator": lottery_creator and lottery_creator.mention or "Could Not Find",
+            "Tickets Circulating": tickets_circulating,
+        }))
+
+        delete_lottery_data()
 
     @commands.command()
     async def lotteryinfo(self, context):
-        current_lottery_data = misc_data_base.find_one({"key": "current_lottery"})
+        current_lottery_data = get_lottery_data()
         if current_lottery_data:
             lottery_creator = context.guild.get_member(current_lottery_data["creator"])
             ticket_price = current_lottery_data["ticket_price"]
             tickets_circulating = len(current_lottery_data["tickets"])
+            tickets_bought = Counter(current_lottery_data["tickets"])[context.author.id]
             await context.send(embed = create_embed("Current Lottery", {
                 "Ending": datetime.fromtimestamp(current_lottery_data["timestamp_ending"]),
                 "Ticket Price": f"${ticket_price}",
                 "Money Pool": "${}".format(tickets_circulating * ticket_price),
                 "Creator": lottery_creator and lottery_creator.mention or "Could Not Find",
                 "Tickets Circulating": tickets_circulating,
+                "Tickets Bought": tickets_bought,
             }))
         else:
             await context.send(embed = create_embed("No Existing Lottery"))
@@ -66,36 +137,29 @@ class lottery(commands.Cog):
         tickets = round(tickets)
         user_id = context.author.id
 
-        current_lottery_data = misc_data_base.find_one({"key": "current_lottery"})
+        current_lottery_data = get_lottery_data()
         ticket_price = current_lottery_data["ticket_price"]
         total_price = round(ticket_price * tickets, 2)
 
-        member_money_data = economy_data_base.find_one({"id": user_id})
-        if not member_money_data:
-            member_money_data =  {
-                "id": user_id,
-                "pocket": STARTING_POCKET_MONEY,
-                "bank": STARTING_BANK_MONEY
-            }
-            economy_data_base.insert_one(member_money_data)
-
+        member_money_data = economy_system.get_economy_data(user_id)
         if member_money_data["pocket"] < total_price:
-            await context.send(embed = create_embed(f"You do not have enough money to purchase {tickets} ticket(s)", {
+            await context.send(embed = create_embed(f"ERROR: You do not have enough money to purchase {tickets} ticket(s)", {
                 "Pocket Money": "${}".format(member_money_data["pocket"]),
                 "Ticket Count": tickets,
                 "Ticket Price": f"${ticket_price}",
                 "Total Price": f"${total_price}",
             }, {
+                "color": discord_color.red(),
                 "member": context.author,
             }))
             return
         member_money_data["pocket"] -= total_price
-        economy_data_base.update_one({"id": user_id}, {"$set": member_money_data})
+        economy_system.save_economy_data(user_id, member_money_data)
 
         tickets_to_add = [user_id] * tickets
         current_lottery_data["tickets"] += tickets_to_add
         tickets_circulating = len(current_lottery_data["tickets"])
-        misc_data_base.update_one({"key": "current_lottery"}, {"$set": current_lottery_data})
+        save_lottery_data(current_lottery_data)
 
         await context.send(embed = create_embed(f"SUCCESS: Bought {tickets} tickets", {
             "Tickets Bought": tickets,
@@ -122,7 +186,7 @@ class lottery(commands.Cog):
             }))
             return
 
-        current_lottery_data = misc_data_base.find_one({"key": "current_lottery"})
+        current_lottery_data = get_lottery_data()
         if current_lottery_data:
             await context.send(embed = create_embed("ERROR: Could not create lottery", {
                 "Error Message": "There is an existing lottery. Type `?endlottery` or `cancellottery` to resolve.",
@@ -138,8 +202,9 @@ class lottery(commands.Cog):
             "creator": lottery_creator.id,
             "tickets": [],
         }
-        
-        misc_data_base.insert_one(new_lottery_data)
+
+        insert_lottery_data(new_lottery_data)
+
         await context.send(embed = create_embed("Lottery Created", {
             "Creator": lottery_creator.mention,
             "Ending": date_ending,
@@ -151,7 +216,8 @@ class lottery(commands.Cog):
     @commands.command()
     @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
     async def endlottery(self, context):
-        current_lottery_data = misc_data_base.find_one({"key": "current_lottery"})
+        announcement_channel = self.client.get_channel(ANNOUNCEMENT_CHANNEL)
+        current_lottery_data = get_lottery_data()
         if not current_lottery_data:
             await context.send(embed = create_embed("No Existing Lottery", {}, {
                 "color": discord_color.red()
@@ -161,21 +227,31 @@ class lottery(commands.Cog):
         winner = None
         winner_id = None
         tickets = current_lottery_data["tickets"]
-        while True:
-            winner_id = random.choice(tickets)
-            winner = context.guild.get_member(winner_id)
-            if winner:
-                break
-        
-        announcement_channel = self.client.get_channel(ANNOUNCEMENT_CHANNEL)
         tickets_circulating = len(tickets)
         ticket_price = current_lottery_data["ticket_price"]
         lottery_creator = context.guild.get_member(current_lottery_data["creator"])
         money_pool = tickets_circulating * ticket_price
 
-        member_money_data = economy_data_base.find_one({"id": winner_id})
+        if tickets_circulating == 0:
+            await announcement_channel.send(embed = create_embed("Lottery Ended", {
+                "Winner": "None",
+                "Grand Prize": "${}".format(money_pool),
+                "Ticket Price": f"${ticket_price}",
+                "Creator": lottery_creator and lottery_creator.mention or "Could Not Find",
+                "Tickets Circulating": tickets_circulating,
+            }))
+            delete_lottery_data()
+            return
+
+        while True:
+            winner_id = random.choice(tickets)
+            winner = context.guild.get_member(winner_id)
+            if winner:
+                break
+
+        member_money_data = economy_system.get_economy_data(winner_id)
         member_money_data["bank"] += money_pool
-        economy_data_base.update_one({"id": winner_id}, {"$set": member_money_data})
+        economy_system.save_economy_data(winner_id, member_money_data)
 
         await announcement_channel.send(embed = create_embed("Lottery Ended", {
             "Winner": f"||{winner.mention}||",
@@ -185,31 +261,25 @@ class lottery(commands.Cog):
             "Tickets Circulating": tickets_circulating,
         }))
 
-        misc_data_base.delete_many({"key": "current_lottery"})
+        delete_lottery_data()
 
     @commands.command()
     @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
     async def cancellottery(self, context):
-        current_lottery_data = misc_data_base.find_one({"key": "current_lottery"})
+        current_lottery_data = misc_data_store.find_one({"key": "current_lottery"})
         if not current_lottery_data:
             await context.send(embed = create_embed("No Existing Lottery", {}, {
                 "color": discord_color.red()
             }))
             return
 
-        tickets_to_return = {}
-        for ticket_owner_id in current_lottery_data["tickets"]:
-            if not tickets_to_return.get(ticket_owner_id):
-                tickets_to_return[ticket_owner_id] = 1
-            else:
-                tickets_to_return[ticket_owner_id] += 1
-
-        for member_id, ticket_count in tickets_to_return.items():
-            member_money_data = economy_data_base.find_one({"id": member_id})
+        ticket_counts = Counter(current_lottery_data["tickets"])
+        for member_id, ticket_count in ticket_counts.items():
+            member_money_data = economy_system.get_economy_data(member_id)
             member_money_data["bank"] += ticket_count * current_lottery_data["ticket_price"]
-            economy_data_base.update_one({"id": member_id}, {"$set": member_money_data})
+            economy_system.save_economy_data(member_id, member_money_data)
 
-        misc_data_base.delete_many({"key": "current_lottery"})
+        delete_lottery_data()
 
         await context.send(embed = create_embed("Lottery cancelled. All tickets were refunded.", {
             "Ran By": context.author.mention

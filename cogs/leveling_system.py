@@ -148,7 +148,7 @@ class leveling_system(commands.Cog):
                             "Game": game_name,
                             "Party Members": members
                         }))
-                        
+
     @commands.Cog.listener()
     async def on_message(self, message):
         user_id = message.author.id

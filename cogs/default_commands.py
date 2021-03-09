@@ -75,8 +75,6 @@ class default_commands(commands.Cog):
             }),
 
             "economy_system_embed": create_embed("Economy System", None, {
-                "pocket <MEMBER = SELF>": "Returns the amount of money in the member's pocket. No permissions required. Included in the `economy_system` set.",
-                "bank <MEMBER = SELF>": "Returns the amount of money in the member's bank account. No permissions required. Included in the `economy_system` set.",
                 "wealth <MEMBER = SELF>": "Returns the net worth of the member. The net worth includes their pocket and bank account. No permissions required. Included in the `economy_system` set.",
                 "forbes": "Returns a list of the richest people on the server and their net worth. No permissions required. Included in the `economy_system` set.",
                 "withdraw <AMOUNT>": "Transfers money from the member's bank account to their pocket. No permissions required. Included in the `economy_system` set.",
@@ -84,6 +82,11 @@ class default_commands(commands.Cog):
                 "give <RECEIVER = SELF> <AMOUNT>": "Transfers money from the user's pocket to the receiver's pocket. No permissions required. the Included in the `economy_system` set.",
                 "wire <RECEIVER = SELF> <AMOUNT>": "Transfers money from hte user's bank account to the receiver's bank account. No permissions required. Included in the `economy_system` set.",
                 "addmoney <MEMBER> <AMOUNT>": "Prints and gives money to the specified member. `Bot Creator` or `Administrator` permissions required. Included in the `economy_system` set.",
+                "lotteryinfo": "Displays the current lottery's info. No permissions required. Included in the `lottery` set.",
+                "buytickets <COUNT>": "Purchases tickets to enter the lottery. No permissions required. Included in the `lottery` set.",
+                "createlottery <TIMESTAMP ENDING> <TICKET PRICE>": "Creates a lottery for others to join. The `TIMESTAMP ENDING` must be in the epoch format. Administrator` permissions required. Included in the `lottery` set.",
+                "endlottery": "Ends the current lottery and rewards the winner with the grand prize. `Administrator` permissions required. Included in the `lottery` set.",
+                "cancellottery": "Ends the current lottery and refunds all members that have purchased tickets. `Administrator` permissions required. Included in the `lottery` set.",
             }),
 
             "stock_market_embed": create_embed("Economy System", None, {
