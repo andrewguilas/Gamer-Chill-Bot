@@ -15,7 +15,10 @@ import random
 import time
 from collections import Counter
 from pymongo import MongoClient
-import cogs.economy_system as economy_system
+
+# import cogs.economy_system as economy_system
+import imp
+economy_system = imp.load_source("economy_system", "cogs/economy_system.py")
 
 cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
 misc_data_store = cluster.discord.misc
@@ -58,7 +61,6 @@ class lottery(commands.Cog):
 
     def cog_unload(self):
         self.check_lottery_duration.cancel()
-
 
     def cog_load(self):
         self.check_lottery_duration.start()
