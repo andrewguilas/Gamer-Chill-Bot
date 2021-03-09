@@ -148,22 +148,22 @@ class stock_market(commands.Cog):
     async def sellshares(self, context, ticker: str, shares: int):
         ticker = ticker.upper()
         user_id = context.author.id
-        stock_data = get_stock_data(user_id)
-        shares = round(stock_data["shares"][ticker], 2)
         current_price = getprice(ticker)
         market_value = round(current_price * shares, 2)
 
         # take shares
+        stock_data = get_stock_data(user_id)
         ticker_data = stock_data["shares"].get(ticker)
         if not ticker_data:
             await context.send(embed = create_embed(f"ERROR: You do not have any shares in {ticker}", discord_color.red(), {
                 "Shares to Sell": shares,
-                "Shares Holding": round(ticker_data, 2)
+                "Shares Holding": 0
             }))
             return
         elif ticker_data < shares:
             await context.send(embed = create_embed(f"ERROR: You only have {ticker_data} shares", discord_color.red(), {
-                "Shares to Sell": shares
+                "Shares to Sell": shares,
+                "Shares Holding": ticker_data
             }))
             return
         
