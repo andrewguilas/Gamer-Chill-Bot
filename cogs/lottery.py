@@ -78,7 +78,7 @@ class lottery(commands.Cog):
         tickets_circulating = len(tickets)
         ticket_price = current_lottery_data["ticket_price"]
         lottery_creator = guild.get_member(current_lottery_data["creator"])
-        money_pool = tickets_circulating * ticket_price
+        money_pool = tickets_circulating * ticket_price + current_lottery_data["initial_price"]
 
         if tickets_circulating == 0:
             await announcement_channel.send(embed = create_embed("Lottery Ended", {
@@ -124,7 +124,7 @@ class lottery(commands.Cog):
             await context.send(embed = create_embed("Current Lottery", {
                 "Ending": datetime.fromtimestamp(current_lottery_data["timestamp_ending"]),
                 "Ticket Price": f"${ticket_price}",
-                "Money Pool": "${}".format(tickets_circulating * ticket_price),
+                "Money Pool": "${}".format(tickets_circulating * ticket_price + current_lottery_data["initial_price"]),
                 "Creator": lottery_creator and lottery_creator.mention or "Could Not Find",
                 "Tickets Circulating": tickets_circulating,
                 "Tickets Bought": tickets_bought,
@@ -165,7 +165,7 @@ class lottery(commands.Cog):
             "Tickets Bought": tickets,
             "Ticket Price": f"${ticket_price}",
             "Total Cost": f"${total_price}",
-            "Money Pool": "${}".format(tickets_circulating * ticket_price),
+            "Money Pool": "${}".format(tickets_circulating * ticket_price + current_lottery_data["initial_price"]),
             "Tickets Circulating": tickets_circulating,
         }, {
             "color": discord_color.green(),
@@ -174,7 +174,7 @@ class lottery(commands.Cog):
 
     @commands.command()
     @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
-    async def createlottery(self, context, timestamp_ending: int, ticket_price: int):
+    async def createlottery(self, context, timestamp_ending: int, ticket_price: int, initial_price: int):
         lottery_creator = context.author
         ticket_price = round(ticket_price, 2)
         date_ending = datetime.fromtimestamp(timestamp_ending)
@@ -200,6 +200,7 @@ class lottery(commands.Cog):
             "timestamp_ending": timestamp_ending,
             "ticket_price": ticket_price,
             "creator": lottery_creator.id,
+            "initial_price": initial_price,
             "tickets": [],
         }
 
@@ -208,7 +209,8 @@ class lottery(commands.Cog):
         await context.send(embed = create_embed("Lottery Created", {
             "Creator": lottery_creator.mention,
             "Ending": date_ending,
-            "Ticket Price": f"${ticket_price}"
+            "Ticket Price": f"${ticket_price}",
+            "Grand Prize": "${}".format(initial_price),
         }, {
             "color": discord_color.green(),
         }))
@@ -230,7 +232,7 @@ class lottery(commands.Cog):
         tickets_circulating = len(tickets)
         ticket_price = current_lottery_data["ticket_price"]
         lottery_creator = context.guild.get_member(current_lottery_data["creator"])
-        money_pool = tickets_circulating * ticket_price
+        money_pool = tickets_circulating * ticket_price + current_lottery_data["initial_price"]
 
         if tickets_circulating == 0:
             await announcement_channel.send(embed = create_embed("Lottery Ended", {

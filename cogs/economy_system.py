@@ -263,5 +263,24 @@ class economy_system(commands.Cog):
                 "color": discord_color.red()
             }))
 
+    @commands.command()
+    @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
+    async def setmoney(self, context, member: discord.Member, location: str, amount: int = None):
+        amount = round(amount, 2)
+        if location == "pocket" or location == "bank":
+            money_data = get_economy_data(member.id)
+            money_data[location] = amount
+            save_economy_data(member.id, money_data)
+            await context.send(embed = create_embed(f"SUCCESS: Set {member}'s {location} to ${amount}", {
+                "Ran By": context.author.mention,
+            }, {
+                "color": discord_color.green(),
+            }))
+        else:
+            await context.send(embed = create_embed(f"ERROR: `{location}` is not a valid location. Choose `pocket` or `bank`", {}, {
+                "color": discord_color.red()
+            }))
+
+
 def setup(client):
     client.add_cog(economy_system(client))
