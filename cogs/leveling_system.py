@@ -30,7 +30,11 @@ import os
 import random
 import asyncio
 import time
-import cogs.economy_system as economy_system
+
+# import cogs.economy_system as economy_system
+import imp
+economy_system = imp.load_source("economy_system", "cogs/economy_system.py")
+
 from datetime import datetime
 from pymongo import MongoClient
 
