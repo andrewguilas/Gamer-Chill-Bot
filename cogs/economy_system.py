@@ -16,7 +16,10 @@ from datetime import datetime
 
 # other
 from pymongo import MongoClient
-import cogs.stock_market as stock_market_module
+
+# import cogs.stock_market as stock_market_module
+import imp
+economy_system = imp.load_source("stock_market", "cogs/stock_market.py")
 
 cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
 economy_data_store = cluster.discord.economy
