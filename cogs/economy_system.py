@@ -16,7 +16,6 @@ from datetime import datetime
 
 # other
 from pymongo import MongoClient
-
 import cogs.stock_market as stock_market_module
 
 cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")

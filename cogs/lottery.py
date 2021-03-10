@@ -15,8 +15,7 @@ import random
 import time
 from collections import Counter
 from pymongo import MongoClient
-
-import cogs.economy_system as economy_system
+import cogs.economy_system as economy_system_module
 
 cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
 misc_data_store = cluster.discord.misc
@@ -99,9 +98,9 @@ class lottery(commands.Cog):
             if winner:
                 break
 
-        member_money_data = economy_system.get_economy_data(winner_id)
+        member_money_data = economy_system_module.get_economy_data(winner_id)
         member_money_data["bank"] += money_pool
-        economy_system.save_economy_data(winner_id, member_money_data)
+        economy_system_module.save_economy_data(winner_id, member_money_data)
 
         await announcement_channel.send(embed = create_embed("Lottery Ended", {
             "Winner": f"||{winner.mention}||",
@@ -141,7 +140,7 @@ class lottery(commands.Cog):
         ticket_price = current_lottery_data["ticket_price"]
         total_price = round(ticket_price * tickets, 2)
 
-        member_money_data = economy_system.get_economy_data(user_id)
+        member_money_data = economy_system_module.get_economy_data(user_id)
         if member_money_data["pocket"] < total_price:
             await context.send(embed = create_embed(f"ERROR: You do not have enough money to purchase {tickets} ticket(s)", {
                 "Pocket Money": "${}".format(member_money_data["pocket"]),
@@ -154,7 +153,7 @@ class lottery(commands.Cog):
             }))
             return
         member_money_data["pocket"] -= total_price
-        economy_system.save_economy_data(user_id, member_money_data)
+        economy_system_module.save_economy_data(user_id, member_money_data)
 
         tickets_to_add = [user_id] * tickets
         current_lottery_data["tickets"] += tickets_to_add
@@ -251,9 +250,9 @@ class lottery(commands.Cog):
             if winner:
                 break
 
-        member_money_data = economy_system.get_economy_data(winner_id)
+        member_money_data = economy_system_module.get_economy_data(winner_id)
         member_money_data["bank"] += money_pool
-        economy_system.save_economy_data(winner_id, member_money_data)
+        economy_system_module.save_economy_data(winner_id, member_money_data)
 
         await announcement_channel.send(embed = create_embed("Lottery Ended", {
             "Winner": f"||{winner.mention}||",
@@ -277,9 +276,9 @@ class lottery(commands.Cog):
 
         ticket_counts = Counter(current_lottery_data["tickets"])
         for member_id, ticket_count in ticket_counts.items():
-            member_money_data = economy_system.get_economy_data(member_id)
+            member_money_data = economy_system_module.get_economy_data(member_id)
             member_money_data["bank"] += ticket_count * current_lottery_data["ticket_price"]
-            economy_system.save_economy_data(member_id, member_money_data)
+            economy_system_module.save_economy_data(member_id, member_money_data)
 
         delete_lottery_data()
 

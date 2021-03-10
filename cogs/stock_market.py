@@ -18,8 +18,7 @@ from datetime import datetime
 import asyncio
 import yfinance as yf
 from pymongo import MongoClient
-
-import cogs.economy_system as economy_system
+import cogs.economy_system as economy_system_module
 
 cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
 stocks_data_store = cluster.discord.stocks
@@ -97,7 +96,7 @@ class stock_market(commands.Cog):
         market_value = round(current_price * shares, 2)
 
         # transaction
-        economy_data = economy_system.get_economy_data(user_id)
+        economy_data = economy_system_module.get_economy_data(user_id)
         if economy_data["bank"] < market_value:
             await context.send(embed = create_embed(f"ERROR: You do not have enough money in the bank to purchase {shares} shares of {ticker}", {
                 "Market Value": "$" + str(market_value),
@@ -108,7 +107,7 @@ class stock_market(commands.Cog):
             }))
             return
         economy_data["bank"] -= round(market_value, 2)
-        economy_system.save_economy_data(user_id, economy_data)
+        economy_system_module.save_economy_data(user_id, economy_data)
 
         # give shares
         stock_data = get_stock_data(user_id)
@@ -167,9 +166,9 @@ class stock_market(commands.Cog):
         save_stock_data(user_id, stock_data)
 
         # give money        
-        economy_data = economy_system.get_economy_data(user_id)
+        economy_data = economy_system_module.get_economy_data(user_id)
         economy_data["bank"] += market_value
-        economy_system.save_economy_data(user_id, economy_data)
+        economy_system_module.save_economy_data(user_id, economy_data)
 
         await context.send(embed = create_embed(f"SUCCESS: {shares} shares of {ticker} were sold", {
             "Equity Earned": f"${market_value}",
