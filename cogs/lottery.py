@@ -3,7 +3,6 @@ UPDATE_TIME = 60
 
 # discord
 import discord
-"""
 from discord import Color as discord_color
 from discord.ext import commands, tasks
 
@@ -289,4 +288,3 @@ class lottery(commands.Cog):
 
 def setup(client):
     client.add_cog(lottery(client))
-"""

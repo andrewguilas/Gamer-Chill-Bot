@@ -1,4 +1,3 @@
-"""
 PERIOD = "2h"
 INTERVAL = "1m"
 DEFAULT_STOCK_DATA = {
@@ -214,4 +213,3 @@ class stock_market(commands.Cog):
 
 def setup(client):
     client.add_cog(stock_market(client))
-"""

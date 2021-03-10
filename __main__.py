@@ -7,6 +7,7 @@ from discord import Color as discord_color
 import os
 import pytz
 import threading
+import time
 from datetime import datetime
 
 def create_embed(title, color = discord_color.blue(), fields = {}):
@@ -81,6 +82,10 @@ async def update(context):
 
 def main():
     client.remove_command("help")
+
+    print("start delay")
+    time.sleep(5)
+    print("end delay")
 
     for file_name in os.listdir("./cogs"):
         if file_name.endswith(".py"):
