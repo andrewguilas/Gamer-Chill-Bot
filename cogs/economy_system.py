@@ -1,9 +1,6 @@
+STARTING_POCKET_MONEY = 20
+STARTING_BANK_MONEY = 500
 MAX_FIELDS_FOR_LEADERBOARD_EMBED = 10
-DEFAULT_DATA = {
-    "id": None,
-    "pocket": 20,
-    "bank": 500,
-}
 
 # discord
 import discord
@@ -15,17 +12,18 @@ import pytz
 from datetime import datetime
 
 # other
+import time
+import random
+import asyncio
 from pymongo import MongoClient
-import cogs.stock_market as stock_market_module
 
 cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
-economy_data_store = cluster.discord.economy
+economy = cluster.discord.economy
 
-def create_embed(title, fields: {} = {}, info: {} = {}):
+def create_embed(title, color = discord_color.blue(), fields = {}, user = None):
     embed = discord.Embed(
         title = title,
-        colour = info.get("color") or discord_color.blue(),
-        timestamp = datetime.now(tz = pytz.timezone("US/Eastern"))
+        colour = color or discord_color.blue()
     )
 
     for name, value in fields.items():
@@ -35,67 +33,105 @@ def create_embed(title, fields: {} = {}, info: {} = {}):
             inline = True
         )
 
-    if info.get("user"):
-        embed.set_author(name = info.user, icon_url = info.user.avatar_url)
+    embed.timestamp = datetime.now(tz = pytz.timezone("US/Eastern"))
+    if user:
+        embed.set_author(name = user, icon_url = user.avatar_url)
 
     return embed
 
-def save_economy_data(user_id, data):
-    economy_data_store.update_one({"id": user_id}, {"$set": data})
+def is_guild_owner():
+    def predicate(ctx):
+        return ctx.guild is not None and ctx.guild.owner_id == ctx.author.id
+    return commands.check(predicate)
 
-def insert_economy_data(data):
-    economy_data_store.insert_one(data)
+def save_data(user_id, data):
+    economy.update_one({"id": user_id}, {"$set": data})
 
-def get_economy_data(user_id):
-    data = economy_data_store.find_one({"id": user_id})
+def insert_data(data):
+    economy.insert_one(data)
+
+def get_data(user_id):
+    data = economy.find_one({"id": user_id})
     if not data:
-        data = DEFAULT_DATA
-        insert_economy_data(data)
+        data =  {
+            "id": user_id,
+            "pocket": STARTING_POCKET_MONEY,
+            "bank": STARTING_BANK_MONEY
+        }
+        insert_data(data)
     return data 
 
 def give_money(user_id, location, amount):
+    # get data / set default data
     amount = round(amount, 2)
-    economy_data = get_economy_data(user_id)
-    economy_data[location] += amount
-    save_economy_data(user_id, economy_data)
+    stats = get_data(user_id)
+
+    # add money
+    pocket = stats["pocket"]
+    bank = stats["bank"]
+
+    if location == "pocket":
+        pocket += amount
+    else:
+        bank += amount
+
+    # save data
+    save_data(user_id, {
+        "pocket": pocket,
+        "bank": bank
+    })
 
 class economy_system(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.command(aliases = ["bal", "balance"])
+    @commands.command()
+    async def pocket(self, context, member: discord.Member = None):
+        if not member:
+            member = context.author
+
+        # get data
+        stats = get_data(member.id)
+        pocket = round(stats["pocket"], 2)
+
+        # create embed
+        await context.send(embed = create_embed(f"{member}'s pocket", None, {
+            "Name": member.mention,
+            "Amount": f"${pocket}"
+        }, member))
+
+    @commands.command()
+    async def bank(self, context, member: discord.Member = None):
+        if not member:
+            member = context.author
+
+        # get data
+        stats = get_data(member.id)
+        bank = round(stats["bank"], 2)
+
+        # create embed
+        await context.send(embed = create_embed(f"{member}'s Bank Account", None, {
+            "Name": member.mention,
+            "Amount": f"${bank}"
+        }, member))
+
+    @commands.command()
     async def wealth(self, context, member: discord.Member = None):
         if not member:
             member = context.author
 
-        embed = await context.send(embed = create_embed(f"{member}'s Wealth", {
-            "Status": "Loading...",
-        }, {
-            "color": discord_color.gold(),
-            "member": member,
-        }))
-
         # get data
-        stats = get_economy_data(member.id)
+        stats = get_data(member.id)
         bank = round(stats["bank"], 2)
         pocket = round(stats["pocket"], 2)
 
-        # get stock data
-        stock_data = stock_market_module.get_stock_data(member.id)
-        investing_money = 0
-        for ticker, shares in stock_data["shares"].items():
-            current_price = stock_market_module.get_price(ticker)
-            investing_money += round(shares * current_price, 2)
-
         # create embed
-        await embed.edit(embed = create_embed(f"{member}'s Wealth", {
+        await context.send(embed = create_embed(f"{member}'s Wealth", None, {
             "Name": member.mention,
             "Bank": f"${bank}",
             "Pocket": f"${pocket}",
-            "Net Worth": f"{round(bank + pocket + investing_money, 2)}"
-        }, {
-            "member": member,
-        }))
+            "Net Worth": f"{round(bank + pocket, 2)}"
+        }, member))
 
     @commands.command()
     async def forbes(self, context):
@@ -103,21 +139,16 @@ class economy_system(commands.Cog):
             return
 
         # create loading embed
-        embed = await context.send(embed = create_embed("Forbes Richest Members", {
+        embed = await context.send(embed = create_embed("Forbes Richest Members", discord_color.gold(), {
             "Status": "Loading list..."
-        }, {
-            "color": discord_color.gold(),
         }))
 
         # create richest list
-        documents = list(economy_data_store.find({}))
+        documents = list(economy.find({}))
         richest_list = {}
         for data in documents:   
             user = context.guild.get_member(data["id"])    
-            pocket = data["pocket"]
-            bank = data["bank"]
-            investing = stock_market_module.get_investing_amount(data["id"])
-            richest_list[user.name] = round(pocket + bank + investing, 2)
+            richest_list[user.name] = round(data["pocket"] + data["bank"], 2)
         richest_list = sorted(richest_list.items(), key = lambda x: x[1], reverse = True)
 
         # create fields
@@ -129,122 +160,104 @@ class economy_system(commands.Cog):
             place += 1
 
         # update embed
-        await embed.edit(embed = create_embed("Forbes Richest Members", fields))
+        await embed.edit(embed = create_embed("Forbes Richest Members", None, fields))
 
     @commands.command()
     async def withdraw(self, context, amount: int):
         amount = round(amount, 2)
         user = context.author
-        economy_data = get_economy_data(user.id)
-        if amount > round(economy_data["bank"], 2):
-            await context.send(embed = create_embed(f"ERROR: You do not have enough money in your bank to withdraw ${amount}", {
-                "Bank": "${}".format(round(economy_data["bank"], 2)),
-                "Amount to Withdraw": "${}".format(amount)
-            }, {
-                "color": discord_color.red(),
-                "member": user,
+        data = get_data(user.id)
+        if amount > round(data["bank"], 2):
+            await context.send(embed = create_embed(f"ERROR: You do not have enough money in your bank to withdraw ${amount}", discord_color.red(), {
+                "Bank": round(data["bank"], 2),
+                "Pocket": round(data["pocket"], 2),
+                "Amount to Withdraw": amount
             }))
             return
         
-        economy_data["bank"] -= amount
-        economy_data["pocket"] += amount
-        save_economy_data(user.id, economy_data)
+        data["bank"] -= amount
+        data["pocket"] += amount
 
-        await context.send(embed = create_embed(f"Withdrew ${amount} from the bank", {
-            "Bank": "${}".format(round(economy_data["bank"], 2)),
-            "Pocket": "${}".format(round(economy_data["pocket"], 2)),
-            "Amount Withdraw": "${}".format(amount)
-        }, {
-            "color": discord_color.green(),
-            "member": user,
-        }))
+        save_data(user.id, data)
+        await context.send(embed = create_embed(f"Withdrew ${amount} from the bank", discord_color.green(), {
+            "Bank": round(data["bank"], 2),
+            "Pocket": round(data["pocket"], 2),
+            "Amount Withdraw": amount
+        }, user))
 
     @commands.command()
     async def deposit(self, context, amount: int):
         amount = round(amount, 2)
         user = context.author
-        economy_data = get_economy_data(user.id)
-        if amount > round(economy_data["pocket"], 2):
-            await context.send(embed = create_embed(f"ERROR: You do not have enough money in your pocket to deposit ${amount} into the bank", {
-                "Pocket": "${}".format(round(economy_data["pocket"], 2)),
-                "Amount to Deposit": "${}".format(amount)
-            }, {
-                "color": discord_color.red(),
-                "member": user,
+        data = get_data(user.id)
+        if amount > round(data["pocket"], 2):
+            await context.send(embed = create_embed(f"ERROR: You do not have enough money in your pocket to deposit ${amount} into the bank", discord_color.red(), {
+                "Bank": round(data["bank"], 2),
+                "Pocket": round(data["pocket"], 2),
+                "Amount to Deposit": amount
             }))
             return
         
-        economy_data["pocket"] -= amount
-        economy_data["bank"] += amount
+        data["pocket"] -= amount
+        data["bank"] += amount
 
-        save_economy_data(user.id, economy_data)
-        await context.send(embed = create_embed(f"Deposited ${amount} from into the bank", {
-            "Bank": "${}".format(round(economy_data["bank"], 2)),
-            "Pocket": "${}".format(round(economy_data["pocket"], 2)),
-            "Amount Deposited": "${}".format(amount)
-        }, {
-            "color": discord_color.green(),
-            "member": user,
-        }))
+        save_data(user.id, data)
+        await context.send(embed = create_embed(f"Deposited ${amount} from into the bank", discord_color.green(), {
+            "Bank": round(data["bank"], 2),
+            "Pocket": round(data["pocket"], 2),
+            "Amount Deposited": amount
+        }, user))
 
     @commands.command()
     async def give(self, context, receiver: discord.Member, amount: int):
         amount = round(amount, 2)
         sender = context.author
-        sender_economy_data = get_economy_data(sender.id)
-        receiver_economy_data = get_economy_data(receiver.id)
+        sender_data = get_data(sender.id)
+        receiver_data = get_data(receiver.id)
 
-        if round(sender_economy_data["pocket"], 2) < amount:
-            await context.send(embed = create_embed(f"ERROR: {sender}, you do not have enough money to give to {receiver}", {
-                f"{sender.name}'s Pocket": "${}".format(round(sender_economy_data["pocket"], 2)),
-                f"{receiver.name}'s Pocket": "${}".format(round(receiver_economy_data["pocket"], 2)),
-                f"Amount to Give from {sender}'s Pocket to {receiver}'s Pocket": "${}".format(amount)
-            }, {
-                "color": discord_color.red(),
+        if round(sender_data["pocket"], 2) < amount:
+            await context.send(embed = create_embed(f"ERROR: {sender}, you do not have enough money to give to {receiver}", discord_color.red(), {
+                f"{sender.name}'s Pocket": round(sender_data["pocket"], 2),
+                f"{receiver.name}'s Pocket": round(receiver_data["pocket"], 2),
+                f"Amount to Give from {sender}'s Pocket to {receiver}'s Pocket": amount
             }))
             return
 
-        sender_economy_data["pocket"] -= amount
-        receiver_economy_data["pocket"] += amount
-        save_economy_data(sender.id, sender_economy_data)
-        save_economy_data(receiver.id, receiver_economy_data)
+        sender_data["pocket"] -= amount
+        receiver_data["pocket"] += amount
+        save_data(sender.id, sender_data)
+        save_data(receiver.id, receiver_data)
 
-        await context.send(embed = create_embed(f"{sender} gave ${amount} to {receiver}", {
-            f"{sender.name}'s Pocket": "${}".format(round(sender_economy_data["pocket"], 2)),
-            f"{receiver.name}'s Pocket": "${}".format(round(receiver_economy_data["pocket"], 2)),
+        await context.send(embed = create_embed(f"{sender} gave ${amount} to {receiver}", discord_color.green(), {
+            f"{sender.name}'s Pocket": "${}".format(round(sender_data["pocket"], 2)),
+            f"{receiver.name}'s Pocket": "${}".format(round(receiver_data["pocket"], 2)),
             f"Amount Given from {sender}'s Pocket to {receiver}'s Pocket": "${}".format(amount)
-        }, {
-            "color": discord_color.green()
         }))
 
     @commands.command()
     async def wire(self, context, receiver: discord.Member, amount: int):
         amount = round(amount, 2)
         sender = context.author
-        sender_economy_data = get_economy_data(sender.id)
-        receiver_economy_data = get_economy_data(receiver.id)
+        sender_data = get_data(sender.id)
+        receiver_data = get_data(receiver.id)
 
-        if round(sender_economy_data["bank"], 2) < amount:
-            await context.send(embed = create_embed(f"ERROR: {sender}, you do not have enough money to wire money to {receiver}", {
-                f"{sender.name}'s Bank Account": "${}".format(round(sender_economy_data["bank"], 2)),
-                f"{receiver.name}'s Bank Account": "${}".format(round(receiver_economy_data["bank"], 2)),
-                f"Amount to Give from {sender}'s Bank Account to {receiver}'s Bank Account": "${}".format(amount)
-            }, {
-                "color": discord_color.red(),
+        if round(sender_data["bank"], 2) < amount:
+            await context.send(embed = create_embed(f"ERROR: {sender}, you do not have enough money to wire money to {receiver}", discord_color.red(), {
+                f"{sender.name}'s Bank Account": round(sender_data["bank"], 2),
+                f"{receiver.name}'s Bank Account": round(receiver_data["bank"], 2),
+                f"Amount to Give from {sender}'s Bank Account to {receiver}'s Bank Account": amount
             }))
             return
 
-        sender_economy_data["bank"] -= amount
-        receiver_economy_data["bank"] += amount
-        save_economy_data(sender.id, sender_economy_data)
-        save_economy_data(receiver.id, receiver_economy_data)
+        sender_data["bank"] -= amount
+        receiver_data["bank"] += amount
+        save_data(sender.id, sender_data)
+        save_data(receiver.id, receiver_data)
 
-        await context.send(embed = create_embed(f"{sender} wired ${amount} to {receiver}", {
-            f"{sender.name}'s Bank Account": "${}".format(round(sender_economy_data["bank"], 2)),
-            f"{receiver.name}'s Bank Account": "${}".format(round(receiver_economy_data["bank"], 2)),
+        await context.send(embed = create_embed(f"{sender} wired ${amount} to {receiver}", discord_color.green(), {
+            f"{sender.name}'s Bank Account": "${}".format(round(sender_data["bank"], 2)),
+            f"{receiver.name}'s Bank Account": "${}".format(round(receiver_data["bank"], 2)),
             f"Amount Given from {sender}'s Bank Account to {receiver}'s Bank Account": "${}".format(amount)
-        }, {
-            "color": discord_color.green(),
         }))
 
     @commands.command()
@@ -253,33 +266,9 @@ class economy_system(commands.Cog):
         amount = round(amount, 2)
         if location == "pocket" or location == "bank":
             give_money(member.id, location, amount)
-            await context.send(embed = create_embed(f"SUCCESS: Added ${amount} to {member}'s {location}", {
-                "Ran By": context.author.mention,
-            }, {
-                "color": discord_color.green(),
-            }))
+            await context.send(embed = create_embed(f"Added ${amount} to {member}'s {location}"))
         else:
-            await context.send(embed = create_embed(f"ERROR: `{location}` is not a valid location. Choose `pocket` or `bank`", {}, {
-                "color": discord_color.red()
-            }))
-
-    @commands.command()
-    @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
-    async def setmoney(self, context, member: discord.Member, location: str, amount: int = None):
-        amount = round(amount, 2)
-        if location == "pocket" or location == "bank":
-            money_data = get_economy_data(member.id)
-            money_data[location] = amount
-            save_economy_data(member.id, money_data)
-            await context.send(embed = create_embed(f"SUCCESS: Set {member}'s {location} to ${amount}", {
-                "Ran By": context.author.mention,
-            }, {
-                "color": discord_color.green(),
-            }))
-        else:
-            await context.send(embed = create_embed(f"ERROR: `{location}` is not a valid location. Choose `pocket` or `bank`", {}, {
-                "color": discord_color.red()
-            }))
+            await context.send(embed = create_embed(f"ERROR: `{location}` is not a valid location. Choose `pocket` or `bank`"))
 
 def setup(client):
     client.add_cog(economy_system(client))

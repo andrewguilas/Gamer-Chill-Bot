@@ -30,9 +30,10 @@ import os
 import random
 import asyncio
 import time
-import cogs.economy_system as economy_system_module
 from datetime import datetime
 from pymongo import MongoClient
+
+from cogs.economy_system import give_money
 
 cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
 leveling = cluster.discord.leveling
@@ -98,7 +99,7 @@ def give_experience(user_id, amount):
             experience -= get_total_experience_of_level(level)
             level += 1
             new_level = level
-            economy_system_module.give_money(user_id, "bank", get_money_for_leveling(level))
+            give_money(user_id, "bank", get_money_for_leveling(level))
         else:
             break
 
@@ -147,7 +148,7 @@ class leveling_system(commands.Cog):
                             "Game": game_name,
                             "Party Members": members
                         }))
-
+                        
     @commands.Cog.listener()
     async def on_message(self, message):
         user_id = message.author.id

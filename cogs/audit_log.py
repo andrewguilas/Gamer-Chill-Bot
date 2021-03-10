@@ -807,7 +807,7 @@ class audit_log(commands.Cog):
         embed = create_embed(f"{invite.inviter} has created an invite for {invite.channel.mention}", None, {
             "Type": "Invite Create",
             "Code": invite.code,
-            "Link": invite.url,
+            "Link": invite.link,
             "Temporary Membership": invite.temporary,
             "Uses": f"{invite.uses} / {invite.max_uses}",
             "Max Age": invite.max_age,

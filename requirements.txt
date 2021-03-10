@@ -1,4 +1,7 @@
 git+https://github.com/Rapptz/discord.py
-pytz==2021.1
-pymongo==3.11.3
+pandas
+dnspython==1.16.0
+async-timeout==3.0.1
+pytz
+pymongo==3.11.2
 yfinance==0.1.55
