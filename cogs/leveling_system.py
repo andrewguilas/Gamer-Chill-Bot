@@ -31,7 +31,7 @@ import random
 import asyncio
 import time
 
-from cogs import economy_system as economy_system
+import cogs.economy_system as economy_system
 
 from datetime import datetime
 from pymongo import MongoClient

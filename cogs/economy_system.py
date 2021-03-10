@@ -17,7 +17,7 @@ from datetime import datetime
 # other
 from pymongo import MongoClient
 
-from cogs import stock_market as stock_market_module
+import cogs.stock_market as stock_market_module
 
 cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
 economy_data_store = cluster.discord.economy
@@ -281,7 +281,6 @@ class economy_system(commands.Cog):
             await context.send(embed = create_embed(f"ERROR: `{location}` is not a valid location. Choose `pocket` or `bank`", {}, {
                 "color": discord_color.red()
             }))
-
 
 def setup(client):
     client.add_cog(economy_system(client))

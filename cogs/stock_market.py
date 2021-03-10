@@ -19,7 +19,7 @@ import asyncio
 import yfinance as yf
 from pymongo import MongoClient
 
-from cogs import economy_system as economy_system
+import cogs.economy_system as economy_system
 
 cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
 stocks_data_store = cluster.discord.stocks

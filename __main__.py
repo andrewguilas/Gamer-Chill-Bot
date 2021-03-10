@@ -83,8 +83,8 @@ def main():
     client.remove_command("help")
 
     for file_name in os.listdir("./cogs"):
-            if file_name.endswith(".py"):
-                client.load_extension(f"cogs.{file_name[:-3]}")
+        if file_name.endswith(".py"):
+            client.load_extension(f"cogs.{file_name[:-3]}")
 
     client.run(TOKEN)
 
