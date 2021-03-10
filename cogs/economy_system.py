@@ -205,9 +205,8 @@ class economy_system(commands.Cog):
 
         if amount > money_data["bank"]:
             await embed.edit(embed = create_embed(f"ERROR: You do not have enough money in the bank to withdraw ${amount}", {
-                "Bank": "${}".format(money_data["bank"]),
-                "Pocket": "${}".format(money_data["pocket"]),
-                "Amount to Withdraw": "${}".format(amount)
+                "Pocket": "${}".format(round(money_data["pocket"], 2)),
+                "Amount to Withdraw": "${}".format(round(amount, 2))
             }, {
                 "color": discord_color.red(),
                 "member": user,
@@ -220,9 +219,9 @@ class economy_system(commands.Cog):
 
         # update embed
         await embed.edit(embed = create_embed(f"Withdrew ${amount} from the bank", {
-            "Bank": "${}".format(money_data["bank"]),
-            "Pocket": "${}".format(money_data["pocket"]),
-            "Amount Withdraw": "${}".format(amount),
+            "Bank": "${}".format(round(money_data["bank"], 2)),
+            "Pocket": "${}".format(round(money_data["pocket"], 2)),
+            "Amount Withdraw": "${}".format(round(amount, 2)),
         }, {
             "color": discord_color.green(),
             "member": user,
@@ -252,9 +251,9 @@ class economy_system(commands.Cog):
 
         if amount > money_data["pocket"]:
             await embed.edit(embed = create_embed(f"ERROR: You do not have enough money in your pocket to deposit ${amount}", {
-                "Bank": "${}".format(money_data["bank"]),
-                "Pocket": "${}".format(money_data["pocket"]),
-                "Amount to Withdraw": "${}".format(amount)
+                "Bank": "${}".format(round(money_data["bank"], 2)),
+                "Pocket": "${}".format(round(money_data["pocket"], 2)),
+                "Amount to Withdraw": "${}".format(round(amount, 2))
             }, {
                 "color": discord_color.red(),
                 "member": user,
@@ -267,9 +266,9 @@ class economy_system(commands.Cog):
 
         # update embed
         await embed.edit(embed = create_embed(f"Depositing ${amount} into bank", {
-            "Bank": "${}".format(money_data["bank"]),
-            "Pocket": "${}".format(money_data["pocket"]),
-            "Amount Deposited": "${}".format(amount),
+            "Bank": "${}".format(round(money_data["bank"], 2)),
+            "Pocket": "${}".format(round(money_data["pocket"]), 2),
+            "Amount Deposited": "${}".format(round(amount, 2)),
         }, {
             "color": discord_color.green(),
             "member": user,
@@ -342,8 +341,8 @@ class economy_system(commands.Cog):
 
         if sender_data["bank"] < amount:
             await embed.edit(embed = create_embed(f"ERROR: {sender}, you do not have enough money in the bank to give to {receiver}", {
-                f"{sender.name}'s Account Balance": "${}".format(sender_data["bank"]),
-                f"Amount to Wire to {receiver}": "${}".format(amount),
+                f"{sender.name}'s Account Balance": "${}".format(round(sender_data["bank"], 2)),
+                f"Amount to Wire to {receiver}": "${}".format(round(amount, 2)),
             }, {
                 "color": discord_color.red(),
                 "member": sender,
@@ -357,9 +356,9 @@ class economy_system(commands.Cog):
 
         # update embed
         await embed.edit(embed = create_embed(f"{sender} wired ${amount} to {receiver}", {
-            f"{sender.name}'s Bank Account": "${}".format(sender_data["bank"]),
-            f"{receiver.name}'s Bank Account": "${}".format(receiver_data["bank"]),
-            f"Amount Wired to {receiver}": "${}".format(amount)
+            f"{sender.name}'s Bank Account": "${}".format(round(sender_data["bank"], 2)),
+            f"{receiver.name}'s Bank Account": "${}".format(round(receiver_data["bank"], 2)),
+            f"Amount Wired to {receiver}": "${}".format(round(amount, 2))
         }, {
             "color": discord_color.green(),
             "member": sender,

@@ -35,7 +35,7 @@ class default_commands(commands.Cog):
                 "2 - Default": "In general commands",
                 "3 - Fun": "Commands for fun and games",
                 "4 - Leveling System": "Commands for using and managing the leveling system",
-                "5 - Economy System": "Commands for using and managing the economy system.",
+                "5 - Economy System": "Commands for using and managing the economy system and lottery.",
                 "6 - Stock Market": "Commands for trading on the simulated stock market.",
                 "7 - Moderation": "Commands for moderation",
                 "8 - Server": "Commands for server management",
@@ -82,6 +82,11 @@ class default_commands(commands.Cog):
                 "give <RECEIVER = SELF> <AMOUNT>": "Transfers money from the user's pocket to the receiver's pocket. No permissions required. the Included in the `economy_system` set.",
                 "wire <RECEIVER = SELF> <AMOUNT>": "Transfers money from hte user's bank account to the receiver's bank account. No permissions required. Included in the `economy_system` set.",
                 "addmoney <MEMBER> <AMOUNT>": "Prints and gives money to the specified member. `Bot Creator` or `Administrator` permissions required. Included in the `economy_system` set.",
+                "lotteryinfo": "Displays the current lottery's info. No permissions required. Included in the `lottery` set.",
+                "buytickets <COUNT>": "Purchases tickets to enter the lottery. No permissions required. Included in the `lottery` set.",
+                "createlottery <TIMESTAMP ENDING> <TICKET PRICE>": "Creates a lottery for others to join. The `TIMESTAMP ENDING` must be in the epoch format. Administrator` permissions required. Included in the `lottery` set.",
+                "endlottery": "Ends the current lottery and rewards the winner with the grand prize. `Administrator` permissions required. Included in the `lottery` set.",
+                "cancellottery": "Ends the current lottery and refunds all members that have purchased tickets. `Administrator` permissions required. Included in the `lottery` set.",
             }),
 
             "stock_market_embed": create_embed("Economy System", None, {
