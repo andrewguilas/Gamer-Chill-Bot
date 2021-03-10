@@ -20,6 +20,12 @@ GUILD_ID = 651133204492845066
 LOG_CHANNEL = 813453150886428742
 BLACKLISTED_MESSAGE_CHANNELS = [673714091466031113, 813757261045563432, 813261215081562182]
 
+DEFAULT_ECONOMY_DATA = {
+    "id": None,
+    "pocket": 20,
+    "bank": 500,
+}
+
 import discord
 from discord import Color as discord_color
 from discord.ext import commands, tasks
@@ -33,10 +39,9 @@ import time
 from datetime import datetime
 from pymongo import MongoClient
 
-from cogs.economy_system import give_money
-
 cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
 leveling = cluster.discord.leveling
+economy_data_store = cluster.discord.economy
 recent_messagers = {}
 
 def create_embed(title, color = discord_color.blue(), fields = {}):
@@ -55,6 +60,20 @@ def create_embed(title, color = discord_color.blue(), fields = {}):
     embed.timestamp = datetime.now(tz = pytz.timezone("US/Eastern"))
 
     return embed
+
+def save_economy_data(user_id, data):
+    economy_data_store.update_one({"id": user_id}, {"$set": data})
+
+def insert_economy_data(data):
+    economy_data_store.insert_one(data)
+
+def get_economy_data(user_id):
+    data = economy_data_store.find_one({"id": user_id})
+    if not data:
+        data = DEFAULT_ECONOMY_DATA
+        data["id"] = user_id
+        insert_economy_data(data)
+    return data 
 
 def is_guild_owner():
     def predicate(ctx):
@@ -94,14 +113,16 @@ def give_experience(user_id, amount):
     experience = stats["experience"] + amount
     total_experience = stats["total_experience"] + amount
 
+    money_data = get_economy_data(user_id)
     while True:
         if experience >= get_total_experience_of_level(level):
             experience -= get_total_experience_of_level(level)
             level += 1
             new_level = level
-            give_money(user_id, "bank", get_money_for_leveling(level))
+            money_data["bank"] += round(get_money_for_leveling(level), 2)
         else:
             break
+    save_economy_data(user_id, money_data)
 
     save_data(user_id, {
         "level": level,

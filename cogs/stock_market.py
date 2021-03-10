@@ -1,7 +1,14 @@
 PERIOD = "2h"
 INTERVAL = "1m"
-STARTING_POCKET_MONEY = 20
-STARTING_BANK_MONEY = 500
+DEFAULT_ECONOMY_DATA = {
+    "id": None,
+    "pocket": 20,
+    "bank": 500,
+}
+DEFAULT_STOCK_DATA = {
+    "id": None,
+    "shares": {}
+}
 
 # discord
 import discord
@@ -13,20 +20,18 @@ import pytz
 from datetime import datetime
 
 # other
-import time
-import random
-import asyncio
 from pymongo import MongoClient
 import yfinance as yf
 
 cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
-economy = cluster.discord.economy
-stocks = cluster.discord.stocks
+economy_data_store = cluster.discord.economy
+stock_data_store = cluster.discord.stocks
 
-def create_embed(title, color = discord_color.blue(), fields = {}, user = {}):
+def create_embed(title, fields: {} = {}, info: {} = {}):
     embed = discord.Embed(
         title = title,
-        colour = color or discord_color.blue()
+        colour = info.get("color") or discord_color.blue(),
+        timestamp = datetime.now(tz = pytz.timezone("US/Eastern"))
     )
 
     for name, value in fields.items():
@@ -36,18 +41,12 @@ def create_embed(title, color = discord_color.blue(), fields = {}, user = {}):
             inline = True
         )
 
-    embed.timestamp = datetime.now(tz = pytz.timezone("US/Eastern"))
-    if user:
-        embed.set_author(name = user, icon_url = user.avatar_url)
+    if info.get("member"):
+        embed.set_author(name = info["member"], icon_url = info["member"].avatar_url)
 
     return embed
 
-def is_guild_owner():
-    def predicate(ctx):
-        return ctx.guild is not None and ctx.guild.owner_id == ctx.author.id
-    return commands.check(predicate)
-
-def getprice(ticker: str):
+def get_stock_price(ticker: str):
     ticker = ticker.upper()
     try:
         data = yf.download(tickers = ticker, period = PERIOD, interval = INTERVAL)
@@ -59,37 +58,32 @@ def getprice(ticker: str):
 # data (stocks)
 
 def save_stock_data(user_id, data):
-    stocks.update_one({"id": user_id}, {"$set": data})
+    stock_data_store.update_one({"id": user_id}, {"$set": data})
 
 def insert_stock_data(data):
-    stocks.insert_one(data)
+    stock_data_store.insert_one(data)
 
 def get_stock_data(user_id):
-    data = stocks.find_one({"id": user_id})
+    data = stock_data_store.find_one({"id": user_id})
     if not data:
-        data =  {
-            "id": user_id,
-            "shares": {}
-        }
+        data = DEFAULT_STOCK_DATA
+        data["id"] = user_id,
         insert_stock_data(data)
     return data 
 
 # data (economy)
 
 def save_economy_data(user_id, data):
-    economy.update_one({"id": user_id}, {"$set": data})
+    economy_data_store.update_one({"id": user_id}, {"$set": data})
 
 def insert_economy_data(data):
-    economy.insert_one(data)
+    economy_data_store.insert_one(data)
 
 def get_economy_data(user_id):
-    data = economy.find_one({"id": user_id})
+    data = economy_data_store.find_one({"id": user_id})
     if not data:
-        data =  {
-            "id": user_id,
-            "pocket": STARTING_POCKET_MONEY,
-            "bank": STARTING_BANK_MONEY
-        }
+        data = DEFAULT_ECONOMY_DATA
+        data["id"] = user_id
         insert_economy_data(data)
     return data 
 
@@ -99,27 +93,44 @@ class stock_market(commands.Cog):
 
     @commands.command()
     async def getprice(self, context, ticker):
+        embed = await context.send(embed = create_embed(f"Getting price of {ticker}...", {}, {
+            "color": discord_color.gold(),
+            "member": context.author,
+        }))
+
         ticker = ticker.upper()
-        current_price = getprice(ticker)
+        current_price = get_stock_price(ticker)
         if current_price:
-            await context.send(embed = create_embed(f"{ticker}: ${current_price}"))
+            await embed.edit(embed = create_embed(f"{ticker}: ${current_price}", {}, {
+                "member": context.author,
+            }))
         else:
-            await context.send(embed = create_embed(f"ERROR: Something went wrong when obtaining the price of `{ticker}`", discord_color.red()))
+            await embed.edit(embed = create_embed(f"ERROR: Something went wrong when obtaining the price of `{ticker}`", {}, {
+                "color": discord_color.red(),
+                "member": context.author,
+            }))
 
     @commands.command()
     async def buyshares(self, context, ticker: str, shares: int):
         ticker = ticker.upper()
-        shares = round(shares, 2)
+        embed = await context.send(embed = create_embed(f"Buying {shares} shares of {ticker}...", {}, {
+            "color": discord_color.gold(),
+            "member": context.author,
+        }))
+
         user_id = context.author.id
-        current_price = getprice(ticker)
-        market_value = round(current_price * shares, 2)
+        current_price = get_stock_price(ticker)
+        market_value = current_price * shares
 
         # transaction
         economy_data = get_economy_data(user_id)
         if economy_data["bank"] < market_value:
-            await context.send(embed = create_embed(f"ERROR: You do not have enough money to purchase {shares} shares of {ticker}", discord_color.red(), {
+            await embed.edit(embed = create_embed(f"ERROR: You do not have enough money to purchase {shares} shares of {ticker}", {
                 "Market Value": "$" + str(market_value),
                 "Buying Power": "$" + str(round(economy_data["bank"], 2))
+            }, {
+                "color": discord_color.red(),
+                "member": context.author,
             }))
             return
 
@@ -135,35 +146,48 @@ class stock_market(commands.Cog):
             stock_data["shares"][ticker] = shares
         save_stock_data(user_id, stock_data)
         
-        total_shares = round(stock_data["shares"][ticker], 2)
+        total_shares = stock_data["shares"][ticker]
 
         # send status
-        await context.send(embed = create_embed(f"SUCCESS: {shares} shares of {ticker} were bought at ${current_price}", discord_color.green(), {
+        await embed.edit(embed = create_embed(f"SUCCESS: {shares} shares of {ticker} were bought at ${current_price}", {
             "Average Price": f"${current_price}",
             "Total Shares": total_shares,
             "Equity": f"${round(total_shares * current_price, 2)}"
+        }, {
+            "color": discord_color.green(),
+            "member": context.author,
         }))
 
     @commands.command()
     async def sellshares(self, context, ticker: str, shares: int):
         ticker = ticker.upper()
+        embed = await context.send(embed = create_embed(f"Selling {shares} shares of {ticker}...", {}, {
+            "color": discord_color.gold(),
+            "member": context.author,
+        }))
+
         user_id = context.author.id
-        stock_data = get_stock_data(user_id)
-        shares = round(stock_data["shares"][ticker], 2)
-        current_price = getprice(ticker)
-        market_value = round(current_price * shares, 2)
+        current_price = get_stock_price(ticker)
 
         # take shares
+        stock_data = get_stock_data(user_id)
         ticker_data = stock_data["shares"].get(ticker)
+        market_value = round(current_price * shares, 2)
         if not ticker_data:
-            await context.send(embed = create_embed(f"ERROR: You do not have any shares in {ticker}", discord_color.red(), {
+            await embed.edit(embed = create_embed(f"ERROR: You do not have any shares in {ticker}", {
                 "Shares to Sell": shares,
                 "Shares Holding": round(ticker_data, 2)
+            }, {
+                "color": discord_color.red(),
+                "member": context.author,
             }))
             return
         elif ticker_data < shares:
-            await context.send(embed = create_embed(f"ERROR: You only have {ticker_data} shares", discord_color.red(), {
+            await embed.edit(embed = create_embed(f"ERROR: You only have {ticker_data} shares", {
                 "Shares to Sell": shares
+            }, {
+                "color": discord_color.red(),
+                "member": context.author,
             }))
             return
         
@@ -177,27 +201,43 @@ class stock_market(commands.Cog):
         economy_data["bank"] += market_value
         save_economy_data(user_id, economy_data)
 
-        await context.send(embed = create_embed(f"SUCCESS: {shares} shares of {ticker} were sold", discord_color.green(), {
+        await embed.edit(embed = create_embed(f"SUCCESS: {shares} shares of {ticker} were sold", {
             "Equity Earned": f"${market_value}",
             "Shares Remaining": stock_data["shares"].get(ticker) and round(stock_data["shares"].get(ticker), 2) or "0"
+        }, {
+            "color": discord_color.green(),
         }))
 
     @commands.command()
     async def portfolio(self, context):
+        embed = await context.send(embed = create_embed(f"Loading {context.author}'s portfolio...", {}, {
+            "color": discord_color.gold(),
+            "member": context.author,
+        }))
+
         user_id = context.author.id
         stock_data = get_stock_data(user_id)
 
         if not stock_data.get("shares"):
-            await context.send(embed = create_embed(f"{context.author.name}'s Portfolio"))
+            await embed.send(edit = create_embed(f"{context.author.name}'s Portfolio", {
+                "Equity": "$0.00"
+            }, {
+                "member": context.author,
+            }))
             return
 
         fields = {}
+        investing_amount = 0
         for ticker, shares in stock_data["shares"].items():
-            current_price = getprice(ticker)
-            title = f"{ticker}: {round(shares, 2)} Shares"
-            fields[title] = f"Equity: ${round(shares * current_price, 2)}"
+            current_price = get_stock_price(ticker)
+            equity = round(shares * current_price, 2)
+            investing_amount += equity
+            fields["{}: {} shares".format(ticker, shares)] = "Equity: ${}".format(equity)
+        fields["Investing Amount"] = "${}".format(round(investing_amount, 2))
 
-        await context.send(embed = create_embed(f"{context.author.name}'s portfolio", None, fields))
+        await embed.edit(embed = create_embed(f"{context.author.name}'s portfolio", fields, {
+            "member": context.author,
+        }))
 
 def setup(client):
     client.add_cog(stock_market(client))

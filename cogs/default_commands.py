@@ -75,8 +75,6 @@ class default_commands(commands.Cog):
             }),
 
             "economy_system_embed": create_embed("Economy System", None, {
-                "pocket <MEMBER = SELF>": "Returns the amount of money in the member's pocket. No permissions required. Included in the `economy_system` set.",
-                "bank <MEMBER = SELF>": "Returns the amount of money in the member's bank account. No permissions required. Included in the `economy_system` set.",
                 "wealth <MEMBER = SELF>": "Returns the net worth of the member. The net worth includes their pocket and bank account. No permissions required. Included in the `economy_system` set.",
                 "forbes": "Returns a list of the richest people on the server and their net worth. No permissions required. Included in the `economy_system` set.",
                 "withdraw <AMOUNT>": "Transfers money from the member's bank account to their pocket. No permissions required. Included in the `economy_system` set.",
