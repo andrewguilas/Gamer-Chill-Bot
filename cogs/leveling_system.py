@@ -1,3 +1,4 @@
+"""
 MIN_MSG_EXP_GAIN, MAX_MSG_EXP_GAIN = 4, 8
 MIN_BOT_USAGE_EXP_GAIN, MAX_BOT_USAGE_EXP_GAIN = 5, 8
 MIN_VC_EXP_GAIN, MAX_VC_EXP_GAIN = 1, 2
@@ -275,3 +276,4 @@ class leveling_system(commands.Cog):
 
 def setup(client):
     client.add_cog(leveling_system(client))
+"""

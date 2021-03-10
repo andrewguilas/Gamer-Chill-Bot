@@ -1,3 +1,4 @@
+"""
 MAX_FIELDS_FOR_LEADERBOARD_EMBED = 10
 DEFAULT_DATA = {
     "id": None,
@@ -283,3 +284,4 @@ class economy_system(commands.Cog):
 
 def setup(client):
     client.add_cog(economy_system(client))
+"""
