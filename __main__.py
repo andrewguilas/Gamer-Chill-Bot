@@ -83,10 +83,6 @@ async def update(context):
 def main():
     client.remove_command("help")
 
-    print("start delay")
-    time.sleep(5)
-    print("end delay")
-
     for file_name in os.listdir("./cogs"):
         if file_name.endswith(".py"):
             client.load_extension(f"cogs.{file_name[:-3]}")
