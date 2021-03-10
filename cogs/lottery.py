@@ -277,7 +277,7 @@ class lottery(commands.Cog):
         if not current_lottery_data:
             await embed.edit(embed = create_embed("No Existing Lottery", {}, {
                 "color": discord_color.red(),
-                "member": lottery_creator,
+                "member": context.author,
             }))
             return
 

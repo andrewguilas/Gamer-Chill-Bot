@@ -267,7 +267,7 @@ class economy_system(commands.Cog):
         # update embed
         await embed.edit(embed = create_embed(f"Depositing ${amount} into bank", {
             "Bank": "${}".format(round(money_data["bank"], 2)),
-            "Pocket": "${}".format(round(money_data["pocket"]), 2),
+            "Pocket": "${}".format(round(money_data["pocket"], 2)),
             "Amount Deposited": "${}".format(round(amount, 2)),
         }, {
             "color": discord_color.green(),
