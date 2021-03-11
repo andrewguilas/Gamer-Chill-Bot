@@ -111,9 +111,6 @@ class economy_system(commands.Cog):
 
         # get stock money
         stock_data = get_stock_data(member.id)
-        if not stock_data:
-            stock_data = DEFAULT_STOCK_DATA
-            insert_stock_data(stock_data)
 
         stock_money = 0
         for ticker, share_count in stock_data["shares"].items():
@@ -158,10 +155,6 @@ class economy_system(commands.Cog):
 
             # get stock money
             stock_data = get_stock_data(member_money_data["id"])
-            if not stock_data:
-                stock_data = DEFAULT_STOCK_DATA
-                insert_stock_data(stock_data)
-
             stock_money = 0
             for ticker, share_count in stock_data["shares"].items():
                 average_price = get_stock_price(ticker)
