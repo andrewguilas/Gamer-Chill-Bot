@@ -363,5 +363,78 @@ class lottery(commands.Cog):
             "member": context.author,
         }))
 
+    @commands.command()
+    @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
+    async def gettickets(self, context, member: discord.Member = None):
+        if not member:
+            member = context.author
+
+        embed = await context.send(embed = create_embed(f"Getting {member}'s tickets...", {
+            "Ran By": context.author.mention,
+        }, {
+            "color": discord_color.gold(),
+            "member": context.author,
+        }))
+
+        current_lottery_data = misc_data_store.find_one({"key": "current_lottery"})
+        if not current_lottery_data:
+            await embed.edit(embed = create_embed("ERROR: No Existing Lottery", {
+                "Ran By": context.author.mention
+            },{
+                "color": discord_color.red(),
+                "member": context.author,
+            }))
+            return
+
+        ticket_counts = Counter(current_lottery_data["tickets"])[member.id] or 0
+        ticket_price = current_lottery_data["ticket_price"]
+        await embed.edit(embed = create_embed(f"{member} has {ticket_counts} ticket(s)", {
+            "Ran By": context.author.mention,
+            "Total Price": "${}".format(ticket_counts * ticket_price),
+            "Money Pool": "${}".format(len(current_lottery_data["tickets"]) * ticket_price + current_lottery_data["initial_price"]),
+        }, {
+            "color": discord_color.green(),
+            "member": context.author,
+        }))
+
+    @commands.command()
+    @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
+    async def lotteryorders(self, context, member: discord.Member = None):
+        if not member:
+            member = context.author
+
+        embed = await context.send(embed = create_embed(f"Getting lottery orders...", {
+            "Ran By": context.author.mention,
+        }, {
+            "color": discord_color.gold(),
+            "member": context.author,
+        }))
+
+        current_lottery_data = misc_data_store.find_one({"key": "current_lottery"})
+        if not current_lottery_data:
+            await embed.edit(embed = create_embed("ERROR: No Existing Lottery", {
+                "Ran By": context.author.mention
+            },{
+                "color": discord_color.red(),
+                "member": context.author,
+            }))
+            return
+
+        ticket_counts = Counter(current_lottery_data["tickets"])
+        ticket_counts = sorted(ticket_counts.items(), key = lambda x: x[1], reverse = True)
+
+        fields = {}
+        ticket_price = current_lottery_data["ticket_price"]
+        for place, orders in enumerate(ticket_counts):
+            member = context.guild.get_member(orders[0])
+            member = member and member.name or "Unknown"
+            fields[f"{place + 1}. {member}"] = f"{orders[1]} Orders (${orders[1] * ticket_price})"
+
+        await embed.edit(embed = create_embed(f"Lottery Orders", fields, {
+            "color": discord_color.green(),
+            "member": context.author,
+        }))
+
+
 def setup(client):
     client.add_cog(lottery(client))
