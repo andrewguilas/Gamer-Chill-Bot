@@ -209,17 +209,20 @@ class stock_market(commands.Cog):
         }))
 
     @commands.command()
-    async def portfolio(self, context):
-        embed = await context.send(embed = create_embed(f"Loading {context.author}'s portfolio...", {}, {
+    async def portfolio(self, context, member: discord.Member = None):
+        if not member:
+            member = context.author
+
+        embed = await context.send(embed = create_embed(f"Loading {member}'s portfolio...", {}, {
             "color": discord_color.gold(),
             "member": context.author,
         }))
 
-        user_id = context.author.id
+        user_id = member.id
         stock_data = get_stock_data(user_id)
 
         if not stock_data.get("shares"):
-            await embed.send(edit = create_embed(f"{context.author.name}'s Portfolio", {
+            await embed.send(edit = create_embed(f"{member.name}'s Portfolio", {
                 "Equity": "$0.00"
             }, {
                 "member": context.author,
@@ -235,7 +238,7 @@ class stock_market(commands.Cog):
             fields["{}: {} shares".format(ticker, shares)] = "Equity: ${}".format(equity)
         fields["Investing Amount"] = "${}".format(round(investing_amount, 2))
 
-        await embed.edit(embed = create_embed(f"{context.author.name}'s portfolio", fields, {
+        await embed.edit(embed = create_embed(f"{member.name}'s portfolio", fields, {
             "member": context.author,
         }))
 

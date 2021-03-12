@@ -68,6 +68,7 @@ def get_stock_data(user_id):
     data = stocks_data_store.find_one({"id": user_id})
     if not data:
         data = DEFAULT_STOCK_DATA
+        data["id"] = user_id
         insert_stock_data(data)
     return data 
 
