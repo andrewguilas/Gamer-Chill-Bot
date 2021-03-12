@@ -66,6 +66,8 @@ class default_commands(commands.Cog):
                 "whohasbigpp": "Returns a random person in the server. No permissions required. Included in the `fun_commands` set.",
                 "whohassmallpp": "Returns a random person in the server. No permissions required. Included in the `fun_commands` set.",
                 "randomperson": "Returns a random person in the server. No permissions required. Included in the `fun_commands` set.",
+                "meme/getmeme/m": "Returns a random meme from Reddit. No permissions required. Included in the `meme` set.",
+                "getcachedmemes": "Returns a list of memes that were cached as there is a long delay when retreiving a meme from Reddit. No permissions required. Included in the `meme` set."
             }),
 
             "leveling_system_embed": create_embed("Leveling System", None, {

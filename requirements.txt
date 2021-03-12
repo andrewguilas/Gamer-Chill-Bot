@@ -5,3 +5,4 @@ async-timeout==3.0.1
 pytz
 pymongo==3.11.2
 yfinance==0.1.55
+asyncpraw==7.2.0
