@@ -206,7 +206,6 @@ class audit_log(commands.Cog):
         embed.set_footer(text = f"#{logs_channel}")
         embed.set_author(name = context.author, icon_url = context.author.avatar_url)
         await logs_channel.send(embed = embed)
-        await self.client.process_commands(context)
 
     @commands.Cog.listener()
     async def on_message_delete(self, context):
