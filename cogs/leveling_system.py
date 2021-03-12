@@ -204,6 +204,8 @@ class leveling_system(commands.Cog):
         if new_level:
             await message.channel.send(embed = create_embed(f"{message.author} leveled up to level {new_level}"))
 
+        await self.client.process_commands(message)
+
     @commands.Cog.listener()
     async def on_voice_state_update(self, user, before, after):
         audit_log_channel = self.client.get_channel(LOG_CHANNEL)
