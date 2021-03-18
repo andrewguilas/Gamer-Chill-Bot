@@ -215,7 +215,6 @@ class lottery(commands.Cog):
         }))
 
     @commands.command()
-    @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
     async def createlottery(self, context, timestamp_ending: int, ticket_price: int, initial_price: int):
         lottery_creator = context.author
         embed = await context.send(embed = create_embed("Creating lottery...", {}, {
@@ -434,7 +433,6 @@ class lottery(commands.Cog):
             "color": discord_color.green(),
             "member": context.author,
         }))
-
 
 def setup(client):
     client.add_cog(lottery(client))

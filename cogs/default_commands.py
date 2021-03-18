@@ -86,7 +86,7 @@ class default_commands(commands.Cog):
                 "addmoney <MEMBER> <AMOUNT>": "Prints and gives money to the specified member. `Bot Creator` or `Administrator` permissions required. Included in the `economy_system` set.",
                 "lotteryinfo": "Displays the current lottery's info. No permissions required. Included in the `lottery` set.",
                 "buytickets <COUNT>": "Purchases tickets to enter the lottery. No permissions required. Included in the `lottery` set.",
-                "createlottery <TIMESTAMP ENDING> <TICKET PRICE>": "Creates a lottery for others to join. The `TIMESTAMP ENDING` must be in the epoch format. Administrator` permissions required. Included in the `lottery` set.",
+                "createlottery <TIMESTAMP ENDING> <TICKET PRICE> <INITIAL PRICE>": "Creates a lottery for others to join. The `TIMESTAMP ENDING` must be in the epoch format. No permissions required. Included in the `lottery` set.",
                 "endlottery": "Ends the current lottery and rewards the winner with the grand prize. `Administrator` permissions required. Included in the `lottery` set.",
                 "cancellottery": "Ends the current lottery and refunds all members that have purchased tickets. `Administrator` permissions required. Included in the `lottery` set.",
             }),

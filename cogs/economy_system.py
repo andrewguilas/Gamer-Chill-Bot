@@ -150,7 +150,10 @@ class economy_system(commands.Cog):
         members_money_data = list(economy_data_store.find({}))
         richest_list = {}
         for member_money_data in members_money_data:   
-            user = context.guild.get_member(member_money_data["id"])    
+            user = context.guild.get_member(member_money_data["id"])   
+            if not user:
+                continue 
+                
             pocket_money = member_money_data["pocket"]
             bank_money = member_money_data["bank"]
 
