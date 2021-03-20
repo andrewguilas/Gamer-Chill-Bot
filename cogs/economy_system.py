@@ -1,6 +1,7 @@
 PERIOD = "2h"
 INTERVAL = "1m"
 MAX_FIELDS_FOR_LEADERBOARD_EMBED = 10
+MAX_FIELDS = 5
 DEFAULT_ECONOMY_DATA = {
     "id": None,
     "pocket": 20,
@@ -19,6 +20,11 @@ import pytz
 import yfinance as yf
 from datetime import datetime
 from pymongo import MongoClient
+
+import os
+from PIL import Image
+from finvizfinance.quote import finvizfinance
+from finvizfinance.screener.overview import Overview
 
 cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
 economy_data_store = cluster.discord.economy
@@ -40,6 +46,16 @@ def create_embed(title, fields: {} = {}, info: {} = {}):
 
     if info.get("member"):
         embed.set_author(name = info["member"], icon_url = info["member"].avatar_url)
+    if info.get("author_name"):
+        embed.set_author(name = info["author_name"], icon_url = info.get("author_icon"))
+    if info.get("thumbnail"):
+        embed.set_thumbnail(url = info["thumbnail"])
+    if info.get("image"):
+        embed.set_image(url = info["image"])
+    if info.get("url"):
+        embed.url = info["url"]
+    if info.get("footer"):
+        embed.set_footer(text = info["footer"], icon_url = "")
 
     return embed
 
@@ -116,7 +132,6 @@ class economy_system(commands.Cog):
         stock_money = 0
         for ticker, share_count in stock_data["shares"].items():
             average_price = get_stock_price(ticker)
-            print(average_price, share_count)
             if not average_price:
                 continue
 
@@ -420,6 +435,145 @@ class economy_system(commands.Cog):
                 "color": discord_color.red(),
                 "member": context.author,
             }))
+
+    @commands.command(aliases = ["stock", "dd"])
+    async def stockinfo(self, context, ticker: str):
+        ticker = ticker.upper()
+        loading_embed = await context.send(embed = create_embed(f"Loading data for {ticker}...", {}, {
+            "color": discord_color.gold(),
+            "member": context.author,
+        }))
+
+        try:
+            chart = None
+            ordered_pages = []
+            pages = {
+                "Table of Contents": {
+                    "1 - Table of Contents": f"Sections of accessible data",
+                    "2 - Description": "Description of the stock",
+                    "3 - Info": "Stock info including but not limited to industry, index, market cap, short float, and sales",
+                    "4 - Ratings": "Ratings of the stock by various sources",
+                    "5 - News": "The latest news regarding the stock",
+                    "6 - Share Holders": "Individual stock owners and companies",
+                },
+                "Description": {}, 
+                "Info": {},
+                "Ratings": {},
+                "News": {},
+                "Share Holders": {},
+            }
+
+            stock = finvizfinance(ticker)
+
+            stock.TickerCharts()
+            for file_name in os.listdir():
+                if file_name == ticker + ".jpg":
+                    chart = file_name
+
+            # convert jpg to png
+            jpg_image = Image.open(chart)
+            jpg_image.save(f"{ticker}.png")
+            chart = ticker + ".png"
+
+            pages["Description"]["Description"] = stock.TickerDescription()[0:1021] + "..."
+            pages["Info"] = stock.TickerFundament()
+
+            ratings_data = stock.TickerOuterRatings()
+            for index, ratings_creator in ratings_data["Outer"].items():
+                pages["Ratings"][ratings_creator] = "Rating: {rating} | Price: {price} | Status: {status}".format(
+                    rating = ratings_data["Rating"][index],
+                    price = ratings_data["Price"][index],
+                    status = ratings_data["Status"][index],
+                )
+                if index == MAX_FIELDS - 1:
+                    break
+
+            news_data = stock.TickerNews()
+            for index, title in news_data["Title"].items():
+                pages["News"][title] = "Date: {date} | Link: {link}".format(
+                    date = news_data["Date"][index],
+                    link = news_data["Link"][index],
+                )
+
+                if index == MAX_FIELDS - 1:
+                    break
+
+            owners_data = stock.TickerInsideTrader()
+            for index, owner in owners_data["Insider Trading"].items():
+                pages["Share Holders"][owner] = "Transaction: {transaction} | Cost: {cost} | Shares: {shares} | Value: {value} | Shares Total: {shares_total} | Date: {date}".format(
+                    transaction = owners_data["Transaction"][index],
+                    cost = owners_data["Cost"][index],
+                    shares = owners_data["#Shares"][index],
+                    value = owners_data["Value ($)"][index],
+                    shares_total = owners_data["#Shares Total"][index],
+                    date = owners_data["Date"][index],
+                )
+                if index == MAX_FIELDS - 1:
+                    break
+
+            # create embeds
+
+            for title, fields in pages.items():
+                pages[title] = create_embed(title, fields, {
+                    "member": context.author,
+                })
+
+            # create ordered pages
+
+            for title, embed in pages.items():
+                ordered_pages.append(pages[title])
+        except Exception as error_message:
+            await loading_embed.edit(embed = create_embed(f"ERROR: Something went wrong when loading data for {ticker}", {
+                "Error Message": error_message,
+            }, {
+                "color": discord_color.red(),
+                "member": context.author,
+            }))
+            return
+        else:
+            await loading_embed.delete()
+            await context.send(file = discord.File(chart, filename = "image.png"), embed = create_embed(f"{ticker} Info", {}, {
+                "member": context.author,
+                "thumbnail": "attachment://image.png"
+            }))
+
+            for file_name in os.listdir():
+                if file_name == ticker + ".jpg" or file_name == ticker + ".png":
+                    os.remove(file_name)
+
+        # create interactive embed
+
+        EMOJIS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣"]
+        
+        current_page = 0
+        new_embed = ordered_pages[current_page]
+        new_embed.set_footer(text = f"Page {current_page + 1}/{len(ordered_pages)}", icon_url = "")
+        message = await context.send(embed = new_embed)
+
+        for emoji in EMOJIS:
+            await message.add_reaction(emoji)
+
+        while True:
+            def check_reaction(reaction, user):
+                if user == context.author and reaction.message.channel == context.channel and reaction.message.id == message.id:
+                    if str(reaction.emoji) in EMOJIS:
+                        return True
+
+            chosen_reaction, user = await self.client.wait_for("reaction_add", check = check_reaction)
+
+            for index, emoji in enumerate(EMOJIS):
+                if emoji == chosen_reaction.emoji:
+                    current_page = index
+                    break
+
+            new_embed = ordered_pages[current_page]
+            new_embed.set_footer(text = f"Page {current_page + 1}/{len(ordered_pages)}", icon_url = "")
+            await message.edit(embed = new_embed)
+            await chosen_reaction.remove(user)
+
+    @commands.command()
+    async def screener(self, context):
+        pass
 
 def setup(client):
     client.add_cog(economy_system(client))
