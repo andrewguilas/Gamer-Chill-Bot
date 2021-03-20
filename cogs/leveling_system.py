@@ -19,6 +19,7 @@ MIN_PARTY_AMOUNT = 2
 GUILD_ID = 651133204492845066
 LOG_CHANNEL = 813453150886428742
 BLACKLISTED_MESSAGE_CHANNELS = [673714091466031113, 813757261045563432, 813261215081562182]
+CYRUS_ID = 447773388438765568
 
 DEFAULT_ECONOMY_DATA = {
     "id": None,
@@ -175,8 +176,10 @@ class leveling_system(commands.Cog):
         user_id = message.author.id
         if message.author.bot:
             return
+        elif user_id == CYRUS_ID:
+            pass
         elif recent_messagers.get(user_id):
-            if time.time() - recent_messagers[user_id] < MESSAGE_COOLDOWN:
+            if time.time() - recent_messagers[user_id] < MESSAGE_COOLDOWN :
                 return
             else:
                 recent_messagers[user_id] = None
@@ -191,6 +194,8 @@ class leveling_system(commands.Cog):
             await audit_log_channel.send(embed = create_embed(f"Awarding {message.author} {random_experience_gain} EXP for using the bot", None, {
                 "Channel": message.channel.mention,
             }))
+        elif user_id == CYRUS_ID:
+            random_experience_gain = random.randint(MIN_MSG_EXP_GAIN, MAX_MSG_EXP_GAIN)
         else:
             if message.channel.id in BLACKLISTED_MESSAGE_CHANNELS:
                 return
@@ -202,7 +207,10 @@ class leveling_system(commands.Cog):
         
         new_level = give_experience(message.author.id, random_experience_gain)
         if new_level:
-            await message.channel.send(embed = create_embed(f"{message.author} leveled up to level {new_level}"))
+            if user_id == CYRUS_ID:
+                await message.author.send(embed = create_embed(f"itidot you leveled up to level {new_level}"))
+            else:
+                await message.channel.send(embed = create_embed(f"{message.author} leveled up to level {new_level}"))
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, user, before, after):
