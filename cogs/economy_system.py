@@ -571,9 +571,5 @@ class economy_system(commands.Cog):
             await message.edit(embed = new_embed)
             await chosen_reaction.remove(user)
 
-    @commands.command()
-    async def screener(self, context):
-        pass
-
 def setup(client):
     client.add_cog(economy_system(client))
