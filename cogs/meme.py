@@ -50,16 +50,20 @@ class meme(commands.Cog):
         self.cached_memes = []
 
     @commands.command(aliases = ["meme", "m"])
-    async def getmeme(self, context):
-        meme = len(self.cached_memes) > 0 and self.cached_memes[0] or await get_meme()
-        await context.send(meme)
+    async def getmeme(self, context, amount: int = 1):
+        if amount > 10:
+            amount = 10
 
-        if len(self.cached_memes) > 0:
-            self.cached_memes.pop(0)
+        for _ in range(amount):
+            meme = len(self.cached_memes) > 0 and self.cached_memes[0] or await get_meme()
+            await context.send(meme)
 
-        if len(self.cached_memes) < MIN_CACHED_MEMES:
-            for number in range(MAX_CACHED_MEMES - len(self.cached_memes)):
-                self.cached_memes.append(await get_meme())
+            if len(self.cached_memes) > 0:
+                self.cached_memes.pop(0)
+
+            if len(self.cached_memes) < MIN_CACHED_MEMES:
+                for number in range(MAX_CACHED_MEMES - len(self.cached_memes)):
+                    self.cached_memes.append(await get_meme())
 
     @commands.command()
     async def getcachedmemes(self, context):
