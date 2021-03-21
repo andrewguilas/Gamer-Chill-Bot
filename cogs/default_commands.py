@@ -89,7 +89,7 @@ class default_commands(commands.Cog):
                 "createlottery <TIMESTAMP ENDING> <TICKET PRICE> <INITIAL PRICE>": "Creates a lottery for others to join. The `TIMESTAMP ENDING` must be in the epoch format. No permissions required. Included in the `lottery` set.",
                 "endlottery": "Ends the current lottery and rewards the winner with the grand prize. `Administrator` permissions required. Included in the `lottery` set.",
                 "cancellottery": "Ends the current lottery and refunds all members that have purchased tickets. `Administrator` permissions required. Included in the `lottery` set.",
-                "stockinfo/stock/dd": "Retrieves info for the stock, including its description, stats, ratings, news, and share holders. No permissions required. Included in the `economy` set."
+                "stockinfo/stock/dd <TICKER>": "Retrieves info for the stock, including its description, stats, ratings, news, and share holders. No permissions required. Included in the `economy` set."
             }),
 
             "stock_market_embed": create_embed("Economy System", None, {
