@@ -89,6 +89,7 @@ class default_commands(commands.Cog):
                 "createlottery <TIMESTAMP ENDING> <TICKET PRICE> <INITIAL PRICE>": "Creates a lottery for others to join. The `TIMESTAMP ENDING` must be in the epoch format. No permissions required. Included in the `lottery` set.",
                 "endlottery": "Ends the current lottery and rewards the winner with the grand prize. `Administrator` permissions required. Included in the `lottery` set.",
                 "cancellottery": "Ends the current lottery and refunds all members that have purchased tickets. `Administrator` permissions required. Included in the `lottery` set.",
+                "stockinfo/stock/dd": "Retrieves info for the stock, including its description, stats, ratings, news, and share holders. No permissions required. Included in the `economy` set."
             }),
 
             "stock_market_embed": create_embed("Economy System", None, {
@@ -125,7 +126,8 @@ class default_commands(commands.Cog):
                 "execute <CODE>": "Executes CODE. `Bot Creator` or `Server Owner` permissions required. Included in the `bot` set.",
                 "cls": "Clears the terminal in the code editor. `Bot Creator` permissions required. Included in the `bot` set.",
                 "changeactivity <STRING>": "Changes the bot's activity. `Bot Creator` or `Server Owner` permissions required. Included in the `bot` set.",
-                "changestatus <online/idle/dnd/offline>": "Changes the bot's status. `Bot Creator` or `Server Owner` permissions required. Included in the `bot` set."
+                "changestatus <online/idle/dnd/offline>": "Changes the bot's status. `Bot Creator` or `Server Owner` permissions required. Included in the `bot` set.",
+                "shutdown": "Shuts the bot down from running. `Bot Creator` or `Server Owner` permissions required. Included in the `bot` set.",
             }),
         }
         self.ordered_help_embeds = [
