@@ -66,7 +66,7 @@ class default_commands(commands.Cog):
                 "whohasbigpp": "Returns a random person in the server. No permissions required. Included in the `fun_commands` set.",
                 "whohassmallpp": "Returns a random person in the server. No permissions required. Included in the `fun_commands` set.",
                 "randomperson": "Returns a random person in the server. No permissions required. Included in the `fun_commands` set.",
-                "meme/getmeme/m": "Returns a random meme from Reddit. No permissions required. Included in the `meme` set.",
+                "meme/getmeme/m <COUNT = 1>": "Returns a random meme from Reddit. The second argument is the amount of memes returned. No permissions required. Included in the `meme` set.",
                 "getcachedmemes": "Returns a list of memes that were cached as there is a long delay when retreiving a meme from Reddit. No permissions required. Included in the `meme` set."
             }),
 
