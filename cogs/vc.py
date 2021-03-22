@@ -182,7 +182,7 @@ class vc(commands.Cog):
                     return
 
             # say text
-            voice_file = create_voice_file(m)
+            voice_file = create_voice_file(message)
             bot_voice_client.play(discord.FFmpegPCMAudio(voice_file))
 
         except Exception as error_message:
