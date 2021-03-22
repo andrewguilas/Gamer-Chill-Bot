@@ -50,9 +50,10 @@ class meme(commands.Cog):
         self.cached_memes = []
 
     @commands.command(aliases = ["meme", "m"])
+    @commands.cooldown(1, 1, commands.BucketType.member)
     async def getmeme(self, context, amount: int = 1):
-        if amount > 10:
-            amount = 10
+        if amount > 3:
+            amount = 3
 
         for _ in range(amount):
             meme = len(self.cached_memes) > 0 and self.cached_memes[0] or await get_meme()
@@ -62,7 +63,7 @@ class meme(commands.Cog):
                 self.cached_memes.pop(0)
 
             if len(self.cached_memes) < MIN_CACHED_MEMES:
-                for number in range(MAX_CACHED_MEMES - len(self.cached_memes)):
+                for _ in range(MAX_CACHED_MEMES - len(self.cached_memes)):
                     self.cached_memes.append(await get_meme())
 
     @commands.command()
