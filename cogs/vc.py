@@ -81,7 +81,7 @@ class vc(commands.Cog):
         if not response:
             return
 
-        response = f"{user.nick} {response}"
+        response = f"{user.nick or user.name} {response}"
         
         # say text
         bot_voice_client = self.client.voice_clients and self.client.voice_clients[0]
