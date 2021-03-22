@@ -12,6 +12,7 @@ from datetime import datetime
 # vc
 from gtts import gTTS 
 import os
+import shutil
 
 def create_embed(title, fields: {} = {}, info: {} = {}):
     embed = discord.Embed(
