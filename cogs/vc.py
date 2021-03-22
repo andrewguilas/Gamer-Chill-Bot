@@ -138,7 +138,6 @@ class vc(commands.Cog):
 
         try:
             # join channel
-
             user_voice = context.author.voice
             if not user_voice:
                 await context.send(embed = create_embed("You are not in a voice channel", {}, {
@@ -183,7 +182,6 @@ class vc(commands.Cog):
                     return
 
             # say text
-
             voice_file = create_voice_file(message)
             bot_voice_client.play(discord.FFmpegPCMAudio(voice_file))
 
