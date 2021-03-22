@@ -182,8 +182,8 @@ class vc(commands.Cog):
                     return
 
             # say text
-            voice_file = create_voice_file(message)
-            bot_voice_client.play(discord.FFmpegPCMAudio(source=voice_file, executable="ffmpeg.exe"))
+            voice_file = create_voice_file(m)
+            bot_voice_client.play(discord.FFmpegPCMAudio(voice_file))
 
         except Exception as error_message:
             await embed.edit(embed = create_embed("ERROR: Something went wrong when saying the message", {
