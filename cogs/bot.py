@@ -119,28 +119,12 @@ class bot(commands.Cog):
 
     @commands.command()
     @commands.check_any(commands.is_owner(), is_guild_owner())
-    async def shutdown(self, context):
-        embed = create_embed("Are you sure you want to shutdown? Type `shutdown` to continue. Canceling in 30 seconds.", discord_color.orange(), {
-            "Description": "Shutting down will stop the bot from running, including all commands from being processed and events from running. Data will be saved and not lost. The bot can only be restarted manually from the hosting dashboard. Contact `VexTrex#1429` for assistance.",
+    async def restart(self, context):
+        embed = create_embed("Bot restarting...", discord_color.gold(), {
+            "Description": "No confirmation message upon completion."
         })
         embed.set_author(name = context.author, icon_url = context.author.avatar_url)
-        response_embed = await context.send(embed = embed)
-
-        try:
-            def check(message):
-                return message.content == "shutdown" and message.channel == context.channel and message.author == context.author
-            await self.client.wait_for("message", check=check, timeout=30)
-        except asyncio.TimeoutError:
-            embed = create_embed("Timeout occured for shutdown", discord_color.red())
-            embed.set_author(name = context.author, icon_url = context.author.avatar_url)
-            await response_embed.edit(embed = embed)
-            return
-        else:
-            embed = create_embed("Bot shutting down...", discord_color.gold(), {
-                "Description": "No confirmation message upon completion."
-            })
-            embed.set_author(name = context.author, icon_url = context.author.avatar_url)
-            await response_embed.edit(embed = embed)
+        await context.send(embed = embed)
 
         sys.exit()
 
