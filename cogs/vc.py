@@ -57,38 +57,24 @@ class vc(commands.Cog):
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, user, before, after):
-        # get responses
+        if user == self.client.user:
+            return
 
         response = None
         voice_channel = after.channel
 
         if before.channel != after.channel:
             if after.channel:
-                response = "has joined the voice channel"
+                response = "joined the voice channel"
             else:
-                response = "has left the voice channel"
-        elif before.self_stream != after.self_stream:
-            if after.self_stream:
-                response = "has started streaming"
-            else:
-                response = "has stopped streaming"
-        elif before.self_video != after.self_video:
-            if after.self_video:
-                response = "has turned on their camera"
-            else:
-                response = "has turned off their camera"
+                response = "left the voice channel"
 
-        if not response:
-            return
-
-        response = f"{user.nick or user.name} {response}"
-        
-        # say text
-        bot_voice_client = self.client.voice_clients and self.client.voice_clients[0]
-        if bot_voice_client and bot_voice_client.channel == voice_channel:
-            voice_file = create_voice_file(response)
-            bot_voice_client.play(discord.FFmpegPCMAudio(voice_file))
-
+        if response:
+            response = f"{user.nick or user.name} {response}"
+            bot_voice_client = self.client.voice_clients and self.client.voice_clients[0]
+            if bot_voice_client and bot_voice_client.channel == voice_channel:
+                voice_file = create_voice_file(response)
+                bot_voice_client.play(discord.FFmpegPCMAudio(voice_file))
 
     @commands.command()
     async def join(self, context):
