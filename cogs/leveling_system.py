@@ -207,10 +207,7 @@ class leveling_system(commands.Cog):
         
         new_level = give_experience(message.author.id, random_experience_gain)
         if new_level:
-            if user_id == CYRUS_ID:
-                await message.author.send(embed = create_embed(f"itidot you leveled up to level {new_level}"))
-            else:
-                await message.channel.send(embed = create_embed(f"{message.author} leveled up to level {new_level}"))
+            await message.channel.send(embed = create_embed(f"{message.author} leveled up to level {new_level}"))
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, user, before, after):
