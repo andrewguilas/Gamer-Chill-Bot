@@ -65,22 +65,27 @@ class vc(commands.Cog):
 
         if before.channel != after.channel:
             if after.channel:
-                response = "joined the voice channel"
+                response = "joined"
             else:
-                response = "left the voice channel"
+                response = "left"
 
         if response:
             response = f"{user.nick or user.name} {response}"
             bot_voice_client = self.client.voice_clients and self.client.voice_clients[0]
-            if bot_voice_client and bot_voice_client.channel == voice_channel:
+            if bot_voice_client and bot_voice_client.channel == before.channel or bot_voice_client.channel == after.channel:
                 voice_file = create_voice_file(response)
                 bot_voice_client.play(discord.FFmpegPCMAudio(voice_file))
 
     @commands.command()
     async def join(self, context):
+        embed = await context.send(embed = create_embed("Joining the voice channel...", {}, {
+            "color": discord_color.gold(),
+            "member": context.author,
+        }))
+
         user_voice = context.author.voice
         if not user_voice:
-            await context.send(embed = create_embed("You are not in a voice channel", {}, {
+            await embed.edit(embed = create_embed("You are not in a voice channel", {}, {
                 "color": discord_color.red(),
                 "member": context.author,
             }))
@@ -88,7 +93,7 @@ class vc(commands.Cog):
 
         voice_channel = user_voice.channel
         if not voice_channel:
-            await context.send(embed = create_embed("You are not in a voice channel", {}, {
+            await embed.edit(embed = create_embed("You are not in a voice channel", {}, {
                 "color": discord_color.red(),
                 "member": context.author,
             }))
@@ -99,7 +104,7 @@ class vc(commands.Cog):
             try:
                 await bot_voice_client.disconnect()
             except Exception as error_message:
-                await context.send(embed = create_embed("ERROR: Something went wrong when trying to connect to the voice channel", {
+                await embed.edit(embed = create_embed("ERROR: Something went wrong when trying to connect to the voice channel", {
                     "Voice Channel": voice_channel,
                     "Error Message": error_message,
                 }, {
@@ -111,7 +116,7 @@ class vc(commands.Cog):
         try:
             await voice_channel.connect()
         except Exception as error_message:
-            await context.send(embed = create_embed("ERROR: Something went wrong when trying to connect to the voice channel", {
+            await embed.edit(embed = create_embed("ERROR: Something went wrong when trying to connect to the voice channel", {
                 "Voice Channel": voice_channel,
                 "Error Message": error_message,
             }, {
@@ -120,7 +125,7 @@ class vc(commands.Cog):
             }))
             return
         else:
-            await context.send(embed = create_embed("SUCCESS: Joined the voice channel", {
+            await embed.edit(embed = create_embed("SUCCESS: Joined the voice channel", {
                 "Voice Channel": voice_channel,
             }, {
                 "color": discord_color.green(),
@@ -129,23 +134,37 @@ class vc(commands.Cog):
 
     @commands.command()
     async def leave(self, context):
-        bot_voice_client = self.client.voice_clients
-        if bot_voice_client:
-            bot_voice_client = bot_voice_client[0]
-            
-        if bot_voice_client.channel:
-            voice_channel_to_leave = str(bot_voice_client.channel)
-            try:
-                await bot_voice_client.disconnect()
-            except Exception as error_message:
-                await context.send(embed = create_embed("ERROR: Something went wrong when trying to disconnect from the voice channel", {
-                    "Voice Channel Left": voice_channel_to_leave,
-                    "Error Message": error_message,
-                }, {
-                    "color": discord_color.red(),
-                    "member": context.author,
-                }))
-                return
+        embed = await context.send(embed = create_embed("Leaving the voice channel...", {}, {
+            "color": discord_color.gold(),
+            "member": context.author,
+        }))
+
+        bot_voice_client = self.client.voice_clients and self.client.voice_clients[0]
+        if not bot_voice_client.channel:
+            await embed.edit(embed = create_embed("ERROR: Bot is not in a voice channel", {}, {
+                "color": discord_color.red(),
+                "member": context.author,
+            }))
+            return
+
+        voice_channel_to_leave = str(bot_voice_client.channel)
+        try:
+            await bot_voice_client.disconnect()
+        except Exception as error_message:
+            await embed.edit(embed = create_embed("ERROR: Something went wrong when trying to disconnect from the voice channel", {
+                "Voice Channel": voice_channel_to_leave,
+                "Error Message": error_message,
+            }, {
+                "color": discord_color.red(),
+                "member": context.author,
+            }))
+        else:
+            await embed.edit(embed = create_embed("SUCCESS: Left the voice channel", {
+                "Voice Channel": voice_channel_to_leave,
+            }, {
+                "color": discord_color.green(),
+                "member": context.author,
+            }))
 
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
