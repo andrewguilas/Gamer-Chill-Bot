@@ -6,6 +6,7 @@ import random
 import pytz
 import random
 import asyncio
+from translate import Translator
 from datetime import datetime
 
 def create_embed(title, color = discord_color.blue(), fields = {}):
@@ -96,6 +97,33 @@ class fun_commands(commands.Cog):
     async def randomperson(self, context):
         member = random.choice(context.guild.members)
         await context.send(embed = create_embed(member.name))
+
+    @commands.command()
+    async def languages(self, context):
+        embed = create_embed("ISO 639-1 Codes")
+        embed.url = "https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes"
+        await context.send(embed = embed)
+
+    @commands.command()
+    async def translate(self, context, language: str, *, text: str):
+        embed = await context.send(embed = create_embed("Translating...", discord_color.gold(), {
+            "Original Text": text,
+            "Language": language,
+        }))
+
+        try:
+            translator = Translator(to_lang=language)
+            translation = translator.translate(text)
+            await embed.edit(embed = create_embed(translation, discord_color.blue(), {
+                "Original Text": text,
+                "Language": language,
+            }))
+        except Exception as error_message:
+            await embed.edit(embed = create_embed("ERROR: Something went wrong when translating", discord_color.red(), {
+                "Error Message": error_message,
+                "Original Text": text,
+                "Language": language,
+            }))
 
 def setup(client):
     client.add_cog(fun_commands(client))
