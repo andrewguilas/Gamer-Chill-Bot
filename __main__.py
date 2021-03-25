@@ -9,53 +9,7 @@ import pytz
 from datetime import datetime
 from pymongo import MongoClient
 
-cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
-misc_data_store = cluster.discord.misc
-
-def create_embed(title, fields: {} = {}, info: {} = {}):
-    embed = discord.Embed(
-        title = title,
-        colour = info.get("color") or discord_color.blue(),
-        timestamp = datetime.now(tz = pytz.timezone("US/Eastern"))
-    )
-
-    for name, value in fields.items():
-        embed.add_field(
-            name = name,
-            value = value,
-            inline = True
-        )
-
-    if info.get("member"):
-        embed.set_author(name = info["member"], icon_url = info["member"].avatar_url)
-    if info.get("author_name"):
-        embed.set_author(name = info["author_name"], icon_url = info.get("author_icon"))
-    if info.get("thumbnail"):
-        embed.set_thumbnail(url = info["thumbnail"])
-    if info.get("image"):
-        embed.set_image(url = info["image"])
-    if info.get("url"):
-        embed.url = info["url"]
-    if info.get("footer"):
-        embed.set_footer(text = info["footer"], icon_url = "")
-
-    return embed
-
-def save_settings_data(data):
-    misc_data_store.update_one({"key": "settings"}, {"$set": data})
-
-def get_settings_data():
-    data = misc_data_store.find_one({"key": "settings"}) 
-    if not data:
-        data = {"key": "settings"}
-        misc_data_store.insert_one(data)
-    return data
-
-def get_prefix(client, context):
-    data = get_settings_data()
-    return data["prefix"] or data["_default"]["prefix"]
-
-client = commands.Bot(command_prefix = get_prefix, intents = discord.Intents.all())
+client = commands.Bot(command_prefix = "?", intents = discord.Intents.all())
 
 @client.command()
 @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
