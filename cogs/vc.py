@@ -1,4 +1,8 @@
 LANGUAGE = "en"
+DEFAULT_ACCOUNT_DATA = {
+    "id": None,
+    "vc_name": None,
+}
 
 # discord
 import discord
@@ -10,9 +14,13 @@ import pytz
 from datetime import datetime
 
 # vc
-from gtts import gTTS 
 import os
 import shutil
+from gtts import gTTS 
+from pymongo import MongoClient
+
+cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
+account_data_store = cluster.discord.account
 
 def create_embed(title, fields: {} = {}, info: {} = {}):
     embed = discord.Embed(
@@ -32,6 +40,17 @@ def create_embed(title, fields: {} = {}, info: {} = {}):
         embed.set_author(name = info["member"], icon_url = info["member"].avatar_url)
 
     return embed
+
+def save_account_data(data):
+    account_data_store.update_one({"id": data["id"]}, {"$set": data})
+    
+def get_account_data(user_id: int):
+    data = account_data_store.find_one({"id": user_id})
+    if not data:
+        data = DEFAULT_ACCOUNT_DATA
+        data["id"] = user_id
+        account_data_store.insert_one(data)
+    return data 
 
 def delete_contents(folder):
     for filename in os.listdir(folder):
@@ -54,6 +73,11 @@ def create_voice_file(message):
 class vc(commands.Cog):
     def __init__(self, client):
         self.client = client
+        self.nicknames = {}   
+
+        vc_names = list(account_data_store.find({}))
+        for data in vc_names:
+            self.nicknames[data["id"]] = data["vc_name"]
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, user, before, after):
@@ -70,7 +94,17 @@ class vc(commands.Cog):
                 response = "left"
 
         if response:
-            response = f"{user.nick or user.name} {response}"
+            user_name = self.nicknames.get(user.id)
+            if not user_name:
+                data = get_account_data(user.id)
+                user_name = data["vc_name"]
+                self.nicknames[user.id] = user_name
+                
+            if not user_name:
+                user_name = user.nick or user.name
+
+            response = f"{user_name} {response}"
+            print(response)
             bot_voice_client = self.client.voice_clients and self.client.voice_clients[0]
             if bot_voice_client and bot_voice_client.channel == before.channel or bot_voice_client.channel == after.channel:
                 voice_file = create_voice_file(response)
@@ -240,6 +274,24 @@ class vc(commands.Cog):
                 "color": discord_color.green(),
                 "member": context.author,
             }))
+
+    @commands.command()
+    async def changevcname(self, context, *, name: str = None):
+        user = context.author
+        embed = await context.send(embed = create_embed(f"Changing voice channel name to {name}...", {}, {
+            "color": discord_color.gold(),
+            "member": user,
+        }))
+
+        self.nicknames[user.id] = name
+        user_data = get_account_data(user.id)
+        user_data["vc_name"] = name
+        save_account_data(user_data)
+
+        await embed.edit(embed = create_embed(f"Voice channel name changed to {name}", {}, {
+            "color": discord_color.green(),
+            "member": user,
+        }))
 
 def setup(client):
     client.add_cog(vc(client))

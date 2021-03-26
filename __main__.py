@@ -7,9 +7,27 @@ from discord import Color as discord_color
 import os
 import pytz
 from datetime import datetime
-from pymongo import MongoClient
 
 client = commands.Bot(command_prefix = "?", intents = discord.Intents.all())
+
+def create_embed(title, fields: {} = {}, info: {} = {}):
+    embed = discord.Embed(
+        title = title,
+        colour = info.get("color") or discord_color.blue(),
+        timestamp = datetime.now(tz = pytz.timezone("US/Eastern"))
+    )
+
+    for name, value in fields.items():
+        embed.add_field(
+            name = name,
+            value = value,
+            inline = True
+        )
+
+    if info.get("member"):
+        embed.set_author(name = info["member"], icon_url = info["member"].avatar_url)
+
+    return embed
 
 @client.command()
 @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
