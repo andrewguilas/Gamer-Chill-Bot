@@ -44,7 +44,7 @@ def create_embed(title, fields: {} = {}, info: {} = {}):
 def save_account_data(data):
     account_data_store.update_one({"id": data["id"]}, {"$set": data})
     
-def get_account_data(user_id: int):
+def get_account_data(user_id):
     data = account_data_store.find_one({"id": user_id})
     if not data:
         data = DEFAULT_ACCOUNT_DATA
@@ -104,7 +104,6 @@ class vc(commands.Cog):
                 user_name = user.nick or user.name
 
             response = f"{user_name} {response}"
-            print(response)
             bot_voice_client = self.client.voice_clients and self.client.voice_clients[0]
             if bot_voice_client and bot_voice_client.channel == before.channel or bot_voice_client.channel == after.channel:
                 voice_file = create_voice_file(response)
@@ -283,15 +282,23 @@ class vc(commands.Cog):
             "member": user,
         }))
 
-        self.nicknames[user.id] = name
-        user_data = get_account_data(user.id)
-        user_data["vc_name"] = name
-        save_account_data(user_data)
-
-        await embed.edit(embed = create_embed(f"Voice channel name changed to {name}", {}, {
-            "color": discord_color.green(),
-            "member": user,
-        }))
+        try:
+            self.nicknames[user.id] = name
+            user_data = get_account_data(user.id)
+            user_data["vc_name"] = name
+            save_account_data(user_data)
+        except Exception as error_message:
+            await embed.edit(embed = create_embed(f"ERROR: Something went wrong when changing your voice channel name to {name}", {
+                "Error Message": error_message,
+            }, {
+                "color": discord_color.red(),
+                "member": user,
+            }))
+        else:
+            await embed.edit(embed = create_embed(f"SUCCESS: Voice channel name changed to {name}", {}, {
+                "color": discord_color.green(),
+                "member": user,
+            }))
 
 def setup(client):
     client.add_cog(vc(client))
