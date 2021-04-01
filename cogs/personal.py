@@ -4,9 +4,8 @@ USER_ID = 353933582
 UPDATE_DELAY = 5
 USER_TO_NOTIFY = 496001579292295169
 
-OFFLINE_EMOJI = "⚫"
-ONLINE_EMOJI = "🔵"
-PLAYING_EMOJI = "🟢"
+OFFLINE_EMOJI = "🔴"
+ONLINE_EMOJI = "🟢"
 
 import discord
 from discord import Color as discord_color
@@ -44,7 +43,7 @@ def create_embed(title, fields: {} = {}, info: {} = {}):
 class personal(commands.Cog):
     def __init__(self, client):
         self.client = client
-        self.current_status = None
+        self.is_online = False
         self.roblox_user_status.start()
 
     def cog_unload(self):
@@ -60,12 +59,14 @@ class personal(commands.Cog):
         status_data = requests.get(STATUS_URL.replace("USER_ID", str(USER_ID))).json()
 
         status = status_data["LastLocation"].lower()
-        if self.current_status != status:
-            self.current_status = status
+        print(status)
+        is_online = status == "online" or status == "playing"
+        if self.is_online != is_online:
+            self.is_online = is_online
             await user.send("{status_emoji} {username} is **{status}** ({current_time})".format(
-                status_emoji = status == "offline" and OFFLINE_EMOJI or status == "online" and ONLINE_EMOJI or status == "playing" and PLAYING_EMOJI,
+                status_emoji = self.is_online and ONLINE_EMOJI or OFFLINE_EMOJI,
                 username = user_data["Username"],
-                status = self.current_status,
+                status = self.is_online and "online" or "offline",
                 current_time = datetime.now(tz = pytz.timezone("US/Eastern")).strftime("%m/%d/%y - %I:%M %p")
             ))
 

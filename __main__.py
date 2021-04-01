@@ -116,7 +116,7 @@ async def update(context):
             "member":  context.author,
         }))
     else:
-        await embed.edit(embed = create_embed(f"Bot as updated", {}, {
+        await embed.edit(embed = create_embed(f"Bot has updated", {}, {
             "color": discord_color.green(),
             "member":  context.author,
         }))
