@@ -7,6 +7,7 @@ DEFAULT_ECONOMY_DATA = {
     "pocket": 20,
     "bank": 500,
 }
+
 DEFAULT_STOCK_DATA = {
     "id": None,
     "shares": {}
@@ -27,8 +28,8 @@ from finvizfinance.quote import finvizfinance
 from finvizfinance.screener.overview import Overview
 
 cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
-economy_data_store = cluster.discord.economy
-stocks_data_store = cluster.discord.stocks
+economy_data_store = cluster.discord_2.economy
+stocks_data_store = cluster.discord_2.stocks
 
 def create_embed(title, fields: {} = {}, info: {} = {}):
     embed = discord.Embed(

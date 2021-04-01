@@ -22,8 +22,8 @@ from collections import Counter
 from pymongo import MongoClient
 
 cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
-misc_data_store = cluster.discord.misc
-economy_data_store = cluster.discord.economy
+misc_data_store = cluster.discord_2.misc
+economy_data_store = cluster.discord_2.economy
 
 def create_embed(title, fields: {} = {}, info: {} = {}):
     embed = discord.Embed(

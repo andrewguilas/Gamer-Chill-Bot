@@ -20,7 +20,7 @@ from gtts import gTTS
 from pymongo import MongoClient
 
 cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
-account_data_store = cluster.discord.account
+account_data_store = cluster.discord_2.account
 
 def create_embed(title, fields: {} = {}, info: {} = {}):
     embed = discord.Embed(

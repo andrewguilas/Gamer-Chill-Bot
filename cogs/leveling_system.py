@@ -41,8 +41,8 @@ from datetime import datetime
 from pymongo import MongoClient
 
 cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
-leveling = cluster.discord.leveling
-economy_data_store = cluster.discord.economy
+leveling = cluster.discord_2.leveling
+economy_data_store = cluster.discord_2.economy
 recent_messagers = {}
 
 def create_embed(title, color = discord_color.blue(), fields = {}):
