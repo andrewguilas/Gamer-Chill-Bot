@@ -59,7 +59,6 @@ class personal(commands.Cog):
         status_data = requests.get(STATUS_URL.replace("USER_ID", str(USER_ID))).json()
 
         status = status_data["LastLocation"].lower()
-        print(status)
         is_online = status == "online" or status == "playing"
         if self.is_online != is_online:
             self.is_online = is_online

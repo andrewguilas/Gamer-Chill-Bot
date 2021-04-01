@@ -220,9 +220,10 @@ class stock_market(commands.Cog):
 
         user_id = member.id
         stock_data = get_stock_data(user_id)
+        print(stock_data)
 
         if not stock_data.get("shares"):
-            await embed.send(edit = create_embed(f"{member.name}'s Portfolio", {
+            await embed.edit(embed = create_embed(f"{member.name}'s Portfolio", {
                 "Equity": "$0.00"
             }, {
                 "member": context.author,

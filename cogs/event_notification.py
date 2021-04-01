@@ -44,9 +44,6 @@ def convert_string_to_date(string):
     string = f"{day} {month} {year} {time}"
     return datetime.strptime(string, "%d %b %Y %H:%M:%S")
 
-def pretty_print(content):
-    return json.dumps(content, sort_keys = True, indent = 4)
-
 def create_embed(title, fields: {} = {}, info: {} = {}):
     embed = discord.Embed(
         title = title,
