@@ -8,7 +8,7 @@ EXTENSIONS = [
     # "default_commands",
     # "economy_system",
     # "event_notification",
-    "fun",
+    # "fun",
     # "leveling_system",
     # "lottery",
     # "meme",

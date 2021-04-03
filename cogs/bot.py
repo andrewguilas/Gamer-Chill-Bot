@@ -1,34 +1,35 @@
 import discord
-from discord import Color as discord_color
 from discord.ext import commands
 
-import math
-import pytz
 import os
 import sys
-import asyncio
 from datetime import datetime
 
-def create_embed(title, color = discord_color.blue(), fields = {}):
+def create_embed(info: {} = {}, fields: {} = {}):
     embed = discord.Embed(
-        title = title,
-        colour = color or discord_color.blue()
+        title = info.get("title") or "",
+        description = info.get("description") or "",
+        colour = info.get("color") or discord.Color.blue(),
+        url = info.get("url") or "",
     )
 
     for name, value in fields.items():
-        embed.add_field(
-            name = name,
-            value = value,
-            inline = True
-        )
+        embed.add_field(name = name, value = value, inline = info.get("inline") or False)
 
-    embed.timestamp = datetime.now(tz = pytz.timezone("US/Eastern"))
-
+    if info.get("author"):
+        embed.set_author(name = info.author.name, url = info.author.mention, icon_url = info.author.avatar_url)
+    if info.get("footer"):
+        embed.set_footer(text = info.footer)
+    if info.get("image"):
+        embed.set_image(url = info.url)
+    if info.get("thumbnail"):
+        embed.set_thumbnail(url = info.thumbnail)
+    
     return embed
 
 def is_guild_owner():
-    def predicate(ctx):
-        return ctx.guild is not None and ctx.guild.owner_id == ctx.author.id
+    def predicate(context):
+        return context.guild and context.guild.owner_id == context.author.id
     return commands.check(predicate)
 
 class bot(commands.Cog):
@@ -38,94 +39,116 @@ class bot(commands.Cog):
     @commands.command()
     @commands.check_any(commands.is_owner(), is_guild_owner())
     async def execute(self, context, *, code):
-        embed = create_embed("Executing Code", discord_color.gold(), {
+        response = await context.send(embed = create_embed({
+            "title": "Executing code...",
+            "color": discord.Color.gold(),
+        }, {
             "Code": code,
-        })
-        embed.set_footer(text = f"#{context.channel}")
-        embed.set_author(name = context.author, icon_url = context.author.avatar_url)
-        await context.send(embed = embed)
+        }))
 
         try:
             exec(code)
         except Exception as error_message:
-            embed = create_embed(f"Error: Something went wrong when executing code", discord_color.red(), {
-                "Error Message": str(error_message),
-                "Code": code
-            })
-            embed.set_footer(text = f"#{context.channel}")
-            embed.set_author(name = context.author, icon_url = context.author.avatar_url)
-            await context.send(embed = embed)
+            await response.edit(embed = create_embed({
+                "title": "Could not execute code",
+                "color": discord.Color.red(),
+            }, {
+                "Error Message": error_message,
+                "Code": code,
+            }))
         else:
-            embed = create_embed(f"Success: Code was executed", discord_color.green(), {
-                "Code": code
-            })
-            embed.set_footer(text = f"#{context.channel}")
-            embed.set_author(name = context.author, icon_url = context.author.avatar_url)
-            await context.send(embed = embed)
+            await response.edit(embed = create_embed({
+                "title": "Code executed",
+                "color": discord.Color.green(),
+            }, {
+                "Code": code,
+            }))
 
-    @commands.command()
+    @commands.command(aliases = ["clearterminal", "clearscreen"])
     @commands.check_any(commands.is_owner())
     async def cls(self, context):
+        response = await context.send(embed = create_embed({
+            "title": "Clearing terminal",
+            "color": discord.Color.gold(),
+        }))
+
         try:
-            os.system('cls' if os.name == 'nt' else 'clear')
+            os.system("cls" if os.name == "nt" else "clear")
         except Exception as error_message:
-            embed = create_embed(f"Error: Something went wrong clearing terminal", discord_color.red(), {
-                "Error Message": str(error_message),
-            })
-            embed.set_footer(text = f"#{context.channel}")
-            embed.set_author(name = context.author, icon_url = context.author.avatar_url)
-            await context.send(embed = embed)
+            await response.edit(embed = create_embed({
+                "title": "Could not clear terminal",
+                "color": discord.Color.red(),
+            }, {
+                "Error Message": error_message,
+            }))
         else:
-            embed = create_embed(f"Success: Terminal was cleared", discord_color.green())
-            embed.set_footer(text = f"#{context.channel}")
-            embed.set_author(name = context.author, icon_url = context.author.avatar_url)
-            await context.send(embed = embed)
+            await response.edit(embed = create_embed({
+                "title": "Terminal cleared",
+                "color": discord.Color.green(),
+            }))
 
     @commands.command()
     @commands.check_any(commands.is_owner(), is_guild_owner())
-    async def changeactivity(self, context, *, activity = ""):
+    async def changeactivity(self, context, *, activity: str = ""):
+        activity = activity.lower()
+
+        response = await context.send(embed = create_embed({
+            "title": "Changing the bot's activity",
+            "color": discord.Color.gold(),
+        }, {
+            "Activity": activity or "None",
+        }))
+
         try:
             await self.client.change_presence(activity = discord.Game(name = activity))
         except Exception as error_message:
-            embed = create_embed(f"Error: Something went when changing the bot's activity to `{activity}`", discord_color.red(), {
-                "Error Message": str(error_message),
-            })
-            embed.set_footer(text = f"#{context.channel}")
-            embed.set_author(name = context.author, icon_url = context.author.avatar_url)
-            await context.send(embed = embed)
+            await response.edit(embed = create_embed({
+                "title": "Could not change the bot's activity",
+                "color": discord.Color.red(),
+            }, {
+                "Error Message": error_message,
+                "Activity": activity or "None",
+            }))
         else:
-            embed = create_embed(f"Success: Bot's activity changed to `{activity}`", discord_color.green())
-            embed.set_footer(text = f"#{context.channel}")
-            embed.set_author(name = context.author, icon_url = context.author.avatar_url)
-            await context.send(embed = embed)
+            await response.edit(embed = create_embed({
+                "title": "Changed bot's activity",
+                "color": discord.Color.green(),
+            }, {
+                "Activity": activity or "None",
+            }))
 
     @commands.command()
     @commands.check_any(commands.is_owner(), is_guild_owner())
-    async def changestatus(self, context, *, status = "online"):
+    async def changestatus(self, context, *, status: str = "online"):
+        status = status.lower()
+
+        response = await context.send(embed = create_embed({
+            "title": f"Changing the bot's status to {status}",
+            "color": discord.Color.gold(),
+        }))
+
         try:
             await self.client.change_presence(status = discord.Status[status])
         except Exception as error_message:
-            embed = create_embed(f"Error: Something went when changing the bot's status to `{status}`", discord_color.red(), {
-                "Error Message": str(error_message),
-            })
-            embed.set_footer(text = f"#{context.channel}")
-            embed.set_author(name = context.author, icon_url = context.author.avatar_url)
-            await context.send(embed = embed)
+            await response.edit(embed = create_embed({
+                "title": f"Could not change the bot's status to {status}",
+                "color": discord.Color.red(),
+            }, {
+                "Error Message": error_message,
+            }))
         else:
-            embed = create_embed(f"Success: Bot's status changed to `{status}`", discord_color.green())
-            embed.set_footer(text = f"#{context.channel}")
-            embed.set_author(name = context.author, icon_url = context.author.avatar_url)
-            await context.send(embed = embed)
+            await response.edit(embed = create_embed({
+                "title": f"Changed bot's status to {status}",
+                "color": discord.Color.green(),
+            }))
 
     @commands.command()
     @commands.check_any(commands.is_owner(), is_guild_owner())
     async def restart(self, context):
-        embed = create_embed("Bot restarting...", discord_color.gold(), {
-            "Description": "No confirmation message upon completion."
-        })
-        embed.set_author(name = context.author, icon_url = context.author.avatar_url)
-        await context.send(embed = embed)
-
+        await context.send(embed = create_embed({
+            "title": "Restarting bot, no confirmation message after completion...",
+            "color": discord.Color.gold(),
+        }))
         sys.exit()
 
 def setup(client):
