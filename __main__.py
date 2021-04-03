@@ -2,8 +2,8 @@ TOKEN = "ODEzMjU4Njg3MjI5NDYwNDkw.YDMsLA.Tc2QvlTr_-SBZnoJ88W8SLSZUUE"
 TEST_TOKEN = "ODI3MjIzMDExNzM5ODI4MjM0.YGX5dw.x0ZjP8RgiV1JujgmAdlIkimsGKQ"
 PREFIX = "?"
 EXTENSIONS = [
-    # "audit_log",
-    # "bot",
+    "events",
+    "bot",
     # "class_alert",
     # "default_commands",
     # "economy_system",
