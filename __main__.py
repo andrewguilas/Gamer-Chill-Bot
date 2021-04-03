@@ -24,8 +24,6 @@ EXTENSIONS = [
 import discord
 from discord.ext import commands
 
-import os
-import pytz
 from datetime import datetime
 
 client = commands.Bot(command_prefix = PREFIX, intents = discord.Intents.all())
