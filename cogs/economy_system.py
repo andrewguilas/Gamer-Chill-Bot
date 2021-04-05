@@ -8,11 +8,6 @@ DEFAULT_ECONOMY_DATA = {
     "bank": 500,
 }
 
-DEFAULT_STOCK_DATA = {
-    "id": None,
-    "shares": {}
-}
-
 import discord
 from discord import Color as discord_color
 from discord.ext import commands, tasks
@@ -78,15 +73,15 @@ def get_economy_data(user_id):
 
 # stock data
 
-def insert_stock_data(data):
-    stocks_data_store.insert_one(data)
-
 def get_stock_data(user_id):
     data = stocks_data_store.find_one({"id": user_id})
     if not data:
-        data = DEFAULT_STOCK_DATA
+        data = {
+            "id": None,
+            "shares": {}
+        }
         data["id"] = user_id
-        insert_stock_data(data)
+        stocks_data_store.insert_one(data)
     return data 
 
 def get_stock_price(ticker: str):
@@ -154,46 +149,48 @@ class economy_system(commands.Cog):
         if context.author.bot:
             return
 
-        # create loading embed
-        embed = await context.send(embed = create_embed("Forbes Richest Members", {
-            "Status": "Loading list..."
-        }, {
-            "color": discord_color.gold(),
-            "member": context.author,
+        response = await context.send(embed = create_embed("Loading Forbes' Richest People...", {}, {
+            "color": discord_color.gold()
         }))
 
-        # create richest list
-        members_money_data = list(economy_data_store.find({}))
-        richest_list = {}
-        for member_money_data in members_money_data:   
-            user = context.guild.get_member(member_money_data["id"])   
-            if not user:
-                continue 
-                
-            pocket_money = member_money_data["pocket"]
-            bank_money = member_money_data["bank"]
+        try:        
+            # create richest list
+            members_money_data = list(economy_data_store.find({}))
+            richest_list = {}
+            for member_money_data in members_money_data:   
+                user = context.guild.get_member(member_money_data["id"])   
+                if not user:
+                    continue 
+                    
+                pocket_money = member_money_data["pocket"]
+                bank_money = member_money_data["bank"]
 
-            # get stock money
-            stock_data = get_stock_data(member_money_data["id"])
-            stock_money = 0
-            for ticker, share_count in stock_data["shares"].items():
-                average_price = get_stock_price(ticker)
-                stock_money += average_price * share_count
-            richest_list[user.name] = round(pocket_money + bank_money + stock_money, 2)
-        richest_list = sorted(richest_list.items(), key = lambda x: x[1], reverse = True)
+                # get stock money
+                stock_data = get_stock_data(member_money_data["id"])
+                stock_money = 0
+                for ticker, share_count in stock_data["shares"].items():
+                    try:
+                        average_price = get_stock_price(ticker)
+                        stock_money += average_price * share_count or 0
+                    except:
+                        pass
+                richest_list[user.name] = round(pocket_money + bank_money + stock_money, 2)
+            richest_list = sorted(richest_list.items(), key = lambda x: x[1], reverse = True)
 
-        # create fields
-        fields = {}
-        for place, data in enumerate(richest_list):
-            fields[f"{place + 1}. {data[0]}"] = "${}".format(data[1])
-            if place == MAX_FIELDS_FOR_LEADERBOARD_EMBED - 1:
-                break
+            fields = {}
+            for place, data in enumerate(richest_list):
+                fields[f"{place + 1}. {data[0]}"] = "${}".format(data[1])
+                if place == MAX_FIELDS_FOR_LEADERBOARD_EMBED - 1:
+                    break
 
-        # update embed
-        await embed.edit(embed = create_embed("Forbes Richest Members", fields, {
-            "member": context.author,
-        }))
-    
+            await response.edit(embed = create_embed("Forbes Richest Members", fields))
+        except Exception as error_message:
+            await response.edit(embed = create_embed("Something went wrong when loading Forbes' Richest People", {
+                "Error Message": error_message
+            }, {
+                "color": discord_color.red()
+            }))
+
     @commands.command()
     async def withdraw(self, context, amount: int):
         if context.author.bot:
