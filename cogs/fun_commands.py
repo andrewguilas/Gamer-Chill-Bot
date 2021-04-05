@@ -70,6 +70,10 @@ class fun_commands(commands.Cog):
 
     @commands.command()
     async def impersonate(self, context, member: discord.Member, channel: discord.TextChannel, *, message: str):
+        if not channel.permissions_for(context.author).send_messages:
+            await context.send(embed = create_embed("You cannot talk in here", discord_color.red()))
+            return
+
         webhook = await channel.create_webhook(name = member.name)
         await webhook.send(message, username = member.name, avatar_url = member.avatar_url)
         await webhook.delete()
