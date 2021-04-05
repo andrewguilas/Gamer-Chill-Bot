@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-from discord import Color as discord_color
 
 import random
 import pytz
@@ -9,21 +8,26 @@ import asyncio
 from translate import Translator
 from datetime import datetime
 
-def create_embed(title, color = discord_color.blue(), fields = {}):
+def create_embed(info: {} = {}, fields: {} = {}):
     embed = discord.Embed(
-        title = title,
-        colour = color or discord_color.blue()
+        title = info.get("title") or "",
+        description = info.get("description") or "",
+        colour = info.get("color") or discord.Color.blue(),
+        url = info.get("url") or "",
     )
 
     for name, value in fields.items():
-        embed.add_field(
-            name = name,
-            value = value,
-            inline = True
-        )
+        embed.add_field(name = name, value = value, inline = info.get("inline") or False)
 
-    embed.timestamp = datetime.now(tz = pytz.timezone("US/Eastern"))
-
+    if info.get("author"):
+        embed.set_author(name = info.author.name, url = info.author.mention, icon_url = info.author.avatar_url)
+    if info.get("footer"):
+        embed.set_footer(text = info.footer)
+    if info.get("image"):
+        embed.set_image(url = info.url)
+    if info.get("thumbnail"):
+        embed.set_thumbnail(url = info.thumbnail)
+    
     return embed
 
 class fun_commands(commands.Cog):
@@ -56,70 +60,88 @@ class fun_commands(commands.Cog):
             "No"
         ]
 
-        await context.send(embed = discord.Embed(
-            title = random.choice(RESPONSES)
-        ))
+        await context.send(embed = create_embed({
+            "title": random.choice(RESPONSES),
+        }))
 
     @commands.command()
     async def roll(self, context, max_number: int = 6):
-        await context.send(embed = create_embed(random.randint(1, max_number)))
-
-    @commands.command()
-    async def choose(self, context, *choices: str):
-        await context.send(embed = create_embed(random.choice(choices)))
+        await context.send(embed = create_embed({
+            "title": random.randint(1, max_number),
+        }))
 
     @commands.command()
     async def impersonate(self, context, member: discord.Member, channel: discord.TextChannel, *, message: str):
-        webhook = await channel.create_webhook(name = member.name)
-        await webhook.send(message, username = member.name, avatar_url = member.avatar_url)
-        await webhook.delete()
-        await context.send(embed = create_embed("Success: Embed created. This message will automatically delete in 3 seconds.", discord_color.green(), {
-            "Message": message,
-            "User to Impersonate": member,
-            "Channel": channel
-        }), delete_after = 3)
+        response = await context.send(embed = create_embed({
+            "title": "Impersonaitng user...",
+            "color": discord.Color.gold()
+        }))
+        
+        try:
+            if not channel.permissions_for(context.author).send_messages:
+                await response.edit(embed = create_embed({
+                    "title": "You cannot talk in this channel",
+                    "color": discord.Color.red()
+                }))
+                return
 
-        webhooks = await context.channel.webhooks()
-        for webhook in webhooks:
+            webhook = await channel.create_webhook(name = member.name)
+            await webhook.send(message, username = member.name, avatar_url = member.avatar_url)
             await webhook.delete()
 
-    @commands.command()
-    async def whohasbigpp(self, context):
-        member = random.choice(context.guild.members)
-        await context.send(embed = create_embed(f"Legends say, {member.name} has the biggest pp"))
-
-    @commands.command()
-    async def whohassmallpp(self, context):
-        member = random.choice(context.guild.members)
-        await context.send(embed = create_embed(f"{member.name} flashed the smallest pp I've ever seen"))
+            await response.edit(embed = create_embed({
+                "title": "User impersonated",
+                "color": discord.Color.green()
+            }, {
+                "Message": message,
+                "User": member,
+                "Channel": channel
+            }))
+        except Exception as error_message:
+            await context.send(embed = create_embed({
+                "title": "Could not impersonate user",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
+            }))
 
     @commands.command()
     async def randomperson(self, context):
         member = random.choice(context.guild.members)
-        await context.send(embed = create_embed(member.name))
+        await context.send(embed = create_embed({
+            "title": member.name
+        }))
 
     @commands.command()
     async def languages(self, context):
-        embed = create_embed("ISO 639-1 Codes")
-        embed.url = "https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes"
-        await context.send(embed = embed)
+        await context.send(embed = create_embed({
+            "title": "ISO 639-1 Codes",
+            "url": "https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes"
+        }))
 
     @commands.command()
     async def translate(self, context, language: str, *, text: str):
-        embed = await context.send(embed = create_embed("Translating...", discord_color.gold(), {
+        response = await context.send(embed = create_embed({
+            "title": "Translating...",
+            "color": discord.Color.gold()
+        }, {
             "Original Text": text,
             "Language": language,
         }))
 
         try:
-            translator = Translator(to_lang=language)
+            translator = Translator(to_lang = language)
             translation = translator.translate(text)
-            await embed.edit(embed = create_embed(translation, discord_color.blue(), {
+            await response.edit(embed = create_embed({
+                "title": translation,
+            }, {
                 "Original Text": text,
                 "Language": language,
             }))
         except Exception as error_message:
-            await embed.edit(embed = create_embed("ERROR: Something went wrong when translating", discord_color.red(), {
+            await response.edit(embed = create_embed({
+                "title": "Could not translate",
+            }, {
                 "Error Message": error_message,
                 "Original Text": text,
                 "Language": language,

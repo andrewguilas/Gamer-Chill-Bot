@@ -7,7 +7,7 @@ EXTENSIONS = [
     "acas",
     "default_commands",
     # "economy_system",
-    # "fun",
+    "fun",
     # "leveling_system",
     # "lottery",
     # "meme",
