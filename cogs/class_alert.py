@@ -87,12 +87,12 @@ class class_alert(commands.Cog):
 
     @commands.command()
     async def pauseacas(self, context):
-        self.is_paused = False
+        self.is_paused = True
         await context.send(embed = create_embed("SUCCESS: ACAS is now paused and will not alarm since there is no school today", discord_color.green()))
 
     @commands.command()
     async def resumeacas(self, context):
-        self.is_paused = True
+        self.is_paused = False
         await context.send(embed = create_embed("SUCCESS: ACAS has resumed and will alarm as there is school today", discord_color.green()))          
 
 def setup(client):
