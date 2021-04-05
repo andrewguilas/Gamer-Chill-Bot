@@ -317,6 +317,22 @@ class bot(commands.Cog):
                         "color": discord.Color.red()
                     }))
                     return
+            elif name == "prefix":
+                value = str(value)
+                if value:
+                    settings["prefix"] = value
+                    save_settings(settings)
+
+                    await response.edit(embed = create_embed({
+                        "title": f"Changed prefix to {value}",
+                        "color": discord.Color.green(),
+                    }))
+                else:
+                    await response.edit(embed = create_embed({
+                        "title": f"{value} could not be converted to a string",
+                        "color": discord.Color.red()
+                    }))
+                    return
             else:
                 await response.edit(embed = create_embed({
                     "title": f"{name} is not a valid setting",

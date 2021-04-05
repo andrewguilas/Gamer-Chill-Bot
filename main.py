@@ -7,7 +7,6 @@ EXTENSIONS = [
     "acas",
     # "default_commands",
     # "economy_system",
-    # "event_notification",
     # "fun",
     # "leveling_system",
     # "lottery",
@@ -15,18 +14,31 @@ EXTENSIONS = [
     # "moderation",
     # "personal",
     # "server",
-    # "sticks",
     # "stock_market",
-    # "tictactoe",
     # "vc",
 ]
 
 import discord
 from discord.ext import commands
-
 from datetime import datetime
+from pymongo import MongoClient
 
-client = commands.Bot(command_prefix = PREFIX, intents = discord.Intents.all())
+cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
+settings_data_store = cluster.discord_2.settings
+
+def get_settings(guild_id: int):
+    data = settings_data_store.find_one({"guild_id": guild_id}) 
+    if not data:
+        data = {"guild_id": guild_id}
+        settings_data_store.insert_one(data)
+    return data
+
+async def get_prefix(client, context):
+    guild_data = get_settings(context.guild.id)
+    print(guild_data.get("prefix"))
+    return guild_data.get("prefix") or PREFIX
+
+client = commands.Bot(command_prefix = get_prefix, intents = discord.Intents.all())
 
 def create_embed(info: {} = {}, fields: {} = {}):
     embed = discord.Embed(
