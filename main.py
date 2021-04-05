@@ -5,7 +5,7 @@ EXTENSIONS = [
     "events",
     "bot",
     "acas",
-    # "default_commands",
+    "default_commands",
     # "economy_system",
     # "fun",
     # "leveling_system",
@@ -35,7 +35,6 @@ def get_settings(guild_id: int):
 
 async def get_prefix(client, context):
     guild_data = get_settings(context.guild.id)
-    print(guild_data.get("prefix"))
     return guild_data.get("prefix") or PREFIX
 
 client = commands.Bot(command_prefix = get_prefix, intents = discord.Intents.all())
