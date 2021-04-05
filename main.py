@@ -4,7 +4,7 @@ PREFIX = "?"
 EXTENSIONS = [
     "events",
     "bot",
-    # "class_alert",
+    "acas",
     # "default_commands",
     # "economy_system",
     # "event_notification",

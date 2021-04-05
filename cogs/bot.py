@@ -197,8 +197,9 @@ class bot(commands.Cog):
 
         try:
             settings = get_settings(context.guild.id)
+            name = name.lower()
             if name == "join_channel":
-                if not value or value == "None":
+                if not value or value.lower() == "none":
                     settings["join_channel"] = None
                     save_settings(settings)
 
@@ -222,7 +223,7 @@ class bot(commands.Cog):
                             "color": discord.Color.red(),
                         }))
             elif name == "default_role":
-                if not value or value == "None":
+                if not value or value.lower() == "none":
                     settings["default_role"] = None
                     save_settings(settings)
 
@@ -245,6 +246,77 @@ class bot(commands.Cog):
                             "title": f"{value} is not a valid role",
                             "color": discord.Color.red(),
                         }))
+            elif name == "acas_channel":
+                if not value or value.lower() == "none":
+                    settings["acas_channel"] = None
+                    save_settings(settings)
+
+                    await response.edit(embed = create_embed({
+                        "title": "Removed ACAS channel",
+                        "color": discord.Color.green(),
+                    }))
+                else:
+                    channel = get_channel(context.guild.text_channels, value)
+                    if channel:
+                        settings["acas_channel"] = channel.id
+                        save_settings(settings)
+
+                        await response.edit(embed = create_embed({
+                            "title": f"Set ACAS channel to {channel}",
+                            "color": discord.Color.green(),
+                        }))
+                    else:
+                        await response.edit(embed = create_embed({
+                            "title": f"{value} is not a valid channel",
+                            "color": discord.Color.red(),
+                        }))
+            elif name == "acas_role":
+                if not value or value.lower() == "none":
+                    settings["acas_role"] = None
+                    save_settings(settings)
+
+                    await response.edit(embed = create_embed({
+                        "title": "Removed ACAS role",
+                        "color": discord.Color.green(),
+                    }))
+                else:
+                    role = get_role(context.guild.roles, value)
+                    if role:
+                        settings["acas_role"] = role.id
+                        save_settings(settings)
+
+                        await response.edit(embed = create_embed({
+                            "title": f"Set ACAS role to {role}",
+                            "color": discord.Color.green(),
+                        }))
+                    else:
+                        await response.edit(embed = create_embed({
+                            "title": f"{value} is not a valid role",
+                            "color": discord.Color.red(),
+                        })) 
+            elif name == "acas_enabled":
+                if not value or value.lower() == "false":
+                    settings["acas_enabled"] = False
+                    save_settings(settings)
+
+                    await response.edit(embed = create_embed({
+                        "title": "Disabled ACAS",
+                        "color": discord.Color.green(),
+                    }))
+                elif value.lower() == "true":
+                    settings["acas_enabled"] = True
+                    save_settings(settings)
+
+                    await response.edit(embed = create_embed({
+                        "title": "Enabled ACAS",
+                        "color": discord.Color.green(),
+                    }))
+                else:
+                    await response.edit(embed = create_embed({
+                        "title": f"{value} is not a valid boolean (true/false)",
+                        "color": discord.Color.red()
+                    }))
+                    return
             else:
                 await response.edit(embed = create_embed({
                     "title": f"{name} is not a valid setting",

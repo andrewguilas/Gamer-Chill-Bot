@@ -5,10 +5,7 @@ from pymongo import MongoClient
 
 cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
 settings_data_store = cluster.discord_2.settings
-
-def save_settings(data):
-    settings_data_store.update_one({"guild_id": data["guild_id"]}, {"$set": data})
-    
+ 
 def get_settings(guild_id: int):
     data = settings_data_store.find_one({"guild_id": guild_id}) 
     if not data:
