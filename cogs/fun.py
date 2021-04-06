@@ -5,8 +5,22 @@ import random
 import pytz
 import random
 import asyncio
+import asyncpraw
 from translate import Translator
 from datetime import datetime
+
+reddit = asyncpraw.Reddit(
+    client_id = "cTdcYAFeJKqwKg",
+    client_secret = "QO0zyzU_pB8voB0nQUvfXIRgqmL02g", 
+    password = "6&OB7s4PcCKz&08o",
+    user_agent = "gamer-chill-bot",
+    username = "Hast1e"
+)
+
+async def get_meme():
+    subreddit = await reddit.subreddit("memes")
+    meme = await subreddit.random()
+    return meme.url
 
 def create_embed(info: {} = {}, fields: {} = {}):
     embed = discord.Embed(
@@ -146,6 +160,16 @@ class fun_commands(commands.Cog):
                 "Original Text": text,
                 "Language": language,
             }))
+
+    @commands.command(aliases = ["m", "meme"], description = "Retrieves a random meme from r/memes.")
+    async def getmeme(self, context, amount: int = 1):
+        MAX_MEMES = 5
+        if amount > MAX_MEMES:
+            amount = MAX_MEMES
+
+        for _ in range(amount):
+            meme = await get_meme()
+            await context.send(meme)
 
 def setup(client):
     client.add_cog(fun_commands(client))

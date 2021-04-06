@@ -10,7 +10,6 @@ EXTENSIONS = [
     "fun",
     # "leveling_system",
     # "lottery",
-    # "meme",
     # "moderation",
     # "personal",
     # "server",

@@ -170,11 +170,10 @@ class default_commands(commands.Cog):
             commands[f"{cog_name}{command_name}{aliases}{parameters}"] = f"{description}{brief}" or "\u200b"
 
         commands = sort_dictionary(commands)
-        print(commands)
 
         await response.edit(embed = create_embed({
             "title": "Commands",
-            "inline": True,
+            "inline": False,
         }, commands))
 
     @commands.command(aliases = ["whois"], description = "Retrieves info of the user.")
