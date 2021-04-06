@@ -108,7 +108,7 @@ class class_alert(commands.Cog):
             elif status == "early":
                 await acas_channel.send(f"{acas_role.mention} Block {block_number} is starting in 5 minutes")
 
-    @commands.command()
+    @commands.command(aliases = ["toggleacas"], description = "Gives/removes the ACAS role to/from the member.")
     async def acas(self, context):
         will_give_role = True
         member = context.author

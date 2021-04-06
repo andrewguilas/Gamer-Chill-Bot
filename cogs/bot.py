@@ -69,7 +69,7 @@ class bot(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.command()
+    @commands.command(aliases = ["run"], description = "Runs code through the bot.", brief = "bot creator or server owner")
     @commands.check_any(commands.is_owner(), is_guild_owner())
     async def execute(self, context, *, code):
         response = await context.send(embed = create_embed({
@@ -97,7 +97,7 @@ class bot(commands.Cog):
                 "Code": code,
             }))
 
-    @commands.command(aliases = ["clearterminal", "clearscreen"])
+    @commands.command(aliases = ["clearterminal", "clearscreen", "clearlogs"], description = "Clears the terminal's logs.", brief = "bot creator")
     @commands.check_any(commands.is_owner())
     async def cls(self, context):
         response = await context.send(embed = create_embed({
@@ -120,7 +120,7 @@ class bot(commands.Cog):
                 "color": discord.Color.green(),
             }))
 
-    @commands.command()
+    @commands.command(description = "Changes the bot's activity in its profile.", brief = "bot creator or server owner")
     @commands.check_any(commands.is_owner(), is_guild_owner())
     async def changeactivity(self, context, *, activity: str = ""):
         activity = activity.lower()
@@ -150,7 +150,7 @@ class bot(commands.Cog):
                 "Activity": activity or "None",
             }))
 
-    @commands.command()
+    @commands.command(description = "Changes the bot's status in its profile. Possible statuses are online, offline, dnd, and idle.", brief = "bot creator or server owner")
     @commands.check_any(commands.is_owner(), is_guild_owner())
     async def changestatus(self, context, *, status: str = "online"):
         status = status.lower()
@@ -175,7 +175,7 @@ class bot(commands.Cog):
                 "color": discord.Color.green(),
             }))
 
-    @commands.command()
+    @commands.command(description = "Stops and starts the bot if it is being hosted on a server. Stops the bot if it is being hosted locally.", brief = "bot creator or server owner")
     @commands.check_any(commands.is_owner(), is_guild_owner())
     async def restart(self, context):
         await context.send(embed = create_embed({
@@ -184,7 +184,7 @@ class bot(commands.Cog):
         }))
         sys.exit()
 
-    @commands.command(aliases = ["set"])
+    @commands.command(aliases = ["set", "changesettings"], description = "Changes a server specific setting in the data stores.", brief = "bot creator or administrator")
     @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
     async def setsettings(self, context, name: str, *, value = None):
         response = await context.send(embed = create_embed({
@@ -348,7 +348,7 @@ class bot(commands.Cog):
                 "Value": value,
             }))            
 
-    @commands.command(aliases = ["settings"])
+    @commands.command(aliases = ["settings"], description = "Retrieves a list of server specific settings in the data store.", brief = "bot creator or administrator")
     @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
     async def getsettings(self, context):
         response = await context.send(embed = create_embed({

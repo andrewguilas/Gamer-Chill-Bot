@@ -28,11 +28,26 @@ def create_embed(info: {} = {}, fields: {} = {}):
     
     return embed
 
+def list_to_string(list: []):
+    string = ""
+    for index, value in enumerate(list):
+        if index > 0:
+            string = string + ", "
+        string = string + value
+    return string
+
+def sort_dictionary(dictionary):
+    sorted_dictionary = {}
+    sorted_list = sorted(dictionary.items(), key = lambda x: x[1])
+    for value in sorted_list:
+        sorted_dictionary[value[0]] = value[1]
+    return sorted_dictionary
+
 class default_commands(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.command()
+    @commands.command(aliases = ["latency"], description = "Retrieves the client to bot latency.")
     async def ping(self, context):
         response = await context.send(embed = create_embed({
             "title": "Loading ping...",
@@ -51,7 +66,7 @@ class default_commands(commands.Cog):
                 "Error Message": error_message
             }))
 
-    @commands.command()
+    @commands.command(description = "Retrieves an invite link for the bot.")
     async def invitebot(self, context):
         response = await context.send(embed = create_embed({
             "title": "Loading invite link for bot",
@@ -71,7 +86,7 @@ class default_commands(commands.Cog):
                 "Error Message": error_message
             }))
 
-    @commands.command()
+    @commands.command(description = "Retrieves an invite link for the server (first channel).", brief = "create instant invite")
     @commands.check_any(commands.is_owner(), commands.has_permissions(create_instant_invite = True))
     async def invitetoserver(self, context):
         response = await context.send(embed = create_embed({
@@ -93,7 +108,7 @@ class default_commands(commands.Cog):
                 "Error Message": error_message
             }))
 
-    @commands.command()
+    @commands.command(description = "Retrieves an invite link for the channel.", brief = "create instant invite.")
     @commands.check_any(commands.is_owner(), commands.has_permissions(create_instant_invite = True))
     async def invitetochannel(self, context):
         response = await context.send(embed = create_embed({
@@ -115,39 +130,54 @@ class default_commands(commands.Cog):
                 "Error Message": error_message
             }))
 
-    """
-    @commands.command()
+    @commands.command(aliases = ["cmds", "commands"], description = "Retrieves a list of all the bot commands.")
     async def help(self, context):
-        EMOJIS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"]
-        
-        current_page = 0
-        new_embed = self.ordered_help_embeds[current_page]
-        new_embed.set_footer(text = f"Page {current_page + 1}/{len(self.ordered_help_embeds)}", icon_url = "")
-        message = await context.send(embed = new_embed)
+        response = await context.send(embed = create_embed({
+            "title": "Loading commands...",
+            "color": discord.Color.gold()
+        }))
 
-        for emoji in EMOJIS:
-            await message.add_reaction(emoji)
+        commands = {}
+        for command in self.client.commands:
+            cog_name = command.cog_name
+            if cog_name:
+                cog_name = cog_name + "."
+            else:
+                cog_name = "_"
 
-        while True:
-            def check_reaction(reaction, user):
-                if user == context.author and reaction.message.channel == context.channel and reaction.message.id == message.id:
-                    if str(reaction.emoji) in EMOJIS:
-                        return True
+            command_name = command.name
 
-            chosen_reaction, user = await self.client.wait_for("reaction_add", check = check_reaction)
+            aliases = list_to_string(command.aliases)
+            if len(aliases) > 0:
+                aliases = " (" + aliases + ")"
 
-            for index, emoji in enumerate(EMOJIS):
-                if emoji == chosen_reaction.emoji:
-                    current_page = index
-                    break
+            description = command.description
+            if description:
+                description = description
+            else:
+                description = ""
 
-            new_embed = self.ordered_help_embeds[current_page]
-            new_embed.set_footer(text = f"Page {current_page + 1}/{len(self.ordered_help_embeds)}", icon_url = "")
-            await message.edit(embed = new_embed)
-            await chosen_reaction.remove(user)
-    """
+            parameters = list_to_string(command.clean_params)
+            if parameters:
+                parameters = " <" + parameters + ">"
 
-    @commands.command()
+            brief = command.brief
+            if brief:
+                brief = " Requires " + brief + " permissions."
+            else:
+                brief = " Requires no permissions."
+
+            commands[f"{cog_name}{command_name}{aliases}{parameters}"] = f"{description}{brief}" or "\u200b"
+
+        commands = sort_dictionary(commands)
+        print(commands)
+
+        await response.edit(embed = create_embed({
+            "title": "Commands",
+            "inline": True,
+        }, commands))
+
+    @commands.command(aliases = ["whois"], description = "Retrieves info of the user.")
     async def userinfo(self, context, user: discord.Member = None):
         if not user:
             user = context.author
@@ -192,7 +222,7 @@ class default_commands(commands.Cog):
                 "Error Message": error_message,
             }))
 
-    @commands.command()
+    @commands.command(aliases = ["whereami"], description = "Retrieves info of the server.")
     async def serverinfo(self, context):
         guild = context.guild
 

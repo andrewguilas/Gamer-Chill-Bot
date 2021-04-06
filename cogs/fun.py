@@ -34,7 +34,7 @@ class fun_commands(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.command(aliases = ["8ball"])
+    @commands.command(aliases = ["8ball"], description = "Retrieves a random response to a yes/no question.")
     async def _8ball(self, context, *, question):
         RESPONSES = [
             "It is certain.",
@@ -64,13 +64,13 @@ class fun_commands(commands.Cog):
             "title": random.choice(RESPONSES),
         }))
 
-    @commands.command()
+    @commands.command(aliases = ["dice"], description = "Chooses a random number between 1 and 6 or 1 and the specific number.")
     async def roll(self, context, max_number: int = 6):
         await context.send(embed = create_embed({
             "title": random.randint(1, max_number),
         }))
 
-    @commands.command()
+    @commands.command(aliases = ["become"], description = "Sends a message disguised as the member.")
     async def impersonate(self, context, member: discord.Member, channel: discord.TextChannel, *, message: str):
         response = await context.send(embed = create_embed({
             "title": "Impersonaitng user...",
@@ -105,21 +105,21 @@ class fun_commands(commands.Cog):
                 "Error Message": error_message
             }))
 
-    @commands.command()
+    @commands.command(description = "Retrieves a random person from the server.")
     async def randomperson(self, context):
         member = random.choice(context.guild.members)
         await context.send(embed = create_embed({
             "title": member.name
         }))
 
-    @commands.command()
+    @commands.command(description = "Retrieves a list of supported languages for the ?translate command.")
     async def languages(self, context):
         await context.send(embed = create_embed({
             "title": "ISO 639-1 Codes",
             "url": "https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes"
         }))
 
-    @commands.command()
+    @commands.command(description = "Translates a different languages to english.")
     async def translate(self, context, language: str, *, text: str):
         response = await context.send(embed = create_embed({
             "title": "Translating...",
