@@ -1,72 +1,37 @@
 LANGUAGE = "en"
-DEFAULT_ACCOUNT_DATA = {
-    "id": None,
-    "vc_name": None,
-}
+ACCENT = "com"
+VOICE_IS_SLOW = False
 
-# discord
 import discord
-from discord import Color as discord_color
-from discord.ext import commands, tasks
+from discord.ext import commands
 
-# embed
-import pytz
-from datetime import datetime
-
-# vc
-import os
-import shutil
 from gtts import gTTS 
-from pymongo import MongoClient
 
-cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
-account_data_store = cluster.discord_2.account
-
-def create_embed(title, fields: {} = {}, info: {} = {}):
+def create_embed(info: {} = {}, fields: {} = {}):
     embed = discord.Embed(
-        title = title,
-        colour = info.get("color") or discord_color.blue(),
-        timestamp = datetime.now(tz = pytz.timezone("US/Eastern"))
+        title = info.get("title") or "",
+        description = info.get("description") or "",
+        colour = info.get("color") or discord.Color.blue(),
+        url = info.get("url") or "",
     )
 
     for name, value in fields.items():
-        embed.add_field(
-            name = name,
-            value = value,
-            inline = True
-        )
+        embed.add_field(name = name, value = value, inline = info.get("inline") or False)
 
-    if info.get("member"):
-        embed.set_author(name = info["member"], icon_url = info["member"].avatar_url)
-
+    if info.get("author"):
+        embed.set_author(name = info.author.name, url = info.author.mention, icon_url = info.author.avatar_url)
+    if info.get("footer"):
+        embed.set_footer(text = info.footer)
+    if info.get("image"):
+        embed.set_image(url = info.url)
+    if info.get("thumbnail"):
+        embed.set_thumbnail(url = info.thumbnail)
+    
     return embed
 
-def save_account_data(data):
-    account_data_store.update_one({"id": data["id"]}, {"$set": data})
-    
-def get_account_data(user_id):
-    data = account_data_store.find_one({"id": user_id})
-    if not data:
-        data = DEFAULT_ACCOUNT_DATA
-        data["id"] = user_id
-        account_data_store.insert_one(data)
-    return data 
-
-def delete_contents(folder):
-    for filename in os.listdir(folder):
-        file_path = os.path.join(folder, filename)
-        try:
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                os.unlink(file_path)
-            elif os.path.isdir(file_path):
-                shutil.rmtree(file_path)
-        except Exception as e:
-            print('Failed to delete %s. Reason: %s' % (file_path, e))
-
 def create_voice_file(message):
-    audio = gTTS(text = message, lang = LANGUAGE, slow = False) 
+    audio = gTTS(text = message, lang = LANGUAGE, tld = ACCENT, slow = VOICE_IS_SLOW) 
     file_name = "TTS\\output_message.mp3"
-    delete_contents("TTS")
     audio.save(file_name) 
     return file_name
 
@@ -76,13 +41,12 @@ class vc(commands.Cog):
         
     @commands.Cog.listener()
     async def on_voice_state_update(self, user, before, after):
-        # check if user is a bot
         if user == self.client.user:
             return
 
         response = None
 
-        voice_client = self.client.voice_clients and self.client.voice_clients[0]
+        voice_client = user.guild.voice_client
         if not voice_client:
             return
             
@@ -97,138 +61,137 @@ class vc(commands.Cog):
             voice_client.stop()
             voice_client.play(discord.FFmpegPCMAudio(voice_file))
 
-    @commands.command()
+    @commands.command(aliases = ["summon"], description = "Makes the bot join the voice channel.")
     async def join(self, context):
-        embed = await context.send(embed = create_embed("Joining the voice channel...", {}, {
-            "color": discord_color.gold(),
-            "member": context.author,
+        response = await context.send(embed = create_embed({
+            "title": "Joining the voice channel...",
+            "color": discord.Color.gold()
         }))
 
         try:
             user_voice = context.author.voice
             if not user_voice:
-                await embed.edit(embed = create_embed("You are not in a voice channel", {}, {
-                    "color": discord_color.red(),
-                    "member": context.author,
+                await response.edit(embed = create_embed({
+                    "title": "You are not in a voice channel",
+                    "color": discord.Color.red()
                 }))
                 return
 
             voice_channel = user_voice.channel
             if not voice_channel:
-                await embed.edit(embed = create_embed("You are not in a voice channel", {}, {
-                    "color": discord_color.red(),
-                    "member": context.author,
+                await response.edit(embed = create_embed({
+                    "title": "You are not in a voice channel",
+                    "color": discord.Color.red()
                 }))
                 return
 
             voice_client = context.voice_client
             if voice_client and voice_client.channel != voice_channel:
                 await voice_client.disconnect()
-            await voice_channel.connect()
-        except Exception as error_message:
-                await embed.edit(embed = create_embed("ERROR: Something went wrong when trying to connect to the voice channel", {
-                    "Voice Channel": voice_channel,
-                    "Error Message": error_message,
-                }, {
-                    "color": discord_color.red(),
-                    "member": context.author,
+            elif voice_client and voice_client.channel == voice_channel:
+                await response.edit(embed = create_embed({
+                    "title": "Bot is already connected to the voice channel",
+                    "color": discord.Color.red()
                 }))
                 return
-        else:
-            await embed.edit(embed = create_embed("SUCCESS: Joined the voice channel", {
-                "Voice Channel": voice_channel,
-            }, {
-                "color": discord_color.green(),
-                "member": context.author,
-            }))
+            await voice_channel.connect()
 
-    @commands.command()
+            await response.edit(embed = create_embed({
+                "title": f"Joined {voice_channel}",
+                "color": discord.Color.green()
+            }))
+        except Exception as error_message:
+            await response.edit(embed = create_embed({
+                "title": "Could not join voice channel",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
+            }))
+            return
+
+    @commands.command(description = "Makes the bot leave the voice channel.")
     async def leave(self, context):
-        embed = await context.send(embed = create_embed("Leaving the voice channel...", {}, {
-            "color": discord_color.gold(),
-            "member": context.author,
+        response = await context.send(embed = create_embed({
+            "title": "Leaving the voice channel...",
+            "color": discord.Color.gold()
         }))
 
-        voice_channel_name = None
         try:
+            voice_channel_name = None
             voice_client = context.voice_client
             if voice_client and voice_client.channel:
                 voice_channel_name = voice_client.channel.name
                 await voice_client.disconnect()
             else:
-                await embed.edit(embed = create_embed("ERROR: Bot is not in a voice channel", {}, {
-                    "color": discord_color.red(),
-                    "member": context.author,
-                }))
-        except Exception as error_message:
-                await embed.edit(embed = create_embed("ERROR: Something went wrong when trying to disconnect the bot from the voice channel", {
-                    "Voice Channel": voice_channel_name or "Unknown",
-                    "Error Message": error_message,
-                }, {
-                    "color": discord_color.red(),
-                    "member": context.author,
+                await response.edit(embed = create_embed({
+                    "title": "Bot is not in a voice channel",
+                    "color": discord.Color.red()
                 }))
                 return
-        else:
-            await embed.edit(embed = create_embed("SUCCESS: Left the voice channel", {
-                "Voice Channel": voice_channel_name,
-            }, {
-                "color": discord_color.green(),
-                "member": context.author,
+
+            await response.edit(embed = create_embed({
+                "title": f"Left {voice_channel_name}",
+                "color": discord.Color.green()
             }))
+        except Exception as error_message:
+            await response.edit(embed = create_embed({
+                "title": "Could not leave the voice channel",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
+            }))
+            return
 
     @commands.command()
     async def say(self, context, *, message: str):
-        embed = await context.send(embed = create_embed("Saying message...", {
-            "Message": message,
+        response = await context.send(embed = create_embed({
+            "title": "Saying message...",
+            "color": discord.Color.gold()
         }, {
-            "color": discord_color.gold(),
-            "member": context.author,
+            "Message": message
         }))
 
         try:
             user_voice = context.author.voice
             if not user_voice:
-                await embed.edit(embed = create_embed("You are not in a voice channel", {}, {
-                    "color": discord_color.red(),
-                    "member": context.author,
+                await response.edit(embed = create_embed({
+                    "title": "You are not in a voice channel",
+                    "color": discord.Color.red()
                 }))
                 return
 
             voice_channel = user_voice.channel
             if not voice_channel:
-                await embed.edit(embed = create_embed("You are not in a voice channel", {}, {
-                    "color": discord_color.red(),
-                    "member": context.author,
+                await response.edit(embed = create_embed({
+                    "title": "You are not in a voice channel",
+                    "color": discord.Color.red()
                 }))
                 return
 
             voice_client = context.voice_client
-            # bot is not in a vc
-            if not voice_client:
-                voice_client = await voice_channel.connect()
-            # bot is in another vc
-            elif voice_client.channel != voice_channel:
+            if voice_client and voice_client.channel != voice_channel:
                 await voice_client.disconnect()
+            if not voice_client or voice_client.channel != voice_channel:
                 voice_client = await voice_channel.connect()
+            
 
             voice_file = create_voice_file(message)
             voice_client.stop()
             voice_client.play(discord.FFmpegPCMAudio(voice_file))
         except Exception as error_message:
-            await embed.edit(embed = create_embed("ERROR: Something went wrong when saying the message", {
-                "Message": message,
-                "Error Message": error_message,
+            await response.edit(embed = create_embed({
+                "title": "Could not say message",
+                "color": discord.Color.red()
             }, {
-                "color": discord_color.red(),
-                "member": context.author,
+                "Error Message": error_message,
+                "Message": message
             }))
         else:
-            await embed.edit(embed = create_embed("SUCCESS: Message said", {
-                "Message": message,
+            await response.edit(embed = create_embed({
+                "title": "Message said",
+                "color": discord.Color.green()
             }, {
-                "color": discord_color.green(),
-                "member": context.author,
+                "Message": message
             }))
 
 def setup(client):

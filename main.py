@@ -14,7 +14,7 @@ EXTENSIONS = [
     # "personal",
     "server",
     # "stock_market",
-    # "vc",
+    "vc",
 ]
 
 import discord
