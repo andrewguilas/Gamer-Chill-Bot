@@ -12,7 +12,7 @@ EXTENSIONS = [
     # "lottery",
     "moderation",
     # "personal",
-    # "server",
+    "server",
     # "stock_market",
     # "vc",
 ]
