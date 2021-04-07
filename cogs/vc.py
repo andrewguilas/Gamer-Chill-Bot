@@ -6,6 +6,10 @@ import discord
 from discord.ext import commands
 
 from gtts import gTTS 
+from pymongo import MongoClient
+
+cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
+settings_data_store = cluster.discord_2.settings
 
 def create_embed(info: {} = {}, fields: {} = {}):
     embed = discord.Embed(
@@ -29,11 +33,19 @@ def create_embed(info: {} = {}, fields: {} = {}):
     
     return embed
 
-def create_voice_file(message):
-    audio = gTTS(text = message, lang = LANGUAGE, tld = ACCENT, slow = VOICE_IS_SLOW) 
+def create_voice_file(message: str, guild_id: int):
+    guild_settings = get_settings(guild_id)
+    audio = gTTS(text = message, lang = guild_settings.get("vc_language") or LANGUAGE, tld = guild_settings.get("vc_accent") or ACCENT, slow = guild_settings.get("vc_slow_mode") or VOICE_IS_SLOW) 
     file_name = "TTS\\output_message.mp3"
     audio.save(file_name) 
     return file_name
+
+def get_settings(guild_id: int):
+    data = settings_data_store.find_one({"guild_id": guild_id}) 
+    if not data:
+        data = {"guild_id": guild_id}
+        settings_data_store.insert_one(data)
+    return data
 
 class vc(commands.Cog):
     def __init__(self, client):
@@ -57,7 +69,7 @@ class vc(commands.Cog):
                 response = "left"
 
             response = f"{user.nick or user.name} {response}"
-            voice_file = create_voice_file(response)
+            voice_file = create_voice_file(response, user.guild.id)
             voice_client.stop()
             voice_client.play(discord.FFmpegPCMAudio(voice_file))
 
@@ -175,7 +187,7 @@ class vc(commands.Cog):
                 voice_client = await voice_channel.connect()
             
 
-            voice_file = create_voice_file(message)
+            voice_file = create_voice_file(message, context.guild.id)
             voice_client.stop()
             voice_client.play(discord.FFmpegPCMAudio(voice_file))
         except Exception as error_message:

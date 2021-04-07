@@ -333,6 +333,61 @@ class bot(commands.Cog):
                         "color": discord.Color.red()
                     }))
                     return
+            elif name == "vc_accent":
+                value = str(value)
+                if value:
+                    settings["vc_accent"] = value
+                    save_settings(settings)
+
+                    await response.edit(embed = create_embed({
+                        "title": f"Changed the bot's accent to {value}",
+                        "color": discord.Color.green(),
+                    }))
+                else:
+                    await response.edit(embed = create_embed({
+                        "title": f"{value} could not be converted to a string",
+                        "color": discord.Color.red()
+                    }))
+                    return
+            elif name == "vc_language":
+                value = str(value)
+                if value:
+                    settings["vc_language"] = value
+                    save_settings(settings)
+
+                    await response.edit(embed = create_embed({
+                        "title": f"Changed the bot's language to {value}",
+                        "color": discord.Color.green(),
+                    }))
+                else:
+                    await response.edit(embed = create_embed({
+                        "title": f"{value} could not be converted to a string",
+                        "color": discord.Color.red()
+                    }))
+                    return
+            elif name == "vc_slow_mode":
+                if not value or value.lower() == "false":
+                    settings["vc_slow_mode"] = False
+                    save_settings(settings)
+
+                    await response.edit(embed = create_embed({
+                        "title": "Disabled bot slow mode",
+                        "color": discord.Color.green(),
+                    }))
+                elif value.lower() == "true":
+                    settings["vc_slow_mode"] = True
+                    save_settings(settings)
+
+                    await response.edit(embed = create_embed({
+                        "title": "Enabled bot slow mode",
+                        "color": discord.Color.green(),
+                    }))
+                else:
+                    await response.edit(embed = create_embed({
+                        "title": f"{value} is not a valid boolean (true/false)",
+                        "color": discord.Color.red()
+                    }))
+                    return
             else:
                 await response.edit(embed = create_embed({
                     "title": f"{name} is not a valid setting",
