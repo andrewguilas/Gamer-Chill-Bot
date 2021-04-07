@@ -10,7 +10,7 @@ EXTENSIONS = [
     "fun",
     # "leveling_system",
     # "lottery",
-    # "moderation",
+    "moderation",
     # "personal",
     # "server",
     # "stock_market",
