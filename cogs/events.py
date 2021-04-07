@@ -4,7 +4,7 @@ from discord.ext import commands
 from pymongo import MongoClient
 
 cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
-settings_data_store = cluster.discord_2.settings
+settings_data_store = cluster.discord_revamp.settings
  
 def get_settings(guild_id: int):
     data = settings_data_store.find_one({"guild_id": guild_id}) 

@@ -24,8 +24,8 @@ from pymongo import MongoClient
 import yfinance as yf
 
 cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
-economy_data_store = cluster.discord_2.economy
-stock_data_store = cluster.discord_2.stocks
+economy_data_store = cluster.discord_revamp.economy
+stock_data_store = cluster.discord_revamp.stocks
 
 def create_embed(title, fields: {} = {}, info: {} = {}):
     embed = discord.Embed(
