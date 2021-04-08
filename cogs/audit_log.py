@@ -6,6 +6,7 @@ from discord import Color as discord_color
 
 import pytz
 from datetime import datetime
+import asyncio
 
 def create_embed(title, color = discord_color.blue(), fields = {}):
     embed = discord.Embed(
@@ -27,6 +28,7 @@ def create_embed(title, color = discord_color.blue(), fields = {}):
 class audit_log(commands.Cog):
     def __init__(self, client):
         self.client = client
+        self.times_said_literally = 0
         self.help_embeds = {
             "table_of_contents_embed": create_embed("Table of Contents", None, {
                 "1 - Table of Contents": "List of event categories.",
@@ -82,8 +84,7 @@ class audit_log(commands.Cog):
                 "invite_create": "Fires when an invite was created for the server.",
                 "invite_delete": "Fires when an invite was deleted for the server.",
             }),
-        }
-        
+        }      
         self.ordered_help_embeds = [
             self.help_embeds["table_of_contents_embed"],
             self.help_embeds["bot_embed"],
@@ -206,6 +207,33 @@ class audit_log(commands.Cog):
         embed.set_footer(text = f"#{logs_channel}")
         embed.set_author(name = context.author, icon_url = context.author.avatar_url)
         await logs_channel.send(embed = embed)
+
+        if "literally" in context.content.lower():
+            self.times_said_literally += 1
+
+            print(self.times_said_literally)
+
+            if self.times_said_literally == 1:
+                await context.channel.send("Banned")
+            elif self.times_said_literally == 2:
+                await context.channel.send("stop spamming")
+            elif self.times_said_literally == 3:
+                await context.channel.send("there's no way you're **accidentally** typing")
+            elif self.times_said_literally == 4:
+                await context.channel.send("some people don't know how to turn off their notifications for this channel")
+            elif self.times_said_literally == 5:
+                await context.channel.send("will is coming")
+            elif self.times_said_literally == 6:
+                await context.channel.send("ok now i'm actually impressed on how fast you can type")
+            elif self.times_said_literally == 7:
+                await context.channel.send("sike ik you can copy and paste")
+            elif self.times_said_literally == 8:
+                await context.channel.send("blam bot!!!")
+            else:
+                await context.channel.send("btc to the moon")
+
+            await asyncio.sleep(5)
+            self.times_said_literally -= 1
 
     @commands.Cog.listener()
     async def on_message_delete(self, context):
