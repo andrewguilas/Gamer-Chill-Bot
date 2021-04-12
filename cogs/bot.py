@@ -424,5 +424,31 @@ class bot(commands.Cog):
                 "Error Message": error_message,
             }))
 
+    @commands.command()
+    async def version(self, context):
+        response = await context.send(embed = create_embed({
+            "title": "Loading version...",
+            "color": discord.Color.gold()
+        }))
+
+        try:
+            python_version = sys.version_info
+            python_version_text = f"{python_version.major}.{python_version.minor}.{python_version.micro}"
+            discordpy_version_text = discord.__version__
+
+            await response.edit(embed = create_embed({
+                "title": "Bot Version",
+            }, {
+                "Python": python_version_text,
+                "discord.py": discordpy_version_text
+            }))
+        except Exception as error_message:
+            await response.edit(embed = create_embed({
+                "title": "Could not get version",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
+            }))
+
 def setup(client):
     client.add_cog(bot(client))
