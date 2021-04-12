@@ -3,6 +3,8 @@ from discord.ext import commands
 
 import os
 import sys
+import time
+import math
 from pymongo import MongoClient
 
 cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
@@ -65,9 +67,30 @@ def is_guild_owner():
         return context.guild and context.guild.owner_id == context.author.id
     return commands.check(predicate)
 
+def format_time(timestamp):
+    hours = math.floor(timestamp / 60 / 60)
+    minutes = math.floor((timestamp - (hours * 60 * 60)) / 60)
+    seconds = math.floor((timestamp) - (hours * 60 * 60) - (minutes * 60))
+
+    hours = str(hours)
+    if len(hours) == 1:
+        hours = "0" + hours
+
+    minutes = str(minutes)
+    if len(minutes) == 1:
+        minutes = "0" + minutes
+
+    seconds = str(seconds)
+    if len(seconds) == 1:
+        seconds = "0" + seconds
+
+    timestamp_text = f"{hours}:{minutes}:{seconds}"
+    return timestamp_text
+
 class bot(commands.Cog):
     def __init__(self, client):
         self.client = client
+        self.uptime = time.time()
 
     @commands.command(aliases = ["run"], description = "Runs code through the bot.", brief = "bot creator or server owner")
     @commands.check_any(commands.is_owner(), is_guild_owner())
@@ -445,6 +468,46 @@ class bot(commands.Cog):
         except Exception as error_message:
             await response.edit(embed = create_embed({
                 "title": "Could not get version",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
+            }))
+
+    @commands.command()
+    async def info(self, context):
+        response = await context.send(embed = create_embed({
+            "title": "Loading bot info...",
+            "color": discord.Color.gold()
+        }))
+
+        try:
+            uptime = round(time.time() - self.uptime)
+            uptime_text = format_time(uptime)
+
+            connected_servers = 0
+            members_watching = 0
+            user_ids = []
+
+            for guild in self.client.guilds:
+                connected_servers += 1
+                for member in guild.members:
+                    members_watching += 1
+                    if not member.id in user_ids:
+                        user_ids.append(member.id)
+
+            users_watching = len(user_ids)
+
+            await response.edit(embed = create_embed({
+                "title": "Bot Info",
+            }, {
+                "Uptime": uptime_text,
+                "Connected Servers": connected_servers,
+                "Members Watching": members_watching,
+                "Users Watching": users_watching
+            }))
+        except Exception as error_message:
+            await response.edit(embed = create_embed({
+                "title": "Could not load bot info",
                 "color": discord.Color.red()
             }, {
                 "Error Message": error_message
