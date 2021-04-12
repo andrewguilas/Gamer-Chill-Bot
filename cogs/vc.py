@@ -65,13 +65,14 @@ class vc(commands.Cog):
         if before.channel != after.channel:
             if after.channel == voice_client.channel:
                 response = "joined"
-            else:
+            elif before.channel == voice_client.channel:
                 response = "left"
 
-            response = f"{user.nick or user.name} {response}"
-            voice_file = create_voice_file(response, user.guild.id)
-            voice_client.stop()
-            voice_client.play(discord.FFmpegPCMAudio(voice_file))
+            if response:
+                response = f"{user.nick or user.name} {response}"
+                voice_file = create_voice_file(response, user.guild.id)
+                voice_client.stop()
+                voice_client.play(discord.FFmpegPCMAudio(voice_file))
 
     @commands.command(aliases = ["summon"], description = "Makes the bot join the voice channel.")
     async def join(self, context):
