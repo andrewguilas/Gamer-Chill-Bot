@@ -3,6 +3,7 @@ MESSAGE_COOLDOWN = 30
 MESSAGE_EXP = 5
 LEVEL_DIFFICULTY = 20
 MAX_BOXES_FOR_RANK_EMBED = 10
+MAX_FIELDS_FOR_LEADERBOARD_EMBED = 10
 
 FILL_EMOJI = "🟦"
 UNFILL_EMOJI = "⬜"
@@ -128,9 +129,9 @@ class subscriptions(commands.Cog):
             
             experience_for_level = get_experience_from_level(level + 1, level_dificulty)
 
-            member_data = leveling_data_store.find().sort("experience", -1)
-            for index, member_data in enumerate(member_data):
-                if member_data["user_id"] == member.id:
+            members_in_server_data = leveling_data_store.find().sort("experience", -1)
+            for index, members_in_server_data in enumerate(members_in_server_data):
+                if members_in_server_data["user_id"] == member.id:
                     rank = index + 1
                     break
 
@@ -148,6 +149,48 @@ class subscriptions(commands.Cog):
         except Exception as error_message:
             await response.edit(embed = create_embed({
                 "title": f"Could not load {member}'s rank...",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
+            }))
+
+    @commands.command(description = "Retrieves the ranks of all the members in a server.")
+    async def leaderboard(self, context):
+        response = await context.send(embed = create_embed({
+            "title": f"Loading leaderboard...",
+            "color": discord.Color.gold()
+        }))
+
+        try:
+            guild_settings = get_settings(context.guild.id)
+            level_dificulty = guild_settings.get("level_dificulty") or LEVEL_DIFFICULTY
+
+            members_in_server_data = leveling_data_store.find().sort("experience", -1)
+            fields = {}
+            for rank, member_data in enumerate(members_in_server_data):
+                member = context.guild.get_member(member_data["user_id"])
+                if member:
+                    level = None
+                    experience = None
+                    experience_for_level = None
+
+                    user_data = get_leveling_data(member.id)
+                    experience = user_data["experience"]
+                    level = get_level_from_experience(experience, level_dificulty)
+                    
+                    experience_for_level = get_experience_from_level(level + 1, level_dificulty)
+
+                    fields[f"{rank + 1}. {member.name}"] = f"Level {level} ({experience}/{experience_for_level})"
+                
+                if rank == MAX_FIELDS_FOR_LEADERBOARD_EMBED - 1:
+                    break
+        
+                await response.edit(embed = create_embed({
+                    "title": "Leaderboard"
+                }, fields))
+        except Exception as error_message:
+            await response.edit(embed = create_embed({
+                "title": f"Could not load leaderboard...",
                 "color": discord.Color.red()
             }, {
                 "Error Message": error_message
