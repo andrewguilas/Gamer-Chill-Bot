@@ -2,6 +2,10 @@ UPDATE_DELAY = 30
 MESSAGE_COOLDOWN = 30
 MESSAGE_EXP = 5
 LEVEL_DIFFICULTY = 20
+MAX_BOXES_FOR_RANK_EMBED = 10
+
+FILL_EMOJI = "🟦"
+UNFILL_EMOJI = "⬜"
 
 import discord
 from discord.ext import commands, tasks
@@ -23,6 +27,9 @@ def get_settings(guild_id: int):
 
 def get_level_from_experience(experience, level_dificulty):
     return math.floor(experience / level_dificulty)
+
+def get_experience_from_level(level, level_dificulty):
+    return level * level_dificulty
 
 def save_leveling_data(data):
     leveling_data_store.update_one({"user_id": data["user_id"]}, {"$set": data})
@@ -93,6 +100,57 @@ class subscriptions(commands.Cog):
         if old_level != new_level:
             await message.channel.send(embed = create_embed({
                 "title": f"{message.author} leveled up to level {new_level}",
+            }))
+
+    @commands.command(description = "Retrieves the user's level, experience, and rank.")
+    async def rank(self, context, member: discord.Member = None):
+        if not member:
+            member = context.author
+    
+        response = await context.send(embed = create_embed({
+            "title": f"Loading {member}'s rank...",
+            "color": discord.Color.gold()
+        }))
+
+        try:
+            level = None
+            experience = None
+            experience_for_level = None
+            rank = None
+            progress_bar = None
+
+            guild_settings = get_settings(context.guild.id)
+            level_dificulty = guild_settings.get("level_dificulty") or LEVEL_DIFFICULTY
+
+            user_data = get_leveling_data(member.id)
+            experience = user_data["experience"]
+            level = get_level_from_experience(experience, level_dificulty)
+            
+            experience_for_level = get_experience_from_level(level + 1, level_dificulty)
+
+            member_data = leveling_data_store.find().sort("experience", -1)
+            for index, member_data in enumerate(member_data):
+                if member_data["user_id"] == member.id:
+                    rank = index + 1
+                    break
+
+            blue_boxes = int(experience / experience_for_level * MAX_BOXES_FOR_RANK_EMBED)
+            white_boxes = (MAX_BOXES_FOR_RANK_EMBED - blue_boxes)
+            progress_bar = blue_boxes * FILL_EMOJI + white_boxes * UNFILL_EMOJI
+
+            await response.edit(embed = create_embed({
+                "title": f"{member}'s rank...",
+            }, {
+                "Level": f"{level} ({experience}/{experience_for_level})",
+                "Rank": rank,
+                "Progress Bar": progress_bar
+            }))
+        except Exception as error_message:
+            await response.edit(embed = create_embed({
+                "title": f"Could not load {member}'s rank...",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
             }))
 
 def setup(client):
