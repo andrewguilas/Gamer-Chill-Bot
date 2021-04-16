@@ -269,6 +269,7 @@ class bot(commands.Cog):
                             "title": f"{value} is not a valid role",
                             "color": discord.Color.red(),
                         }))
+            
             elif name == "acas_channel":
                 if not value or value.lower() == "none":
                     settings["acas_channel"] = None
@@ -340,6 +341,7 @@ class bot(commands.Cog):
                         "color": discord.Color.red()
                     }))
                     return
+            
             elif name == "prefix":
                 value = str(value)
                 if value:
@@ -356,6 +358,7 @@ class bot(commands.Cog):
                         "color": discord.Color.red()
                     }))
                     return
+            
             elif name == "vc_accent":
                 value = str(value)
                 if value:
@@ -411,6 +414,72 @@ class bot(commands.Cog):
                         "color": discord.Color.red()
                     }))
                     return
+            
+            elif name == "voice_exp":
+                value = int(value)
+                if value:
+                    settings["voice_exp"] = value
+                    save_settings(settings)
+
+                    await response.edit(embed = create_embed({
+                        "title": f"Set voice EXP to {value}",
+                        "color": discord.Color.green(),
+                    }))
+                else:
+                    await response.edit(embed = create_embed({
+                        "title": f"{value} is not a valid integer",
+                        "color": discord.Color.red()
+                    }))
+                    return
+            elif name == "message_exp":
+                value = int(value)
+                if value:
+                    settings["message_exp"] = value
+                    save_settings(settings)
+
+                    await response.edit(embed = create_embed({
+                        "title": f"Set message EXP to {value}",
+                        "color": discord.Color.green(),
+                    }))
+                else:
+                    await response.edit(embed = create_embed({
+                        "title": f"{value} is not a valid integer",
+                        "color": discord.Color.red()
+                    }))
+                    return
+            elif name == "level_dificulty":
+                value = int(value)
+                if value:
+                    settings["level_dificulty"] = value
+                    save_settings(settings)
+
+                    await response.edit(embed = create_embed({
+                        "title": f"Set level dificulty to {value}",
+                        "color": discord.Color.green(),
+                    }))
+                else:
+                    await response.edit(embed = create_embed({
+                        "title": f"{value} is not a valid integer",
+                        "color": discord.Color.red()
+                    }))
+                    return
+            elif name == "message_cooldown":
+                value = int(value)
+                if value:
+                    settings["message_cooldown"] = value
+                    save_settings(settings)
+
+                    await response.edit(embed = create_embed({
+                        "title": f"Set message cooldown to {value}",
+                        "color": discord.Color.green(),
+                    }))
+                else:
+                    await response.edit(embed = create_embed({
+                        "title": f"{value} is not a valid integer",
+                        "color": discord.Color.red()
+                    }))
+                    return
+    
             else:
                 await response.edit(embed = create_embed({
                     "title": f"{name} is not a valid setting",
@@ -438,6 +507,7 @@ class bot(commands.Cog):
             settings = get_settings(context.guild.id)
             await response.edit(embed = create_embed({
                 "title": "Settings",
+                "inline": True,
             }, settings))
         except Exception as error_message:
             await response.edit(embed = create_embed({
