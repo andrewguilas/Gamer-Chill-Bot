@@ -1,9 +1,11 @@
 UPDATE_DELAY = 30
 MESSAGE_COOLDOWN = 30
 MESSAGE_EXP = 5
+VOICE_EXP = 1
 LEVEL_DIFFICULTY = 20
 MAX_BOXES_FOR_RANK_EMBED = 10
 MAX_FIELDS_FOR_LEADERBOARD_EMBED = 10
+UPDATE_DELAY = 60
 
 FILL_EMOJI = "🟦"
 UNFILL_EMOJI = "⬜"
@@ -68,6 +70,38 @@ class subscriptions(commands.Cog):
     def __init__(self, client):
         self.client = client
         self.recent_messagers = {}
+        self.watch_players.start()
+        self.watch_voice_members.start()
+
+    def cog_unload(self):
+        self.watch_players.cancel()
+        self.watch_voice_members.cancel()
+
+    def cog_load(self):
+        self.watch_players.start()
+        self.watch_voice_members.start()
+
+    @tasks.loop(seconds = UPDATE_DELAY)
+    async def watch_players(self):
+        await self.client.wait_until_ready()
+
+    @tasks.loop(seconds = UPDATE_DELAY)
+    async def watch_voice_members(self):
+        await self.client.wait_until_ready()
+
+        for guild in self.client.guilds:
+            guild_settings = get_settings(guild.id)
+
+            for voice_channel in guild.voice_channels:
+                for member in voice_channel.members:
+                    if member.voice.self_deaf:
+                        continue
+
+                    user_data = get_leveling_data(member.id)
+                    user_data["experience"] += guild_settings.get("voice_exp") or VOICE_EXP
+                    save_leveling_data(user_data)
+
+                    print(f"Gave {member} experience for staying in a vc")
 
     @commands.Cog.listener()
     async def on_message(self, message):
