@@ -70,23 +70,16 @@ class subscriptions(commands.Cog):
     def __init__(self, client):
         self.client = client
         self.recent_messagers = {}
-        self.watch_players.start()
-        self.watch_voice_members.start()
+        self.watch_members.start()
 
     def cog_unload(self):
-        self.watch_players.cancel()
-        self.watch_voice_members.cancel()
+        self.watch_members.cancel()
 
     def cog_load(self):
-        self.watch_players.start()
-        self.watch_voice_members.start()
+        self.watch_members.start()
 
     @tasks.loop(seconds = UPDATE_DELAY)
-    async def watch_players(self):
-        await self.client.wait_until_ready()
-
-    @tasks.loop(seconds = UPDATE_DELAY)
-    async def watch_voice_members(self):
+    async def watch_members(self):
         await self.client.wait_until_ready()
 
         for guild in self.client.guilds:
