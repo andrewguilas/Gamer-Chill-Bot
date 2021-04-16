@@ -11,7 +11,7 @@ EXTENSIONS = [
     "server",
     "vc",
     "subscriptions",
-    # "leveling_system",
+    "leveling",
     # "economy_system",
     # "lottery",
     # "stock_market",
