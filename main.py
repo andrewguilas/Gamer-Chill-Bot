@@ -13,7 +13,6 @@ EXTENSIONS = [
     "subscriptions",
     "leveling",
     # "economy_system",
-    # "lottery",
     # "stock_market",
 ]
 
