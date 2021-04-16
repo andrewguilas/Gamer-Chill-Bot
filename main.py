@@ -70,16 +70,6 @@ async def load(context, extension: str):
 
     try:
         client.load_extension(f"cogs.{extension}")
-    except commands.ExtensionNotFound:
-        await response.edit(embed = create_embed({
-            "title": f"{extension} not found",
-            "color": discord.Color.red(),
-        }))
-    except commands.ExtensionAlreadyLoaded:
-        await response.edit(embed = create_embed({
-            "title": f"{extension} already loaded",
-            "color": discord.Color.red(),
-        }))
     except Exception as error_message:
         await response.edit(embed = create_embed({
             "title": f"Unable to load {extension}",
@@ -103,16 +93,6 @@ async def unload(context, extension):
 
     try:
         client.unload_extension(f"cogs.{extension}")
-    except commands.ExtensionNotFound:
-        await response.edit(embed = create_embed({
-            "title": f"{extension} not found",
-            "color": discord.Color.red(),
-        }))
-    except commands.ExtensionNotLoaded:
-        await response.edit(embed = create_embed({
-            "title": f"{extension} already unloaded",
-            "color": discord.Color.red(),
-        }))
     except Exception as error_message:
         await response.edit(embed = create_embed({
             "title": f"Unable to unload {extension}",
@@ -135,16 +115,6 @@ async def reload(context, extension):
 
     try:
         client.reload_extension(f"cogs.{extension}")
-    except commands.ExtensionNotLoaded:
-        await response.edit(embed = create_embed({
-            "title": f"{extension} not loaded",
-            "color": discord.Color.red(),
-        }))
-    except commands.ExtensionNotFound:
-        await response.edit(embed = create_embed({
-            "title": f"{extension} not found",
-            "color": discord.Color.red(),
-        }))
     except Exception as error_message:
         await response.edit(embed = create_embed({
             "title": f"Unable to reload {extension}",
@@ -167,22 +137,7 @@ async def update(context):
 
     try:
         for extension in EXTENSIONS:
-            try:
-                client.reload_extension(f"cogs.{extension}")
-            except commands.ExtensionNotLoaded:
-                await response.edit(embed = create_embed({
-                    "title": f"{extension} not loaded",
-                    "color": discord.Color.red(),
-                }))
-                return
-            except Exception as error_message:
-                await response.edit(embed = create_embed({
-                    "title": f"Unable to reload {extension}",
-                    "color": discord.Color.red(),
-                }, {
-                    "Error Message": error_message,
-                }))
-                return
+            client.reload_extension(f"cogs.{extension}")
     except Exception as error_message:
         await response.edit(embed = create_embed({
             "title": "Unable to update bot",
