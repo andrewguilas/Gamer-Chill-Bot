@@ -5,7 +5,7 @@ EXTENSIONS = [
     "events",
     "bot",
     "acas",
-    "default_commands",
+    "default",
     "fun",
     "moderation",
     "server",
@@ -13,7 +13,7 @@ EXTENSIONS = [
     "subscriptions",
     "leveling",
     "economy",
-    # "stock_market",
+    "stocks"
 ]
 
 import discord

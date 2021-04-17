@@ -66,7 +66,7 @@ class subscriptions(commands.Cog):
 
         try:
             user_data = get_economy_data(member.id)
-            money = user_data["money"]
+            money = round(user_data["money"], 2)
             await response.edit(embed = create_embed({
                 "title": f"{member}'s Balance: ${money}"
             }))

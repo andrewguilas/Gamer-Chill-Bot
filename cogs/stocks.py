@@ -95,7 +95,7 @@ class stocks(commands.Cog):
                 "Error Message": error_message
             }))
 
-    @commands.command(description = "Buys shares for the stock.")
+    @commands.command(description = "Buys shares of the stock.")
     async def buyshares(self, context, ticker: str, amount: float):
         ticker = ticker.upper()
         amount = round(amount, 2)
@@ -114,6 +114,18 @@ class stocks(commands.Cog):
             # handle money transaction
             total_price = round(share_price * amount, 2)
             user_money_data = get_economy_data(context.author.id)
+
+            user_money = user_money_data["money"]
+            if user_money < total_price:
+                await response.edit(embed = create_embed({
+                    "title": f"You don't have enough money to buy {amount} shares of {ticker}",
+                    "color": discord.Color.red()
+                }, {
+                    "Share Price": share_price,
+                    "Balance": f"${user_money}"
+                }))
+                return
+
             user_money_data["money"] -= total_price
             save_economy_data(user_money_data)
 
@@ -190,13 +202,8 @@ class stocks(commands.Cog):
 
                 stock_price = get_price(ticker)
                 profit = round(stock_price * total_shares - equity, 2)
-                profit_text = ""
-                if profit >= 0:
-                    profit_text = "+$" + str(profit)
-                else:
-                    profit_text = "-$" + str(profit)
 
-                fields[ticker] = f"{total_shares} Shares @ ${average_price} | Equity: ${equity} ({profit_text})"
+                fields[ticker] = f"{total_shares} Shares @ ${average_price} | Equity: ${equity} | Profit: ${profit}"
 
             await response.edit(embed = create_embed({
                 "title": f"{member}'s Portfolio",
@@ -204,6 +211,68 @@ class stocks(commands.Cog):
         except Exception as error_message:
             await response.edit(embed = create_embed({
                 "title": f"Could not retrieve {member}'s portfolio",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
+            }))
+
+    @commands.command(description = "Sells shares of the stock.")
+    async def sellshares(self, context, ticker: str, amount: float):
+        ticker = ticker.upper()
+        amount = round(amount, 2)
+
+        response = await context.send(embed = create_embed({
+            "title": f"Selling {amount} shares of {ticker}",
+            "color": discord.Color.gold()
+        }))
+
+        try:
+            # check if member has enough shares
+            shares_owned = 0
+            user_stock_data = get_stocks_data(context.author.id)
+            for order in user_stock_data["orders"]:
+                if order["ticker"] == ticker:
+                    shares_owned += order["shares"]
+
+            if shares_owned < amount:
+                await response.edit(embed = create_embed({
+                    "title": f"You don't owned enough shares to sell {amount} shares of {ticker}",
+                    "color": discord.Color.red()
+                }, {
+                    "Shares Owned": f"{shared_owned} Shares"
+                }))
+
+            # sell shares
+            shares_remaining_to_sell = amount
+            user_stock_data = get_stocks_data(context.author.id)
+            for index, order in enumerate(user_stock_data["orders"]):
+                if order["ticker"] == ticker:
+                    if order["shares"] == shares_remaining_to_sell:
+                        user_stock_data["orders"].pop(index)
+                        break
+                    elif order["shares"] > shares_remaining_to_sell:
+                        user_stock_data["orders"][index] -= shares_remaining_to_sell
+                        break
+                    elif order["shares"] < shares_remaining_to_sell:
+                        shares_remaining_to_sell -= order["shares"]
+                        user_stock_data["orders"].pop(index)
+            save_stocks_data(user_stock_data)
+
+            # give money
+            share_price = get_price(ticker)
+            total_price = round(share_price * amount, 2)
+            user_money_data = get_economy_data(context.author.id)
+            user_money_data["money"] += total_price
+            save_economy_data(user_money_data)
+
+            await response.edit(embed = create_embed({
+                "title": f"Sell {amount} shares of {ticker} at ${share_price} (+${total_price})",
+                "color": discord.Color.green()
+            }, {
+            }))
+        except Exception as error_message:
+            await response.edit(embed = create_embed({
+                "title": f"Could not sell {amount} shares of {ticker}",
                 "color": discord.Color.red()
             }, {
                 "Error Message": error_message
