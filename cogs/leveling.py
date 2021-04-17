@@ -141,12 +141,6 @@ class subscriptions(commands.Cog):
         }))
 
         try:
-            level = None
-            experience = None
-            experience_for_level = None
-            rank = None
-            progress_bar = None
-
             guild_settings = get_settings(context.guild.id)
             level_dificulty = guild_settings.get("level_dificulty") or LEVEL_DIFFICULTY
 
@@ -197,16 +191,9 @@ class subscriptions(commands.Cog):
             for rank, member_data in enumerate(members_in_server_data):
                 member = context.guild.get_member(member_data["user_id"])
                 if member:
-                    level = None
-                    experience = None
-                    experience_for_level = None
-
-                    user_data = get_leveling_data(member.id)
-                    experience = user_data["experience"]
+                    experience = member_data["experience"]
                     level = get_level_from_experience(experience, level_dificulty)
-                    
                     experience_for_level = get_experience_from_level(level + 1, level_dificulty)
-
                     fields[f"{rank + 1}. {member.name}"] = f"Level {level} ({experience}/{experience_for_level})"
                 
                 if rank == MAX_FIELDS_FOR_LEADERBOARD_EMBED - 1:
