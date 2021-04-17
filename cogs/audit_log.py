@@ -504,7 +504,7 @@ class audit_log(commands.Cog):
     async def on_member_join(self, member):
         logs_channel = self.client.get_channel(CHANNEL_ID)
 
-        role = discord.utils.get(member.guild.roles, name = "Lieutenant")
+        role = discord.utils.get(member.guild.roles, id = 742824422683181144)
         await member.add_roles(role)
 
         embed = create_embed(f"{member} has joined the server", None, {
