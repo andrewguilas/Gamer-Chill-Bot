@@ -120,7 +120,7 @@ class bot(commands.Cog):
                 "Code": code,
             }))
 
-    @commands.command(aliases = ["clearterminal", "clearscreen", "clearlogs"], description = "Clears the terminal's logs.", brief = "bot creator")
+    @commands.command(description = "Clears the terminal's logs.", brief = "bot creator")
     @commands.check_any(commands.is_owner())
     async def cls(self, context):
         response = await context.send(embed = create_embed({
@@ -207,7 +207,7 @@ class bot(commands.Cog):
         }))
         sys.exit()
 
-    @commands.command(aliases = ["set", "changesettings"], description = "Changes a server specific setting in the data stores.", brief = "bot creator or administrator")
+    @commands.command(aliases = ["set"], description = "Changes a server specific setting in the data stores.", brief = "bot creator or administrator")
     @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
     async def setsettings(self, context, name: str, *, value = None):
         response = await context.send(embed = create_embed({
@@ -517,7 +517,7 @@ class bot(commands.Cog):
                 "Error Message": error_message,
             }))
 
-    @commands.command()
+    @commands.command(description = "Retrieves the Python and discord.py version the bot is running on.")
     async def version(self, context):
         response = await context.send(embed = create_embed({
             "title": "Loading version...",
@@ -543,7 +543,7 @@ class bot(commands.Cog):
                 "Error Message": error_message
             }))
 
-    @commands.command()
+    @commands.command(description = "Retrieves the bot's uptime, connected servers, members watching and users watching.")
     async def info(self, context):
         response = await context.send(embed = create_embed({
             "title": "Loading bot info...",

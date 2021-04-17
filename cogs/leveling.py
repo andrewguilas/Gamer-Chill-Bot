@@ -12,7 +12,6 @@ UNFILL_EMOJI = "⬜"
 
 import discord
 from discord.ext import commands, tasks
-from datetime import datetime
 from pymongo import MongoClient
 import time
 import math
@@ -66,7 +65,7 @@ def create_embed(info: {} = {}, fields: {} = {}):
     
     return embed
 
-class subscriptions(commands.Cog):
+class leveling(commands.Cog):
     def __init__(self, client):
         self.client = client
         self.recent_messagers = {}
@@ -211,4 +210,4 @@ class subscriptions(commands.Cog):
             }))
 
 def setup(client):
-    client.add_cog(subscriptions(client))
+    client.add_cog(leveling(client))

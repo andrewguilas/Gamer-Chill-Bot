@@ -18,7 +18,6 @@ EXTENSIONS = [
 
 import discord
 from discord.ext import commands
-from datetime import datetime
 from pymongo import MongoClient
 
 cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")

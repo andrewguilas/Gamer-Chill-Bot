@@ -4,13 +4,8 @@ BLOCK_TIMES = ["09:25:00", "10:55:00", "12:40:00", "14:40:00"]
 
 import discord
 from discord.ext import commands, tasks
-
-import math
 import pytz
-import os
-import asyncio
 from datetime import datetime
-
 from pymongo import MongoClient
 
 cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")

@@ -2,11 +2,8 @@ PERIOD = "2h"
 INTERVAL = "1m"
 
 import discord
-from discord.ext import commands, tasks
-from datetime import datetime
+from discord.ext import commands
 from pymongo import MongoClient
-import time
-import math
 import yfinance as yf
 
 cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")

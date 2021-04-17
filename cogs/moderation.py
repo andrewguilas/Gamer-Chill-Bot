@@ -1,10 +1,6 @@
 import discord
 from discord.ext import commands
 
-import math
-import pytz
-from datetime import datetime
-
 def create_embed(info: {} = {}, fields: {} = {}):
     embed = discord.Embed(
         title = info.get("title") or "",
@@ -42,7 +38,7 @@ def check_if_authorized(context, member: discord.Member):
     else:
         return False
 
-class moderation_commands(commands.Cog):
+class moderation(commands.Cog):
     def __init__(self, client):
         self.client = client
 
@@ -365,4 +361,4 @@ class moderation_commands(commands.Cog):
             }))
 
 def setup(client):
-    client.add_cog(moderation_commands(client))
+    client.add_cog(moderation(client))

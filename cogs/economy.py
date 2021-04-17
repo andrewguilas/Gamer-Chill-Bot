@@ -1,11 +1,8 @@
 MAX_FIELDS_FOR_LEADERBOARD_EMBED = 10
 
 import discord
-from discord.ext import commands, tasks
-from datetime import datetime
+from discord.ext import commands
 from pymongo import MongoClient
-import time
-import math
 
 cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
 economoy_data_store = cluster.discord_revamp.economy
@@ -50,7 +47,7 @@ def create_embed(info: {} = {}, fields: {} = {}):
     
     return embed
 
-class subscriptions(commands.Cog):
+class economy(commands.Cog):
     def __init__(self, client):
         self.client = client
 
@@ -158,4 +155,4 @@ class subscriptions(commands.Cog):
             }))
 
 def setup(client):
-    client.add_cog(subscriptions(client))
+    client.add_cog(economy(client))

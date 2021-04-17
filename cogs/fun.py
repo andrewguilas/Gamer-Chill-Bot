@@ -2,9 +2,7 @@ import discord
 from discord.ext import commands
 
 import random
-import pytz
 import random
-import asyncio
 import asyncpraw
 from translate import Translator
 from datetime import datetime
@@ -44,7 +42,7 @@ def create_embed(info: {} = {}, fields: {} = {}):
     
     return embed
 
-class fun_commands(commands.Cog):
+class fun(commands.Cog):
     def __init__(self, client):
         self.client = client
 
@@ -172,4 +170,4 @@ class fun_commands(commands.Cog):
             await context.send(meme)
 
 def setup(client):
-    client.add_cog(fun_commands(client))
+    client.add_cog(fun(client))

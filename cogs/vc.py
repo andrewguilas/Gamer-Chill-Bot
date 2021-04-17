@@ -4,7 +4,6 @@ VOICE_IS_SLOW = False
 
 import discord
 from discord.ext import commands
-
 from gtts import gTTS 
 from pymongo import MongoClient
 
@@ -155,7 +154,7 @@ class vc(commands.Cog):
             }))
             return
 
-    @commands.command()
+    @commands.command(description = "Says a TTS message in the voice channel.")
     async def say(self, context, *, message: str):
         response = await context.send(embed = create_embed({
             "title": "Saying message...",

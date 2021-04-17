@@ -3,9 +3,6 @@ CLIENT_ID = "813258687229460490"
 import discord
 from discord.ext import commands
 
-import pytz
-from datetime import datetime
-
 def create_embed(info: {} = {}, fields: {} = {}):
     embed = discord.Embed(
         title = info.get("title") or "",
@@ -43,11 +40,11 @@ def sort_dictionary(dictionary):
         sorted_dictionary[value[0]] = value[1]
     return sorted_dictionary
 
-class default_commands(commands.Cog):
+class default(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.command(aliases = ["latency"], description = "Retrieves the client to bot latency.")
+    @commands.command(description = "Retrieves the client to bot latency.")
     async def ping(self, context):
         response = await context.send(embed = create_embed({
             "title": "Loading ping...",
@@ -130,7 +127,7 @@ class default_commands(commands.Cog):
                 "Error Message": error_message
             }))
 
-    @commands.command(aliases = ["cmds", "commands"], description = "Retrieves a list of all the bot commands.")
+    @commands.command(aliases = ["cmds"], description = "Retrieves a list of all the bot commands.")
     async def help(self, context):
         response = await context.send(embed = create_embed({
             "title": "Loading commands...",
@@ -285,4 +282,4 @@ class default_commands(commands.Cog):
             }))
 
 def setup(client):
-    client.add_cog(default_commands(client))
+    client.add_cog(default(client))
