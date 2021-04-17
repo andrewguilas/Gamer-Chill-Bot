@@ -12,7 +12,7 @@ EXTENSIONS = [
     "vc",
     "subscriptions",
     "leveling",
-    # "economy_system",
+    "economy",
     # "stock_market",
 ]
 
