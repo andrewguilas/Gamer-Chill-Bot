@@ -40,7 +40,7 @@ def sort_dictionary(dictionary):
         sorted_dictionary[value[0]] = value[1]
     return sorted_dictionary
 
-class default(commands.Cog):
+class default(commands.Cog, description = "Default bot commands."):
     def __init__(self, client):
         self.client = client
 
@@ -128,50 +128,140 @@ class default(commands.Cog):
             }))
 
     @commands.command(aliases = ["cmds"], description = "Retrieves a list of all the bot commands.")
-    async def help(self, context):
+    async def help(self, context, flag: str = None, value: str = None):
         response = await context.send(embed = create_embed({
             "title": "Loading commands...",
             "color": discord.Color.gold()
         }))
 
-        commands = {}
-        for command in self.client.commands:
-            cog_name = command.cog_name
-            if cog_name:
-                cog_name = cog_name + "."
+        try:
+            if not flag:
+                await response.edit(embed = create_embed({
+                    "title": "Help Command Usage",
+                }, {
+                    "Commands": "help command <command_name>",
+                    "Cogs": "help cog <cog_name>",
+                    "Settings": "help settings",
+                }))
+            elif flag == "command":
+                for command in self.client.commands:
+                    command_name = command.name
+                    if command_name == value:
+                        cog_name = command.cog_name
+                        if not cog_name:
+                            cog_name = "cog"
+
+                        aliases = list_to_string(command.aliases)
+                        if len(aliases) > 0:
+                            aliases = " (" + aliases + ")"
+
+                        description = command.description
+                        if description:
+                            description = description
+                        else:
+                            description = ""
+
+                        parameters = list_to_string(command.clean_params)
+                        if parameters:
+                            parameters = " <" + parameters + ">"
+
+                        brief = command.brief
+                        if brief:
+                            brief = " Requires " + brief + " permissions."
+                        else:
+                            brief = " Requires no permissions."
+
+                        await response.edit(embed = create_embed({
+                            "title": f"{command_name}{aliases}{parameters}",
+                            "description": f"{description}{brief}" or "\u200b"
+                        }))
+                        return
+                await response.edit(embed = create_embed({
+                    "title": f"Could not find command {value}",
+                    "color": discord.Color.red()
+                }))       
+            elif flag == "cog":
+                command_info = {}
+                for command in self.client.commands:
+                    cog_name = command.cog_name
+                    if not cog_name:
+                        cog_name = "cog"
+
+                    command_name = command.name
+
+                    aliases = list_to_string(command.aliases)
+                    if len(aliases) > 0:
+                        aliases = " (" + aliases + ")"
+
+                    description = command.description
+                    if description:
+                        description = description
+                    else:
+                        description = ""
+
+                    parameters = list_to_string(command.clean_params)
+                    if parameters:
+                        parameters = " <" + parameters + ">"
+
+                    brief = command.brief
+                    if brief:
+                        brief = " Requires " + brief + " permissions."
+                    else:
+                        brief = " Requires no permissions."
+
+                    if not command_info.get(cog_name):
+                        command_info[cog_name] = {}
+                    command_info[cog_name][f"{command_name}{aliases}{parameters}"] = f"{description}{brief}" or "\u200b"
+
+                if not value:
+                    cogs = {"cog": "Cog management."}
+                    for cog_name, cog_info in self.client.cogs.items():
+                        cogs[cog_name] = cog_info.description or "\u200b"
+
+                    await response.edit(embed = create_embed({
+                        "title": f"Cogs",
+                    }, cogs))
+                else:
+                    commands = command_info.get(value)
+                    if not commands:
+                        await response.edit(embed = create_embed({
+                            "title": f"Could not find cog {value}",
+                            "color": discord.Color.red()
+                        }))
+                    else: 
+                        await response.edit(embed = create_embed({
+                            "title": f"{value} Commands",
+                        }, commands))
+            elif flag == "settings":
+                await response.edit(embed = create_embed({
+                    "title": "Settings"
+                }, {
+                    "join_channel (channel)": "When a member joins or leaves the server, it will be announced in this channel.",
+                    "default_role (role)": "When a member joins the server, they will be given this role.",
+                    "acas_channel (channel)": "If ACAS is enabled, then class alerts will be announced in this channel.",
+                    "acas_role (role)": "If ACAS is enabled, then members with this role will be alerted.",
+                    "acas_enabled (true/false)": "Determines if ACAS will be enabled or disabled.",
+                    "prefix (string)": "The prefix used to active commands.",
+                    "vc_accent (string)": "The bot's accent in the voice channel. View accents here. https://gist.github.com/Vex87/3bb2204609924fa2144f53e90d12a8d4",
+                    "vc_languages (string)": "The bot's language in the voice channel. View languages here. https://gist.github.com/Vex87/3bb2204609924fa2144f53e90d12a8d4",
+                    "vc_slow_mode (true/false)": "If the bot will talk at a normal or slow pace.",
+                    "voice_exp (int)": "The amount of EXP given to a member for staying in a voice channel for a minute.",
+                    "message_exp (int)": "The amount of EXP given to a member for sending a message.",
+                    "message_cooldown (int)": "The cooldown for receiving EXP for sending messages in seconds.",
+                    "level_dificulty (int)": "The dificulty to level up by experience (`experience = level * level_dificulty`).",
+                }))
             else:
-                cog_name = "_"
-
-            command_name = command.name
-
-            aliases = list_to_string(command.aliases)
-            if len(aliases) > 0:
-                aliases = " (" + aliases + ")"
-
-            description = command.description
-            if description:
-                description = description
-            else:
-                description = ""
-
-            parameters = list_to_string(command.clean_params)
-            if parameters:
-                parameters = " <" + parameters + ">"
-
-            brief = command.brief
-            if brief:
-                brief = " Requires " + brief + " permissions."
-            else:
-                brief = " Requires no permissions."
-
-            commands[f"{cog_name}{command_name}{aliases}{parameters}"] = f"{description}{brief}" or "\u200b"
-
-        commands = sort_dictionary(commands)
-
-        await response.edit(embed = create_embed({
-            "title": "Commands",
-            "inline": False,
-        }, commands))
+                await response.edit(embed = create_embed({
+                    "title": f"Invalid flag {flag}",
+                    "color": discord.Color.red()
+                }))
+        except Exception as error_message:
+            await response.edit(embed = create_embed({
+                "title": "Could not load commands",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
+            }))
 
     @commands.command(aliases = ["whois"], description = "Retrieves info of the user.")
     async def userinfo(self, context, user: discord.Member = None):

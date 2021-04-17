@@ -38,7 +38,7 @@ def check_if_authorized(context, member: discord.Member):
     else:
         return False
 
-class moderation(commands.Cog):
+class moderation(commands.Cog, description = "Server and member management commands for moderation."):
     def __init__(self, client):
         self.client = client
 

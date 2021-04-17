@@ -34,7 +34,7 @@ def create_embed(info: {} = {}, fields: {} = {}):
     
     return embed
 
-class events(commands.Cog):
+class events(commands.Cog, description = "Bot and server events."):
     def __init__(self, client):
         self.client = client
 

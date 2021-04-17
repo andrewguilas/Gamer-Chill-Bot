@@ -33,7 +33,7 @@ def sort_dictionary(dict: {}):
         
     return sorted_dictionary
 
-class server(commands.Cog):
+class server(commands.Cog, description = "Server stats."):
     def __init__(self, client):
         self.client = client
 

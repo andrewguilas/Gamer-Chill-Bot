@@ -87,7 +87,7 @@ def format_time(timestamp):
     timestamp_text = f"{hours}:{minutes}:{seconds}"
     return timestamp_text
 
-class bot(commands.Cog):
+class bot(commands.Cog, description = "Bot management and settings."):
     def __init__(self, client):
         self.client = client
         self.uptime = time.time()

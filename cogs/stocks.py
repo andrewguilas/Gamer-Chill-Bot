@@ -66,7 +66,7 @@ def create_embed(info: {} = {}, fields: {} = {}):
     
     return embed
 
-class stocks(commands.Cog):
+class stocks(commands.Cog, description = "Stock market commands."):
     def __init__(self, client):
         self.client = client
 

@@ -40,7 +40,7 @@ def create_embed(info: {} = {}, fields: {} = {}):
     
     return embed
 
-class class_alert(commands.Cog):
+class class_alert(commands.Cog, description = "Class alert."):
     def __init__(self, client):
         self.client = client
         self.is_paused = False

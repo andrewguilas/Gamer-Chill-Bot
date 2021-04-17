@@ -48,7 +48,7 @@ def create_embed(info: {} = {}, fields: {} = {}):
     
     return embed
 
-class subscriptions(commands.Cog):
+class subscriptions(commands.Cog, description = "Subscribe to different events."):
     def __init__(self, client):
         self.client = client
         self.roblox_user_status = {}

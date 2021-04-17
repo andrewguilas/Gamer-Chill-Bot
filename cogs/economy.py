@@ -47,7 +47,7 @@ def create_embed(info: {} = {}, fields: {} = {}):
     
     return embed
 
-class economy(commands.Cog):
+class economy(commands.Cog, description = "Economy system commands."):
     def __init__(self, client):
         self.client = client
 

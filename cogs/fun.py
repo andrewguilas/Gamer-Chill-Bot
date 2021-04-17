@@ -42,7 +42,7 @@ def create_embed(info: {} = {}, fields: {} = {}):
     
     return embed
 
-class fun(commands.Cog):
+class fun(commands.Cog, description = "Fun commands."):
     def __init__(self, client):
         self.client = client
 

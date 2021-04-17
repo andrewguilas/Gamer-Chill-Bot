@@ -46,7 +46,7 @@ def get_settings(guild_id: int):
         settings_data_store.insert_one(data)
     return data
 
-class vc(commands.Cog):
+class vc(commands.Cog, description = "Bot management for voice channels."):
     def __init__(self, client):
         self.client = client
         

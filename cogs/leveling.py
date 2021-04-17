@@ -65,7 +65,7 @@ def create_embed(info: {} = {}, fields: {} = {}):
     
     return embed
 
-class leveling(commands.Cog):
+class leveling(commands.Cog, description = "Leveling system commands."):
     def __init__(self, client):
         self.client = client
         self.recent_messagers = {}
