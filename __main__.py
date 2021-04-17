@@ -59,7 +59,7 @@ def create_embed(info: {} = {}, fields: {} = {}):
     
     return embed
 
-@client.command(aliases = ["loadextension", "loadcog", "loadfile"], description = "Enables a cog.", brief = "bot creator or administrator")
+@client.command(description = "Enables a cog.", brief = "bot creator or administrator")
 @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
 async def load(context, extension: str):
     response = await context.send(embed = create_embed({
@@ -82,7 +82,7 @@ async def load(context, extension: str):
             "color": discord.Color.green(),
         }))
 
-@client.command(aliases = ["unloadextension", "unloadcog", "unloadfile"], description = "Disables a cog.", brief = "bot creator or administrator")
+@client.command(description = "Disables a cog.", brief = "bot creator or administrator")
 @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
 async def unload(context, extension):
     response = await context.send(embed = create_embed({
@@ -105,7 +105,7 @@ async def unload(context, extension):
             "color": discord.Color.green(),
         }))
 
-@client.command(aliases = ["reloadextension", "reloadcog", "reloadfile"], description = "Reloads a cog.")
+@client.command(description = "Reloads a cog.")
 async def reload(context, extension):
     response = await context.send(embed = create_embed({
         "title": f"Reloading {extension}...",
@@ -127,7 +127,7 @@ async def reload(context, extension):
             "color": discord.Color.green(),
         }))
 
-@client.command(aliases = ["reloadallextensions", "reloadallcogs", "reloadallfiles"], description = "Reloads all cogs.")
+@client.command(description = "Reloads all cogs.")
 async def update(context):
     response = await context.send(embed = create_embed({
         "title": "Updating bot...",
