@@ -97,8 +97,7 @@ class leveling(commands.Cog, description = "Leveling system commands."):
             all_user_data = get_all_user_data("experience")
             guild_user_data = []
             for data in all_user_data:
-                member = context.guild.get_member(data["user_id"])
-                if member:
+                if context.guild.get_member(data["user_id"]):
                     guild_user_data.append(data)
 
             for index, member_data in enumerate(guild_user_data):
