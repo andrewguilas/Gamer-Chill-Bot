@@ -7,40 +7,21 @@ import asyncpraw
 from translate import Translator
 from datetime import datetime
 
+from secrets import REDDIT_INFO
+from helper import create_embed
+
 reddit = asyncpraw.Reddit(
-    client_id = "cTdcYAFeJKqwKg",
-    client_secret = "QO0zyzU_pB8voB0nQUvfXIRgqmL02g", 
-    password = "6&OB7s4PcCKz&08o",
-    user_agent = "gamer-chill-bot",
-    username = "Hast1e"
+    client_id = REDDIT_INFO["client_id"],
+    client_secret = REDDIT_INFO["client_secret"], 
+    password = REDDIT_INFO["password"],
+    user_agent = REDDIT_INFO["user_agent"],
+    username = REDDIT_INFO["username"]
 )
 
 async def get_meme():
     subreddit = await reddit.subreddit("memes")
     meme = await subreddit.random()
     return meme.url
-
-def create_embed(info: {} = {}, fields: {} = {}):
-    embed = discord.Embed(
-        title = info.get("title") or "",
-        description = info.get("description") or "",
-        colour = info.get("color") or discord.Color.blue(),
-        url = info.get("url") or "",
-    )
-
-    for name, value in fields.items():
-        embed.add_field(name = name, value = value, inline = info.get("inline") or False)
-
-    if info.get("author"):
-        embed.set_author(name = info.author.name, url = info.author.mention, icon_url = info.author.avatar_url)
-    if info.get("footer"):
-        embed.set_footer(text = info.footer)
-    if info.get("image"):
-        embed.set_image(url = info.url)
-    if info.get("thumbnail"):
-        embed.set_thumbnail(url = info.thumbnail)
-    
-    return embed
 
 class fun(commands.Cog, description = "Fun commands."):
     def __init__(self, client):

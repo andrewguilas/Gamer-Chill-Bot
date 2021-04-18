@@ -1,42 +1,7 @@
 import discord
 from discord.ext import commands
 
-def create_embed(info: {} = {}, fields: {} = {}):
-    embed = discord.Embed(
-        title = info.get("title") or "",
-        description = info.get("description") or "",
-        colour = info.get("color") or discord.Color.blue(),
-        url = info.get("url") or "",
-    )
-
-    for name, value in fields.items():
-        embed.add_field(name = name, value = value, inline = info.get("inline") or False)
-
-    if info.get("author"):
-        embed.set_author(name = info.author.name, url = info.author.mention, icon_url = info.author.avatar_url)
-    if info.get("footer"):
-        embed.set_footer(text = info.footer)
-    if info.get("image"):
-        embed.set_image(url = info.url)
-    if info.get("thumbnail"):
-        embed.set_thumbnail(url = info.thumbnail)
-    
-    return embed
-
-def check_if_authorized(context, member: discord.Member):
-    author_top_role = context.author.top_role
-    member_top_role = member.top_role
-    
-    if member == context.guild.owner: # if target is server owner
-        return False
-    elif context.author == context.guild.owner: # is author server owner
-        return True
-    elif author_top_role and member_top_role and author_top_role.position > member_top_role.position: # is author higher than member
-        return True
-    elif author_top_role and not member_top_role: # does author have a role and member does not 
-        return True
-    else:
-        return False
+from helper import create_embed, check_if_authorized
 
 class moderation(commands.Cog, description = "Server and member management commands for moderation."):
     def __init__(self, client):

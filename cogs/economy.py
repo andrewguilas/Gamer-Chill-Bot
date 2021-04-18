@@ -1,19 +1,13 @@
-MAX_FIELDS_FOR_LEADERBOARD_EMBED = 10
-
 import discord
 from discord.ext import commands
 from pymongo import MongoClient
 
-cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
-economoy_data_store = cluster.discord_revamp.economy
-settings_data_store = cluster.discord_revamp.settings
+from constants import ECONOMY_MAX_FIELDS_FOR_LEADERBOARD_EMBED
+from secrets import MONGO_TOKEN
+from helper import create_embed, get_settings
 
-def get_settings(guild_id: int):
-    data = settings_data_store.find_one({"guild_id": guild_id}) 
-    if not data:
-        data = {"guild_id": guild_id}
-        settings_data_store.insert_one(data)
-    return data
+cluster = MongoClient(MONGO_TOKEN)
+economoy_data_store = cluster.discord_revamp.economy
 
 def save_economy_data(data):
     economoy_data_store.update_one({"user_id": data["user_id"]}, {"$set": data})
@@ -24,28 +18,6 @@ def get_economy_data(user_id: int):
         data = {"user_id": user_id, "money": 0}
         economoy_data_store.insert_one(data)
     return data
-
-def create_embed(info: {} = {}, fields: {} = {}):
-    embed = discord.Embed(
-        title = info.get("title") or "",
-        description = info.get("description") or "",
-        colour = info.get("color") or discord.Color.blue(),
-        url = info.get("url") or "",
-    )
-
-    for name, value in fields.items():
-        embed.add_field(name = name, value = value, inline = info.get("inline") or False)
-
-    if info.get("author"):
-        embed.set_author(name = info.author.name, url = info.author.mention, icon_url = info.author.avatar_url)
-    if info.get("footer"):
-        embed.set_footer(text = info.footer)
-    if info.get("image"):
-        embed.set_image(url = info.url)
-    if info.get("thumbnail"):
-        embed.set_thumbnail(url = info.thumbnail)
-    
-    return embed
 
 class economy(commands.Cog, description = "Economy system commands."):
     def __init__(self, client):
@@ -88,10 +60,10 @@ class economy(commands.Cog, description = "Economy system commands."):
             for rank, member_data in enumerate(members_in_server_data):
                 member = context.guild.get_member(member_data["user_id"])
                 if member:
-                    money = member_data["money"]
+                    money = round(member_data["money"], 2)
                     fields[f"{rank + 1}. {member.name}"] = f"${money}"
                 
-                if rank == MAX_FIELDS_FOR_LEADERBOARD_EMBED - 1:
+                if rank == ECONOMY_MAX_FIELDS_FOR_LEADERBOARD_EMBED - 1:
                     break
         
                 await response.edit(embed = create_embed({

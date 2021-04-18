@@ -2,36 +2,7 @@ import discord
 from discord.ext import commands
 import re
 
-def create_embed(info: {} = {}, fields: {} = {}):
-    embed = discord.Embed(
-        title = info.get("title") or "",
-        description = info.get("description") or "",
-        colour = info.get("color") or discord.Color.blue(),
-        url = info.get("url") or "",
-    )
-
-    for name, value in fields.items():
-        embed.add_field(name = name, value = value, inline = info.get("inline") or False)
-
-    if info.get("author"):
-        embed.set_author(name = info.author.name, url = info.author.mention, icon_url = info.author.avatar_url)
-    if info.get("footer"):
-        embed.set_footer(text = info.footer)
-    if info.get("image"):
-        embed.set_image(url = info.url)
-    if info.get("thumbnail"):
-        embed.set_thumbnail(url = info.thumbnail)
-    
-    return embed
-
-def sort_dictionary(dict: {}):
-    sorted_dictionary = {}
-    sorted_keys = sorted(dict, key = dict.get, reverse = True)
-
-    for key in sorted_keys:
-        sorted_dictionary[key] = dict[key]
-        
-    return sorted_dictionary
+from helper import create_embed, sort_dictionary
 
 class server(commands.Cog, description = "Server stats."):
     def __init__(self, client):
@@ -55,7 +26,7 @@ class server(commands.Cog, description = "Server stats."):
                     else:
                         members[author_name] += 1
 
-            members = sort_dictionary(members)
+            members = sort_dictionary(members, True)
 
             await response.edit(embed = create_embed({
                 "title": "Message Leaderboard"

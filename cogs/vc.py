@@ -1,50 +1,18 @@
-LANGUAGE = "en"
-ACCENT = "com"
-VOICE_IS_SLOW = False
-
 import discord
 from discord.ext import commands
 from gtts import gTTS 
-from pymongo import MongoClient
+from mutagen.mp3 import MP3
+import asyncio
 
-cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
-settings_data_store = cluster.discord_revamp.settings
-
-def create_embed(info: {} = {}, fields: {} = {}):
-    embed = discord.Embed(
-        title = info.get("title") or "",
-        description = info.get("description") or "",
-        colour = info.get("color") or discord.Color.blue(),
-        url = info.get("url") or "",
-    )
-
-    for name, value in fields.items():
-        embed.add_field(name = name, value = value, inline = info.get("inline") or False)
-
-    if info.get("author"):
-        embed.set_author(name = info.author.name, url = info.author.mention, icon_url = info.author.avatar_url)
-    if info.get("footer"):
-        embed.set_footer(text = info.footer)
-    if info.get("image"):
-        embed.set_image(url = info.url)
-    if info.get("thumbnail"):
-        embed.set_thumbnail(url = info.thumbnail)
-    
-    return embed
+from helper import create_embed, get_settings
+from constants import VC_LANGUAGE, VC_ACCENT, VC_VOICE_IS_SLOW
 
 def create_voice_file(message: str, guild_id: int):
     guild_settings = get_settings(guild_id)
-    audio = gTTS(text = message, lang = guild_settings.get("vc_language") or LANGUAGE, tld = guild_settings.get("vc_accent") or ACCENT, slow = guild_settings.get("vc_slow_mode") or VOICE_IS_SLOW) 
+    audio = gTTS(text = message, lang = guild_settings.get("vc_language") or VC_LANGUAGE, tld = guild_settings.get("vc_accent") or VC_ACCENT, slow = guild_settings.get("vc_slow_mode") or VC_VOICE_IS_SLOW) 
     file_name = "TTS\\output_message.mp3"
     audio.save(file_name) 
     return file_name
-
-def get_settings(guild_id: int):
-    data = settings_data_store.find_one({"guild_id": guild_id}) 
-    if not data:
-        data = {"guild_id": guild_id}
-        settings_data_store.insert_one(data)
-    return data
 
 class vc(commands.Cog, description = "Bot management for voice channels."):
     def __init__(self, client):
@@ -106,7 +74,11 @@ class vc(commands.Cog, description = "Bot management for voice channels."):
                     "color": discord.Color.red()
                 }))
                 return
-            await voice_channel.connect()
+            voice_client = await voice_channel.connect()
+
+            voice_file = create_voice_file("Gamer Chill Bot Joined", context.guild.id)
+            voice_client.stop()
+            voice_client.play(discord.FFmpegPCMAudio(voice_file))
 
             await response.edit(embed = create_embed({
                 "title": f"Joined {voice_channel}",
@@ -131,7 +103,13 @@ class vc(commands.Cog, description = "Bot management for voice channels."):
         try:
             voice_channel_name = None
             voice_client = context.voice_client
+
             if voice_client and voice_client.channel:
+                voice_file = create_voice_file("Gamer Chill Bot is Leaving", context.guild.id)
+                voice_client.stop()
+                voice_client.play(discord.FFmpegPCMAudio(voice_file))
+                await asyncio.sleep(MP3(voice_file).info.length)
+
                 voice_channel_name = voice_client.channel.name
                 await voice_client.disconnect()
             else:
@@ -185,8 +163,12 @@ class vc(commands.Cog, description = "Bot management for voice channels."):
                 await voice_client.disconnect()
             if not voice_client or voice_client.channel != voice_channel:
                 voice_client = await voice_channel.connect()
-            
 
+                voice_file = create_voice_file("Gamer Chill Bot Joined", context.guild.id)
+                voice_client.stop()
+                voice_client.play(discord.FFmpegPCMAudio(voice_file))
+                await asyncio.sleep(MP3(voice_file).info.length + 1)
+            
             voice_file = create_voice_file(message, context.guild.id)
             voice_client.stop()
             voice_client.play(discord.FFmpegPCMAudio(voice_file))

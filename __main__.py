@@ -1,62 +1,16 @@
-TOKEN = "ODEzMjU4Njg3MjI5NDYwNDkw.YDMsLA.Tc2QvlTr_-SBZnoJ88W8SLSZUUE"
-TEST_TOKEN = "ODI3MjIzMDExNzM5ODI4MjM0.YGX5dw.x0ZjP8RgiV1JujgmAdlIkimsGKQ"
-PREFIX = "?"
-EXTENSIONS = [
-    "events",
-    "bot",
-    "acas",
-    "default",
-    "fun",
-    "moderation",
-    "server",
-    "vc",
-    "subscriptions",
-    "leveling",
-    "economy",
-    "stocks"
-]
-
 import discord
 from discord.ext import commands
 from pymongo import MongoClient
 
-cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
-settings_data_store = cluster.discord_revamp.settings
-
-def get_settings(guild_id: int):
-    data = settings_data_store.find_one({"guild_id": guild_id}) 
-    if not data:
-        data = {"guild_id": guild_id}
-        settings_data_store.insert_one(data)
-    return data
+from secrets import TOKEN, TEST_TOKEN
+from constants import PREFIX, EXTENSIONS, DEFAULT_GUILD_SETTINGS
+from helper import create_embed, get_settings
 
 async def get_prefix(client, context):
     guild_data = get_settings(context.guild.id)
     return guild_data.get("prefix") or PREFIX
 
 client = commands.Bot(command_prefix = get_prefix, intents = discord.Intents.all())
-
-def create_embed(info: {} = {}, fields: {} = {}):
-    embed = discord.Embed(
-        title = info.get("title") or "",
-        description = info.get("description") or "",
-        colour = info.get("color") or discord.Color.blue(),
-        url = info.get("url") or "",
-    )
-
-    for name, value in fields.items():
-        embed.add_field(name = name, value = value, inline = info.get("inline") or False)
-
-    if info.get("author"):
-        embed.set_author(name = info.author.name, url = info.author.mention, icon_url = info.author.avatar_url)
-    if info.get("footer"):
-        embed.set_footer(text = info.footer)
-    if info.get("image"):
-        embed.set_image(url = info.url)
-    if info.get("thumbnail"):
-        embed.set_thumbnail(url = info.thumbnail)
-    
-    return embed
 
 @client.command(description = "Enables a cog.", brief = "bot creator or administrator")
 @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
@@ -70,7 +24,7 @@ async def load(context, extension: str):
         client.load_extension(f"cogs.{extension}")
     except Exception as error_message:
         await response.edit(embed = create_embed({
-            "title": f"Unable to load {extension}",
+            "title": f"Could not load {extension}",
             "color": discord.Color.red(),
         }, {
             "Error Message": error_message,
@@ -93,7 +47,7 @@ async def unload(context, extension):
         client.unload_extension(f"cogs.{extension}")
     except Exception as error_message:
         await response.edit(embed = create_embed({
-            "title": f"Unable to unload {extension}",
+            "title": f"Could not unload {extension}",
             "color": discord.Color.red(),
         }, {
             "Error Message": error_message,
@@ -115,7 +69,7 @@ async def reload(context, extension):
         client.reload_extension(f"cogs.{extension}")
     except Exception as error_message:
         await response.edit(embed = create_embed({
-            "title": f"Unable to reload {extension}",
+            "title": f"Could not reload {extension}",
             "color": discord.Color.red(),
         }, {
             "Error Message": error_message,
@@ -138,7 +92,7 @@ async def update(context):
             client.reload_extension(f"cogs.{extension}")
     except Exception as error_message:
         await response.edit(embed = create_embed({
-            "title": "Unable to update bot",
+            "title": "Could not update bot",
             "color": discord.Color.red(),
         }, {
             "Error Message": error_message,

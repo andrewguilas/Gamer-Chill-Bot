@@ -1,10 +1,3 @@
-STATUS_URL = "http://api.roblox.com/users/USER_ID/onlinestatus/"
-USERNAME_URL = "http://api.roblox.com/users/USER_ID"
-UPDATE_DELAY = 30
-
-OFFLINE_EMOJI = "🔴"
-ONLINE_EMOJI = "🟢"
-
 import discord
 from discord.ext import commands, tasks
 import pytz
@@ -13,7 +6,11 @@ import time
 from datetime import datetime
 from pymongo import MongoClient
 
-cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
+from secrets import MONGO_TOKEN
+from helper import create_embed
+from constants import SUBSCRIPTIONS_STATUS_URL, SUBSCRIPTIONS_USERNAME_URL, SUBSCRIPTIONS_UPDATE_DELAY
+
+cluster = MongoClient(MONGO_TOKEN)
 subscriptions_data_store = cluster.discord_revamp.subscriptions
 
 def save_subscriptions(data):
@@ -25,28 +22,6 @@ def get_subscriptions(user_id: int):
         data = {"user_id": user_id}
         subscriptions_data_store.insert_one(data)
     return data
-
-def create_embed(info: {} = {}, fields: {} = {}):
-    embed = discord.Embed(
-        title = info.get("title") or "",
-        description = info.get("description") or "",
-        colour = info.get("color") or discord.Color.blue(),
-        url = info.get("url") or "",
-    )
-
-    for name, value in fields.items():
-        embed.add_field(name = name, value = value, inline = info.get("inline") or False)
-
-    if info.get("author"):
-        embed.set_author(name = info.author.name, url = info.author.mention, icon_url = info.author.avatar_url)
-    if info.get("footer"):
-        embed.set_footer(text = info.footer)
-    if info.get("image"):
-        embed.set_image(url = info.url)
-    if info.get("thumbnail"):
-        embed.set_thumbnail(url = info.thumbnail)
-    
-    return embed
 
 class subscriptions(commands.Cog, description = "Subscribe to different events."):
     def __init__(self, client):
@@ -60,7 +35,7 @@ class subscriptions(commands.Cog, description = "Subscribe to different events."
     def cog_load(self):
         self.roblox_loop.start()
 
-    @tasks.loop(seconds = UPDATE_DELAY)
+    @tasks.loop(seconds = SUBSCRIPTIONS_UPDATE_DELAY)
     async def roblox_loop(self):
         # get all the roblox players that were subscribed to
         roblox_players = {}
@@ -78,12 +53,12 @@ class subscriptions(commands.Cog, description = "Subscribe to different events."
         for roblox_player_id, users_to_notify in roblox_players.items():
             try:
                 # get player status
-                user_data = requests.get(USERNAME_URL.replace("USER_ID", str(roblox_player_id))).json()
+                user_data = requests.get(SUBSCRIPTIONS_USERNAME_URL.replace("USER_ID", str(roblox_player_id))).json()
                 if not user_data:
                     print(f"ERROR: Could not get roblox user {roblox_player_id}")
                     continue
 
-                status_data = requests.get(STATUS_URL.replace("USER_ID", str(roblox_player_id))).json()
+                status_data = requests.get(SUBSCRIPTIONS_STATUS_URL.replace("USER_ID", str(roblox_player_id))).json()
                 if not status_data:
                     print(f"ERROR: Could not get roblox user {roblox_player_id}'s status")
                     continue
@@ -125,7 +100,7 @@ class subscriptions(commands.Cog, description = "Subscribe to different events."
                 value = int(value)
                 if value:
                     # check if roblox user exists
-                    user_data = requests.get(USERNAME_URL.replace("USER_ID", str(value))).json()
+                    user_data = requests.get(SUBSCRIPTIONS_USERNAME_URL.replace("USER_ID", str(value))).json()
                     if not user_data:
                         await response.edit(embed = create_embed({
                             "title": f"Could not find the roblox user {value}",

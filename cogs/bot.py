@@ -5,87 +5,8 @@ import os
 import sys
 import time
 import math
-from pymongo import MongoClient
 
-cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
-settings_data_store = cluster.discord_revamp.settings
-
-def save_settings(data):
-    settings_data_store.update_one({"guild_id": data["guild_id"]}, {"$set": data})
-    
-def get_settings(guild_id: int):
-    data = settings_data_store.find_one({"guild_id": guild_id}) 
-    if not data:
-        data = {"guild_id": guild_id}
-        settings_data_store.insert_one(data)
-    return data
-
-def get_channel(text_channels: [], value):
-    channel = None
-
-    try:
-        channel = discord.utils.find(lambda channel: channel.name == value, text_channels) or discord.utils.find(lambda channel: channel.mention == value, text_channels) or discord.utils.find(lambda channel: channel.id == int(value), text_channels)
-    except Exception as error_message:
-        pass
-
-    return channel
-
-def get_role(roles: [], value):
-    role = None
-
-    try:
-        role = discord.utils.find(lambda role: role.name == value, roles) or discord.utils.find(lambda role: role.mention == value, roles) or discord.utils.find(lambda role: role.id == int(value), roles)
-    except Exception as error_message:
-        pass
-
-    return role
-
-def create_embed(info: {} = {}, fields: {} = {}):
-    embed = discord.Embed(
-        title = info.get("title") or "",
-        description = info.get("description") or "",
-        colour = info.get("color") or discord.Color.blue(),
-        url = info.get("url") or "",
-    )
-
-    for name, value in fields.items():
-        embed.add_field(name = name, value = value, inline = info.get("inline") or False)
-
-    if info.get("author"):
-        embed.set_author(name = info.author.name, url = info.author.mention, icon_url = info.author.avatar_url)
-    if info.get("footer"):
-        embed.set_footer(text = info.footer)
-    if info.get("image"):
-        embed.set_image(url = info.url)
-    if info.get("thumbnail"):
-        embed.set_thumbnail(url = info.thumbnail)
-    
-    return embed
-
-def is_guild_owner():
-    def predicate(context):
-        return context.guild and context.guild.owner_id == context.author.id
-    return commands.check(predicate)
-
-def format_time(timestamp):
-    hours = math.floor(timestamp / 60 / 60)
-    minutes = math.floor((timestamp - (hours * 60 * 60)) / 60)
-    seconds = math.floor((timestamp) - (hours * 60 * 60) - (minutes * 60))
-
-    hours = str(hours)
-    if len(hours) == 1:
-        hours = "0" + hours
-
-    minutes = str(minutes)
-    if len(minutes) == 1:
-        minutes = "0" + minutes
-
-    seconds = str(seconds)
-    if len(seconds) == 1:
-        seconds = "0" + seconds
-
-    timestamp_text = f"{hours}:{minutes}:{seconds}"
-    return timestamp_text
+from helper import create_embed, get_settings, save_settings, get_channel, get_role, is_guild_owner, format_time
 
 class bot(commands.Cog, description = "Bot management and settings."):
     def __init__(self, client):

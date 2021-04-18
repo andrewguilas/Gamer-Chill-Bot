@@ -1,44 +1,10 @@
-BLACKLISTED_DAYS = [4, 5, 6]
-REMINDER_BLOCK_TIMES = ["09:20:00", "10:50:00", "12:35:00", "14:35:00"]
-BLOCK_TIMES = ["09:25:00", "10:55:00", "12:40:00", "14:40:00"]
-
 import discord
 from discord.ext import commands, tasks
 import pytz
 from datetime import datetime
-from pymongo import MongoClient
 
-cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
-settings_data_store = cluster.discord_revamp.settings
-
-def get_settings(guild_id: int):
-    data = settings_data_store.find_one({"guild_id": guild_id}) 
-    if not data:
-        data = {"guild_id": guild_id}
-        settings_data_store.insert_one(data)
-    return data
-
-def create_embed(info: {} = {}, fields: {} = {}):
-    embed = discord.Embed(
-        title = info.get("title") or "",
-        description = info.get("description") or "",
-        colour = info.get("color") or discord.Color.blue(),
-        url = info.get("url") or "",
-    )
-
-    for name, value in fields.items():
-        embed.add_field(name = name, value = value, inline = info.get("inline") or False)
-
-    if info.get("author"):
-        embed.set_author(name = info.author.name, url = info.author.mention, icon_url = info.author.avatar_url)
-    if info.get("footer"):
-        embed.set_footer(text = info.footer)
-    if info.get("image"):
-        embed.set_image(url = info.url)
-    if info.get("thumbnail"):
-        embed.set_thumbnail(url = info.thumbnail)
-    
-    return embed
+from constants import ACAS_BLACKLISTED_DAYS, ACAS_REMINDER_BLOCK_TIMES, ACAS_BLOCK_TIMES, ACAS_UPDATE_DELAY
+from helper import get_settings, create_embed
 
 class class_alert(commands.Cog, description = "Class alert."):
     def __init__(self, client):
@@ -52,7 +18,7 @@ class class_alert(commands.Cog, description = "Class alert."):
     def cog_load(self):
         self.class_alert.start()
 
-    @tasks.loop(seconds = 1)
+    @tasks.loop(seconds = ACAS_UPDATE_DELAY)
     async def class_alert(self):
         await self.client.wait_until_ready()
 
@@ -61,15 +27,15 @@ class class_alert(commands.Cog, description = "Class alert."):
         status = None
         block_number = None
 
-        if now.today().weekday() in BLACKLISTED_DAYS or self.is_paused:
+        if now.today().weekday() in ACAS_BLACKLISTED_DAYS or self.is_paused:
             return
 
-        if current_time in BLOCK_TIMES:
+        if current_time in ACAS_BLOCK_TIMES:
             status = "now"
-            block_number = int(BLOCK_TIMES.index(current_time)) + 1
-        elif current_time in REMINDER_BLOCK_TIMES:
+            block_number = int(ACAS_BLOCK_TIMES.index(current_time)) + 1
+        elif current_time in ACAS_REMINDER_BLOCK_TIMES:
             status = "early"
-            block_number = int(REMINDER_BLOCK_TIMES.index(current_time)) + 1
+            block_number = int(ACAS_REMINDER_BLOCK_TIMES.index(current_time)) + 1
         else:
             return
         

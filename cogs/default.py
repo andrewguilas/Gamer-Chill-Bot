@@ -1,44 +1,7 @@
-CLIENT_ID = "813258687229460490"
-
 import discord
 from discord.ext import commands
-
-def create_embed(info: {} = {}, fields: {} = {}):
-    embed = discord.Embed(
-        title = info.get("title") or "",
-        description = info.get("description") or "",
-        colour = info.get("color") or discord.Color.blue(),
-        url = info.get("url") or "",
-    )
-
-    for name, value in fields.items():
-        embed.add_field(name = name, value = value, inline = info.get("inline") or False)
-
-    if info.get("author"):
-        embed.set_author(name = info.author.name, url = info.author.mention, icon_url = info.author.avatar_url)
-    if info.get("footer"):
-        embed.set_footer(text = info.footer)
-    if info.get("image"):
-        embed.set_image(url = info.url)
-    if info.get("thumbnail"):
-        embed.set_thumbnail(url = info["thumbnail"])
-    
-    return embed
-
-def list_to_string(list: []):
-    string = ""
-    for index, value in enumerate(list):
-        if index > 0:
-            string = string + ", "
-        string = string + value
-    return string
-
-def sort_dictionary(dictionary):
-    sorted_dictionary = {}
-    sorted_list = sorted(dictionary.items(), key = lambda x: x[1])
-    for value in sorted_list:
-        sorted_dictionary[value[0]] = value[1]
-    return sorted_dictionary
+from helper import create_embed, list_to_string, sort_dictionary
+from secrets import CLIENT_ID
 
 class default(commands.Cog, description = "Default bot commands."):
     def __init__(self, client):
@@ -142,6 +105,7 @@ class default(commands.Cog, description = "Default bot commands."):
                     "Commands": "help command <command_name>",
                     "Cogs": "help cog <cog_name>",
                     "Settings": "help settings",
+                    "Subscriptions": "help subscriptions"
                 }))
             elif flag == "command":
                 for command in self.client.commands:
@@ -249,6 +213,12 @@ class default(commands.Cog, description = "Default bot commands."):
                     "message_exp (int)": "The amount of EXP given to a member for sending a message.",
                     "message_cooldown (int)": "The cooldown for receiving EXP for sending messages in seconds.",
                     "level_dificulty (int)": "The dificulty to level up by experience (`experience = level * level_dificulty`).",
+                }))
+            elif flag == "subscriptions":
+                await response.edit(embed = create_embed({
+                    "title": "Subscription Events"
+                }, {
+                    "roblox (user_id)": "Triggered when a user is online or offline.",
                 }))
             else:
                 await response.edit(embed = create_embed({

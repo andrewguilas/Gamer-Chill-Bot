@@ -1,22 +1,15 @@
-PERIOD = "2h"
-INTERVAL = "1m"
-
 import discord
 from discord.ext import commands
 from pymongo import MongoClient
 import yfinance as yf
 
-cluster = MongoClient("mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
+from secrets import MONGO_TOKEN
+from helper import create_embed, get_settings
+from constants import STOCKS_PERIOD, STOCKS_INTERVAL
+
+cluster = MongoClient(MONGO_TOKEN)
 stocks_data_store = cluster.discord_revamp.stocks
 economoy_data_store = cluster.discord_revamp.economy
-settings_data_store = cluster.discord_revamp.settings
-
-def get_settings(guild_id: int):
-    data = settings_data_store.find_one({"guild_id": guild_id}) 
-    if not data:
-        data = {"guild_id": guild_id}
-        settings_data_store.insert_one(data)
-    return data
 
 def save_economy_data(data):
     economoy_data_store.update_one({"user_id": data["user_id"]}, {"$set": data})
@@ -40,31 +33,9 @@ def get_stocks_data(user_id: int):
 
 def get_price(ticker: str):
     ticker = ticker.upper()
-    data = yf.download(tickers = ticker, period = PERIOD, interval = INTERVAL)
+    data = yf.download(tickers = ticker, period = STOCKS_PERIOD, interval = STOCKS_INTERVAL)
     price = dict(data)["Close"][0]
     return round(price, 2)
-
-def create_embed(info: {} = {}, fields: {} = {}):
-    embed = discord.Embed(
-        title = info.get("title") or "",
-        description = info.get("description") or "",
-        colour = info.get("color") or discord.Color.blue(),
-        url = info.get("url") or "",
-    )
-
-    for name, value in fields.items():
-        embed.add_field(name = name, value = value, inline = info.get("inline") or False)
-
-    if info.get("author"):
-        embed.set_author(name = info.author.name, url = info.author.mention, icon_url = info.author.avatar_url)
-    if info.get("footer"):
-        embed.set_footer(text = info.footer)
-    if info.get("image"):
-        embed.set_image(url = info.url)
-    if info.get("thumbnail"):
-        embed.set_thumbnail(url = info.thumbnail)
-    
-    return embed
 
 class stocks(commands.Cog, description = "Stock market commands."):
     def __init__(self, client):
@@ -103,6 +74,13 @@ class stocks(commands.Cog, description = "Stock market commands."):
         }))
 
         try:
+            if amount <= 0:
+                await response.edit(embed = create_embed({
+                    "title": f"{amount} is not greather than 0",
+                    "color": discord.Color.red()
+                }))
+                return
+
             # get stock price
             share_price = get_price(ticker)
             if not share_price:
@@ -148,6 +126,7 @@ class stocks(commands.Cog, description = "Stock market commands."):
             average_price /= total_shares
             average_price = round(average_price, 2)
             equity = round(total_shares * average_price, 2)
+            total_shares = round(total_shares, 2)
 
             await response.edit(embed = create_embed({
                 "title": f"Bought {amount} shares of {ticker} at ${share_price} (-${total_price})",
@@ -200,6 +179,8 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 stock_price = get_price(ticker)
                 profit = round(stock_price * total_shares - equity, 2)
 
+                total_shares = round(total_shares, 2)
+
                 fields[ticker] = f"{total_shares} Shares @ ${average_price} | Equity: ${equity} | Profit: ${profit}"
 
             await response.edit(embed = create_embed({
@@ -224,6 +205,13 @@ class stocks(commands.Cog, description = "Stock market commands."):
         }))
 
         try:
+            if amount <= 0:
+                await response.edit(embed = create_embed({
+                    "title": f"{amount} is not greather than 0",
+                    "color": discord.Color.red()
+                }))
+                return
+
             # check if member has enough shares
             shares_owned = 0
             user_stock_data = get_stocks_data(context.author.id)
@@ -236,23 +224,27 @@ class stocks(commands.Cog, description = "Stock market commands."):
                     "title": f"You don't owned enough shares to sell {amount} shares of {ticker}",
                     "color": discord.Color.red()
                 }, {
-                    "Shares Owned": f"{shared_owned} Shares"
+                    "Shares Owned": f"{shares_owned} Shares"
                 }))
+                return
 
             # sell shares
             shares_remaining_to_sell = amount
             user_stock_data = get_stocks_data(context.author.id)
-            for index, order in enumerate(user_stock_data["orders"]):
-                if order["ticker"] == ticker:
-                    if order["shares"] == shares_remaining_to_sell:
-                        user_stock_data["orders"].pop(index)
+
+            while shares_remaining_to_sell > 0:
+                for index, order in enumerate(user_stock_data["orders"].copy()):
+                    if order["ticker"] == ticker:
+                        if order["shares"] == shares_remaining_to_sell:
+                            shares_remaining_to_sell = 0
+                            user_stock_data["orders"].pop(index)
+                        elif order["shares"] > shares_remaining_to_sell:
+                            user_stock_data["orders"][index]["shares"] -= shares_remaining_to_sell
+                            shares_remaining_to_sell = 0
+                        elif order["shares"] < shares_remaining_to_sell:
+                            shares_remaining_to_sell -= order["shares"]
+                            user_stock_data["orders"].pop(index)
                         break
-                    elif order["shares"] > shares_remaining_to_sell:
-                        user_stock_data["orders"][index] -= shares_remaining_to_sell
-                        break
-                    elif order["shares"] < shares_remaining_to_sell:
-                        shares_remaining_to_sell -= order["shares"]
-                        user_stock_data["orders"].pop(index)
             save_stocks_data(user_stock_data)
 
             # give money
@@ -262,10 +254,29 @@ class stocks(commands.Cog, description = "Stock market commands."):
             user_money_data["money"] += total_price
             save_economy_data(user_money_data)
 
+            # resposne
+
+            orders_for_stock = []
+            total_shares = 0
+            average_price = 0
+            for order in user_stock_data["orders"]:
+                if order["ticker"] == ticker:
+                    total_shares += order["shares"]
+                    orders_for_stock.append(order)
+                    average_price += order["shares"] * order["average_price"]
+                
+            average_price /= total_shares
+            average_price = round(average_price, 2)
+            equity = round(total_shares * average_price, 2)
+            total_shares = round(total_shares, 2)
+            
             await response.edit(embed = create_embed({
-                "title": f"Sell {amount} shares of {ticker} at ${share_price} (+${total_price})",
+                "title": f"Sold {amount} shares of {ticker} at ${share_price} (+${total_price})",
                 "color": discord.Color.green()
             }, {
+                "Total Shares": f"{total_shares} Shares",
+                "Average Price": f"${average_price}",
+                "Equity": f"${equity}"
             }))
         except Exception as error_message:
             await response.edit(embed = create_embed({
