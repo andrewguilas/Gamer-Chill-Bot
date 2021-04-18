@@ -1,31 +1,16 @@
 import discord
 from discord.ext import commands, tasks
-from pymongo import MongoClient
 import time
 import math
 
-from secrets import MONGO_TOKEN
-from helper import create_embed, get_settings
+from helper import create_embed, get_settings, get_user_data, save_user_data, get_all_user_data
 from constants import LEVELING_UPDATE_DELAY, LEVELING_MESSAGE_COOLDOWN, LEVELING_MESSAGE_EXP, LEVELING_VOICE_EXP, LEVELING_LEVEL_DIFFICULTY, LEVELING_MAX_BOXES_FOR_RANK_EMBED, LEVELING_MAX_FIELDS_FOR_LEADERBOARD_EMBED, LEVELING_FILL_EMOJI, LEVELING_UNFILL_EMOJI
-
-cluster = MongoClient(MONGO_TOKEN)
-leveling_data_store = cluster.discord_revamp.leveling
 
 def get_level_from_experience(experience, level_dificulty):
     return math.floor(experience / level_dificulty)
 
 def get_experience_from_level(level, level_dificulty):
     return level * level_dificulty
-
-def save_leveling_data(data):
-    leveling_data_store.update_one({"user_id": data["user_id"]}, {"$set": data})
-    
-def get_leveling_data(user_id: int):
-    data = leveling_data_store.find_one({"user_id": user_id}) 
-    if not data:
-        data = {"user_id": user_id, "experience": 0}
-        leveling_data_store.insert_one(data)
-    return data
 
 class leveling(commands.Cog, description = "Leveling system commands."):
     def __init__(self, client):
@@ -51,11 +36,9 @@ class leveling(commands.Cog, description = "Leveling system commands."):
                     if member.voice.self_deaf:
                         continue
 
-                    user_data = get_leveling_data(member.id)
+                    user_data = get_user_data(member.id)
                     user_data["experience"] += guild_settings.get("LEVELING_voice_exp") or LEVELING_VOICE_EXP
-                    save_leveling_data(user_data)
-
-                    print(f"Gave {member} experience for staying in a vc")
+                    save_user_data(user_data)
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -79,10 +62,10 @@ class leveling(commands.Cog, description = "Leveling system commands."):
             self.recent_messagers[author.id] = time.time()
 
         # give exp
-        user_data = get_leveling_data(author.id)
+        user_data = get_user_data(author.id)
         old_level = get_level_from_experience(user_data["experience"], level_dificulty)
         user_data["experience"] += guild_settings.get("LEVELING_message_exp") or LEVELING_MESSAGE_EXP
-        save_leveling_data(user_data)
+        save_user_data(user_data)
 
         # check level
         new_level = get_level_from_experience(user_data["experience"], level_dificulty)
@@ -97,7 +80,7 @@ class leveling(commands.Cog, description = "Leveling system commands."):
             member = context.author
     
         response = await context.send(embed = create_embed({
-            "title": f"Loading {member}'s rank...",
+            "title": f"Loading {member}'s rank",
             "color": discord.Color.gold()
         }))
 
@@ -105,15 +88,21 @@ class leveling(commands.Cog, description = "Leveling system commands."):
             guild_settings = get_settings(context.guild.id)
             level_dificulty = guild_settings.get("level_dificulty") or LEVELING_LEVEL_DIFFICULTY
 
-            user_data = get_leveling_data(member.id)
+            user_data = get_user_data(member.id)
             experience = user_data["experience"]
             level = get_level_from_experience(experience, level_dificulty)
             
             experience_for_level = get_experience_from_level(level + 1, level_dificulty)
 
-            members_in_server_data = leveling_data_store.find().sort("experience", -1)
-            for index, members_in_server_data in enumerate(members_in_server_data):
-                if members_in_server_data["user_id"] == member.id:
+            all_user_data = get_all_user_data("experience")
+            guild_user_data = []
+            for data in all_user_data:
+                member = context.guild.get_member(data["user_id"])
+                if member:
+                    guild_user_data.append(data)
+
+            for index, member_data in enumerate(guild_user_data):
+                if member_data["user_id"] == member.id:
                     rank = index + 1
                     break
 
@@ -147,9 +136,15 @@ class leveling(commands.Cog, description = "Leveling system commands."):
             guild_settings = get_settings(context.guild.id)
             level_dificulty = guild_settings.get("level_dificulty") or LEVELING_LEVEL_DIFFICULTY
 
-            members_in_server_data = leveling_data_store.find().sort("experience", -1)
+            all_user_data = get_all_user_data("experience")
+            guild_user_data = []
+            for user_data in all_user_data:
+                member = context.guild.get_member(user_data["user_id"])
+                if member:
+                    guild_user_data.append(user_data)
+
             fields = {}
-            for rank, member_data in enumerate(members_in_server_data):
+            for rank, member_data in enumerate(guild_user_data):
                 member = context.guild.get_member(member_data["user_id"])
                 if member:
                     experience = member_data["experience"]

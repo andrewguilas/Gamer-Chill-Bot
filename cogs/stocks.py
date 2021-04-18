@@ -1,35 +1,9 @@
 import discord
 from discord.ext import commands
-from pymongo import MongoClient
 import yfinance as yf
 
-from secrets import MONGO_TOKEN
-from helper import create_embed, get_settings
+from helper import create_embed, get_settings, get_user_data, save_user_data
 from constants import STOCKS_PERIOD, STOCKS_INTERVAL
-
-cluster = MongoClient(MONGO_TOKEN)
-stocks_data_store = cluster.discord_revamp.stocks
-economoy_data_store = cluster.discord_revamp.economy
-
-def save_economy_data(data):
-    economoy_data_store.update_one({"user_id": data["user_id"]}, {"$set": data})
-    
-def get_economy_data(user_id: int):
-    data = economoy_data_store.find_one({"user_id": user_id}) 
-    if not data:
-        data = {"user_id": user_id, "money": 0}
-        economoy_data_store.insert_one(data)
-    return data
-
-def save_stocks_data(data):
-    stocks_data_store.update_one({"user_id": data["user_id"]}, {"$set": data})
-    
-def get_stocks_data(user_id: int):
-    data = stocks_data_store.find_one({"user_id": user_id}) 
-    if not data:
-        data = {"user_id": user_id, "orders": []}
-        stocks_data_store.insert_one(data)
-    return data
 
 def get_price(ticker: str):
     ticker = ticker.upper()
@@ -88,9 +62,9 @@ class stocks(commands.Cog, description = "Stock market commands."):
 
             # handle money transaction
             total_price = round(share_price * amount, 2)
-            user_money_data = get_economy_data(context.author.id)
+            user_data = get_user_data(context.author.id)
 
-            user_money = user_money_data["money"]
+            user_money = user_data["money"]
             if user_money < total_price:
                 await response.edit(embed = create_embed({
                     "title": f"You don't have enough money to buy {amount} shares of {ticker}",
@@ -101,23 +75,21 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 }))
                 return
 
-            user_money_data["money"] -= total_price
-            save_economy_data(user_money_data)
+            user_data["money"] -= total_price
 
             # handle share trade
-            user_stocks_data = get_stocks_data(context.author.id)
-            user_stocks_data["orders"].append({
+            user_data["stock_orders"].append({
                 "ticker": ticker,
                 "shares": amount,
                 "average_price": share_price
             })
-            save_stocks_data(user_stocks_data)
+            save_user_data(user_data)
 
             # response
             orders_for_stock = []
             total_shares = 0
             average_price = 0
-            for order in user_stocks_data["orders"]:
+            for order in user_data["stock_orders"]:
                 if order["ticker"] == ticker:
                     total_shares += order["shares"]
                     orders_for_stock.append(order)
@@ -156,8 +128,8 @@ class stocks(commands.Cog, description = "Stock market commands."):
 
         try:
             orders_by_stock = {}
-            user_stock_data = get_stocks_data(member.id)
-            for order in user_stock_data["orders"]:
+            user_data = get_user_data(member.id)
+            for order in user_data["stock_orders"]:
                 ticker = order["ticker"]
                 if not orders_by_stock.get(ticker):
                     orders_by_stock[ticker] = []
@@ -214,8 +186,8 @@ class stocks(commands.Cog, description = "Stock market commands."):
 
             # check if member has enough shares
             shares_owned = 0
-            user_stock_data = get_stocks_data(context.author.id)
-            for order in user_stock_data["orders"]:
+            user_data = get_user_data(context.author.id)
+            for order in user_data["stock_orders"]:
                 if order["ticker"] == ticker:
                     shares_owned += order["shares"]
 
@@ -230,36 +202,32 @@ class stocks(commands.Cog, description = "Stock market commands."):
 
             # sell shares
             shares_remaining_to_sell = amount
-            user_stock_data = get_stocks_data(context.author.id)
-
             while shares_remaining_to_sell > 0:
-                for index, order in enumerate(user_stock_data["orders"].copy()):
+                for index, order in enumerate(user_data["stock_orders"].copy()):
                     if order["ticker"] == ticker:
                         if order["shares"] == shares_remaining_to_sell:
                             shares_remaining_to_sell = 0
-                            user_stock_data["orders"].pop(index)
+                            user_data["stock_orders"].pop(index)
                         elif order["shares"] > shares_remaining_to_sell:
-                            user_stock_data["orders"][index]["shares"] -= shares_remaining_to_sell
+                            user_data["stock_orders"][index]["shares"] -= shares_remaining_to_sell
                             shares_remaining_to_sell = 0
                         elif order["shares"] < shares_remaining_to_sell:
                             shares_remaining_to_sell -= order["shares"]
-                            user_stock_data["orders"].pop(index)
+                            user_data["stock_orders"].pop(index)
                         break
-            save_stocks_data(user_stock_data)
 
             # give money
             share_price = get_price(ticker)
             total_price = round(share_price * amount, 2)
-            user_money_data = get_economy_data(context.author.id)
-            user_money_data["money"] += total_price
-            save_economy_data(user_money_data)
+            user_data["money"] += total_price
+            save_user_data(user_data)
 
-            # resposne
+            # response
 
             orders_for_stock = []
             total_shares = 0
             average_price = 0
-            for order in user_stock_data["orders"]:
+            for order in user_data["stock_orders"]:
                 if order["ticker"] == ticker:
                     total_shares += order["shares"]
                     orders_for_stock.append(order)

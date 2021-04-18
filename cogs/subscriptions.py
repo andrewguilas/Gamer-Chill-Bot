@@ -4,24 +4,9 @@ import pytz
 import requests
 import time
 from datetime import datetime
-from pymongo import MongoClient
 
-from secrets import MONGO_TOKEN
-from helper import create_embed
+from helper import create_embed, get_user_data, save_user_data, get_all_user_data
 from constants import SUBSCRIPTIONS_STATUS_URL, SUBSCRIPTIONS_USERNAME_URL, SUBSCRIPTIONS_UPDATE_DELAY
-
-cluster = MongoClient(MONGO_TOKEN)
-subscriptions_data_store = cluster.discord_revamp.subscriptions
-
-def save_subscriptions(data):
-    subscriptions_data_store.update_one({"user_id": data["user_id"]}, {"$set": data})
-    
-def get_subscriptions(user_id: int):
-    data = subscriptions_data_store.find_one({"user_id": user_id}) 
-    if not data:
-        data = {"user_id": user_id}
-        subscriptions_data_store.insert_one(data)
-    return data
 
 class subscriptions(commands.Cog, description = "Subscribe to different events."):
     def __init__(self, client):
@@ -37,11 +22,14 @@ class subscriptions(commands.Cog, description = "Subscribe to different events."
 
     @tasks.loop(seconds = SUBSCRIPTIONS_UPDATE_DELAY)
     async def roblox_loop(self):
+        await self.client.wait_until_ready()
+
         # get all the roblox players that were subscribed to
         roblox_players = {}
-        all_subscriptions = list(subscriptions_data_store.find({}))
-        for user_data in all_subscriptions:
-            for roblox_player_id in user_data["roblox"]:
+
+        all_user_data = get_all_user_data()
+        for user_data in all_user_data:
+            for roblox_player_id in user_data["subscriptions"]["roblox"]:
                 if not roblox_players.get(roblox_player_id):
                     roblox_players[roblox_player_id] = [user_data["user_id"]]
                 else:
@@ -110,18 +98,19 @@ class subscriptions(commands.Cog, description = "Subscribe to different events."
 
                     # save data
                     action = None
-                    subscriptions = get_subscriptions(context.author.id)
-                    if not subscriptions.get("roblox"):
-                        subscriptions["roblox"] = [value]
+
+                    user_data = get_user_data(context.author.id)
+                    if not user_data["subscriptions"].get("roblox"):
+                        user_data["subscriptions"]["roblox"] = [value]
                         action = "Subscribed"
                     else:
-                        if value in subscriptions["roblox"]:
-                            subscriptions["roblox"].remove(value)
+                        if value in user_data["subscriptions"]["roblox"]:
+                            user_data["subscriptions"]["roblox"].remove(value)
                             action = "Unsubscribed"
                         else:
-                            subscriptions["roblox"].append(value)
+                            user_data["subscriptions"]["roblox"].append(value)
                             action = "Subscribed"
-                    save_subscriptions(subscriptions)
+                    save_user_data(user_data)
 
                     await response.edit(embed = create_embed({
                         "title": f"{action} to {event}",
@@ -160,10 +149,10 @@ class subscriptions(commands.Cog, description = "Subscribe to different events."
         }))
 
         try:
-            subscriptions = get_subscriptions(context.author.id)
+            user_data = get_user_data(context.author.id)
             await response.edit(embed = create_embed({
                 "title": f"{context.author}'s subscriptions"
-            }, subscriptions))
+            }, user_data["subscriptions"]))
         except Exception as error_message:
             await response.edit(embed = create_embed({
                 "title": f"Could not get {context.author}'s subscriptions",

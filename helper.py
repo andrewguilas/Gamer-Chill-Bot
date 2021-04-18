@@ -4,10 +4,29 @@ from pymongo import MongoClient
 import math
 
 from secrets import MONGO_TOKEN
-from constants import DEFAULT_GUILD_SETTINGS
+from constants import DEFAULT_GUILD_SETTINGS, DEFAULT_USER_DATA, ECONOMY_STARTING_MONEY, LEVELING_DEFAULT_EXPERIENCE
 
 cluster = MongoClient(MONGO_TOKEN)
 settings_data_store = cluster.discord_revamp.settings
+user_data_store = cluster.discord_revamp.user
+
+def attach_default_data(data):
+    if not data.get("money"):
+        data["money"] = ECONOMY_STARTING_MONEY
+
+    if not data.get("experience"):
+        data["experience"] = LEVELING_DEFAULT_EXPERIENCE
+
+    if not data.get("subscriptions"):
+        data["subscriptions"] = {"roblox": []}
+
+    if not data["subscriptions"].get("roblox"):
+        data["subscriptions"]["roblox"] = []
+
+    if not data.get("stock_orders"):
+        data["stock_orders"] = []
+
+    return data
 
 def create_embed(info: {} = {}, fields: {} = {}):
     embed = discord.Embed(
@@ -115,3 +134,32 @@ def check_if_authorized(context, member: discord.Member):
         return True
     else:
         return False
+
+def get_user_data(user_id: int):
+    data = user_data_store.find_one({"user_id": user_id}) 
+    data_is_new = False
+
+    if not data:
+        data_is_new = True
+        data = DEFAULT_USER_DATA.copy()
+        data["user_id"] = user_id
+
+    attach_default_data(data)
+
+    if data_is_new:
+        user_data_store.insert_one(data)
+
+    return data
+
+def save_user_data(data):
+    user_data_store.update_one({"user_id": data["user_id"]}, {"$set": data})
+
+def get_all_user_data(name: str = None):
+    all_cursor_data = name and user_data_store.find().sort(name, -1) or user_data_store.find({})
+    all_data = []
+
+    for data in all_cursor_data:
+        data = attach_default_data(data)
+        all_data.append(data)
+        
+    return all_data
