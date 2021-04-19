@@ -4,7 +4,6 @@ import os
 import sys
 import time
 import math
-import requests
 
 from helper import create_embed, get_settings, save_settings, get_channel, get_role, is_guild_owner, format_time
 from constants import VERSION_LOGS
@@ -407,7 +406,23 @@ class bot(commands.Cog, description = "Bot management and settings."):
                         "color": discord.Color.red()
                     }))
                     return
-    
+            elif name == "money_per_level":
+                value = int(value)
+                if value:
+                    settings["money_per_level"] = value
+                    save_settings(settings)
+
+                    await response.edit(embed = create_embed({
+                        "title": f"Set money per level reward to ${value}",
+                        "color": discord.Color.green(),
+                    }))
+                else:
+                    await response.edit(embed = create_embed({
+                        "title": f"{value} is not a valid integer",
+                        "color": discord.Color.red()
+                    }))
+                    return
+            
             else:
                 await response.edit(embed = create_embed({
                     "title": f"{name} is not a valid setting",

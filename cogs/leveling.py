@@ -4,7 +4,7 @@ import time
 import math
 
 from helper import create_embed, get_settings, get_user_data, save_user_data, get_all_user_data
-from constants import LEVELING_UPDATE_DELAY, LEVELING_MESSAGE_COOLDOWN, LEVELING_MESSAGE_EXP, LEVELING_VOICE_EXP, LEVELING_LEVEL_DIFFICULTY, LEVELING_MAX_BOXES_FOR_RANK_EMBED, LEVELING_MAX_FIELDS_FOR_LEADERBOARD_EMBED, LEVELING_FILL_EMOJI, LEVELING_UNFILL_EMOJI
+from constants import LEVELING_UPDATE_DELAY, LEVELING_MESSAGE_COOLDOWN, LEVELING_MESSAGE_EXP, LEVELING_VOICE_EXP, LEVELING_LEVEL_DIFFICULTY, LEVELING_MAX_BOXES_FOR_RANK_EMBED, LEVELING_MAX_FIELDS_FOR_LEADERBOARD_EMBED, LEVELING_FILL_EMOJI, LEVELING_UNFILL_EMOJI, LEVELING_MONEY_PER_LEVEL
 
 def get_level_from_experience(experience, level_dificulty):
     return math.floor(experience / level_dificulty)
@@ -30,14 +30,22 @@ class leveling(commands.Cog, description = "Leveling system commands."):
 
         for guild in self.client.guilds:
             guild_settings = get_settings(guild.id)
+            level_dificulty = guild_settings.get("level_dificulty") or LEVELING_LEVEL_DIFFICULTY
 
             for voice_channel in guild.voice_channels:
                 for member in voice_channel.members:
                     if member.voice.self_deaf:
                         continue
 
+                    # give exp
                     user_data = get_user_data(member.id)
-                    user_data["experience"] += guild_settings.get("LEVELING_voice_exp") or LEVELING_VOICE_EXP
+                    old_level = get_level_from_experience(user_data["experience"], level_dificulty)
+                    user_data["experience"] += guild_settings.get("voice_exp") or LEVELING_VOICE_EXP
+
+                    new_level = get_level_from_experience(user_data["experience"], level_dificulty)
+                    if old_level != new_level:
+                        user_data["money"] += guild_settings.get("money_per_level") or LEVELING_MONEY_PER_LEVEL
+
                     save_user_data(user_data)
 
     @commands.Cog.listener()
@@ -53,7 +61,7 @@ class leveling(commands.Cog, description = "Leveling system commands."):
         time_since_last_message = self.recent_messagers.get(author.id)
         if time_since_last_message:
             duration_since_last_message = int(time.time() - time_since_last_message)
-            cooldown = int(guild_settings.get("LEVELING_message_cooldown") or LEVELING_MESSAGE_COOLDOWN)
+            cooldown = int(guild_settings.get("message_cooldown") or LEVELING_MESSAGE_COOLDOWN)
             if duration_since_last_message < cooldown:
                 return
             else:
@@ -64,15 +72,18 @@ class leveling(commands.Cog, description = "Leveling system commands."):
         # give exp
         user_data = get_user_data(author.id)
         old_level = get_level_from_experience(user_data["experience"], level_dificulty)
-        user_data["experience"] += guild_settings.get("LEVELING_message_exp") or LEVELING_MESSAGE_EXP
-        save_user_data(user_data)
+        user_data["experience"] += guild_settings.get("message_exp") or LEVELING_MESSAGE_EXP
 
-        # check level
         new_level = get_level_from_experience(user_data["experience"], level_dificulty)
         if old_level != new_level:
+            user_data["money"] += guild_settings.get("money_per_level") or LEVELING_MONEY_PER_LEVEL * new_level
             await message.channel.send(embed = create_embed({
                 "title": f"{message.author} leveled up to level {new_level}",
             }))
+
+        save_user_data(user_data)
+
+        # await self.client.process_commands(message)
 
     @commands.command(description = "Retrieves the user's level, experience, and rank.")
     async def rank(self, context, member: discord.Member = None):
