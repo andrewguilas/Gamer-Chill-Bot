@@ -7,23 +7,19 @@ from datetime import datetime
 import minestat
 
 from helper import create_embed, get_user_data, save_user_data, get_all_user_data
-from constants import SUBSCRIPTIONS_STATUS_URL, SUBSCRIPTIONS_USERNAME_URL, SUBSCRIPTIONS_UPDATE_DELAY, SUBSCRIPTIONS_MINECRAFT_HOST
+from constants import SUBSCRIPTIONS_STATUS_URL, SUBSCRIPTIONS_USERNAME_URL, SUBSCRIPTIONS_UPDATE_DELAY
 
 class subscriptions(commands.Cog, description = "Subscribe to different events."):
     def __init__(self, client):
         self.client = client
         self.roblox_user_status = {}
         self.roblox_loop.start()
-        self.minecraft_server_status = {}
-        self.minecraft_loop.start()
 
     def cog_unload(self):
         self.roblox_loop.cancel()
-        self.minecraft_loop.cancel()
 
     def cog_load(self):
         self.roblox_loop.start()
-        self.minecraft_loop.start()
 
     @tasks.loop(seconds = SUBSCRIPTIONS_UPDATE_DELAY)
     async def roblox_loop(self):
@@ -79,55 +75,6 @@ class subscriptions(commands.Cog, description = "Subscribe to different events."
                 print(f"ERROR: Something went wrong when checking the roblox user {roblox_player_id}'s status")
                 print(error_message)
 
-    @tasks.loop(seconds = SUBSCRIPTIONS_UPDATE_DELAY)
-    async def minecraft_loop(self):
-        await self.client.wait_until_ready()
-
-        # get all the minecraft servers that were subscribed to
-        minecraft_servers = {}
-
-        all_user_data = get_all_user_data()
-        for user_data in all_user_data:
-            for server_ip in user_data["subscriptions"]["minecraft"]:
-                if not minecraft_servers.get(server_ip):
-                    minecraft_servers[server_ip] = [user_data["user_id"]]
-                else:
-                    minecraft_servers[server_ip].append(user_data["user_id"])
-
-                if not self.minecraft_server_status.get(server_ip):
-                    self.minecraft_server_status[server_ip] = "offline"
-
-        for server_ip, users_to_notify in minecraft_servers.items():
-            try:
-                # get server status
-                ms = minestat.MineStat(server_ip, SUBSCRIPTIONS_MINECRAFT_HOST)
-                if not ms:
-                    print(f"ERROR: Could not get status of {server_ip}")
-                    continue
-
-                # notify subscribed users
-                status = ms.online and "online" or "offline"
-
-                if self.minecraft_server_status[server_ip] != status:
-                    self.minecraft_server_status[server_ip] = status
-
-                    for user_to_notify in users_to_notify:
-                        user = await self.client.fetch_user(user_to_notify)
-                        if status == "online":
-                            await user.send("```yaml\n{server_ip} - Online - {online_players}/{max_players} Players - {ping} ms\n```".format(
-                                server_ip = server_ip,
-                                online_players = ms.current_players,
-                                max_players = ms.max_players,
-                                ping = ms.latency
-                            ))
-                        else:
-                            await user.send("```fix\n{server_ip} - Offline\n```".format(
-                                server_ip = server_ip,
-                            ))
-            except Exception as error_message:
-                print(f"ERROR: Something went wrong when checking the server status of {server_ip}")
-                print(error_message)
-
     @commands.command(description = "Get notified when a certain event occurs.")
     async def subscribe(self, context, event, *, value):
         response = await context.send(embed = create_embed({
@@ -178,44 +125,6 @@ class subscriptions(commands.Cog, description = "Subscribe to different events."
                         "color": discord.Color.red()
                     }))
                     return
-            elif event == "minecraft":
-                value = str(value)
-                if value:
-                    ms = minestat.MineStat(value, SUBSCRIPTIONS_MINECRAFT_HOST)
-                    if not ms:
-                        await response.edit(embed = create_embed({
-                            "title": f"Could not find server {value}",
-                            "color": discord.Color.red()
-                        }))
-                        return
-
-                    action = None
-
-                    user_data = get_user_data(context.author.id)
-                    if not user_data["subscriptions"].get("minecraft"):
-                        user_data["subscriptions"]["minecraft"] = [value]
-                        action = "Subscribed"
-                    else:
-                        if value in user_data["subscriptions"]["minecraft"]:
-                            user_data["subscriptions"]["minecraft"].remove(value)
-                            action = "Unsubscribed"
-                        else:
-                            user_data["subscriptions"]["minecraft"].append(value)
-                            action = "Subscribed"
-                    save_user_data(user_data)
-
-                    await response.edit(embed = create_embed({
-                        "title": f"{action} to {event}",
-                        "color": discord.Color.green()
-                    }, {
-                        "Value": value
-                    }))
-                else:
-                    await response.edit(embed = create_embed({
-                        "title": f"{value} is not a valid server IP address",
-                        "color": discord.Color.red()
-                    }))
-                    return
             else:
                 await response.edit(embed = create_embed({
                     "title": f"{event} is not a valid subscription",
@@ -261,32 +170,7 @@ class subscriptions(commands.Cog, description = "Subscribe to different events."
         }))
 
         try:
-            if name == "minecraft":
-                value = str(value)
-                if not value:
-                    await response.edit(embed = create_embed({
-                        "title": f"`{value}` could not be converted to a string",
-                        "color": discord.Color.red()
-                    }))
-                    return
-
-                ms = minestat.MineStat(value, SUBSCRIPTIONS_MINECRAFT_HOST)
-                if not ms:
-                    await response.edit(embed = create_embed({
-                        "title": f"Could not find server `{value}`",
-                        "color": discord.Color.red()
-                    }))
-                    return
-
-                if ms.online:
-                    await response.edit(embed = create_embed({
-                        "title": f"{ms.address} - Online - {ms.current_players}/{ms.max_players} Players - {ms.latency} ms"
-                    }))
-                else:
-                    await response.edit(embed = create_embed({
-                        "title": f"{ms.address} - Offline"
-                    }))
-            elif name == "roblox":
+            if name == "roblox":
                 value = int(value)
                 if not value:
                     await response.edit(embed = create_embed({

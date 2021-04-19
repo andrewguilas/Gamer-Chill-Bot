@@ -31,7 +31,6 @@ VC_VOICE_IS_SLOW = False
 SUBSCRIPTIONS_STATUS_URL = "http://api.roblox.com/users/USER_ID/onlinestatus/"
 SUBSCRIPTIONS_USERNAME_URL = "http://api.roblox.com/users/USER_ID"
 SUBSCRIPTIONS_UPDATE_DELAY = 60
-SUBSCRIPTIONS_MINECRAFT_HOST = 25565
 
 LEVELING_UPDATE_DELAY = 60
 LEVELING_MESSAGE_COOLDOWN = 30
@@ -50,6 +49,8 @@ STOCKS_PERIOD = "2h"
 STOCKS_INTERVAL = "1m"
 
 VERSION_LOGS = {
+    "1.0.5": "Removed minecraft subscription and status because it caused the bot to randomly disconnect and slow down.",
+    "1.0.4": "Added money reward for leveling up.",
     "1.0.3": "Fixed ACAS not making announcements.",
     "1.0.2": "Added ?updatelog.",
     "1.0.1": "Added ?status and minecraft server subscriptions.",

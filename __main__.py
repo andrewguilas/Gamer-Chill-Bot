@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from pymongo import MongoClient
+import logging
 
 from secrets import TOKEN, TEST_TOKEN
 from constants import PREFIX, EXTENSIONS, DEFAULT_GUILD_SETTINGS
