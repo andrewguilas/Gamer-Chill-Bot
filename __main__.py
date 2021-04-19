@@ -99,7 +99,7 @@ async def update(context):
         }))
     else:
         await response.edit(embed = create_embed({
-            "title": "Bot updated",
+            "title": "Updated bot",
             "color": discord.Color.green(),
         }))
 

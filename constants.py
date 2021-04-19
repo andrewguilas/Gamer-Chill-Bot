@@ -18,7 +18,8 @@ EXTENSIONS = [
 
 ACAS_BLACKLISTED_DAYS = [4, 5, 6]
 ACAS_REMINDER_BLOCK_TIMES = ["09:20:00", "10:50:00", "12:35:00", "14:35:00"]
-ACAS_BLOCK_TIMES = ["09:25:00", "10:55:00", "12:40:00", "14:40:00"]
+# ACAS_BLOCK_TIMES = ["09:25:00", "10:55:00", "12:40:00", "14:40:00"]
+ACAS_BLOCK_TIMES = ["02:05:30", "10:55:00", "12:40:00", "14:40:00"]
 ACAS_UPDATE_DELAY = 1
 
 ECONOMY_MAX_FIELDS_FOR_LEADERBOARD_EMBED = 10
@@ -49,6 +50,7 @@ STOCKS_PERIOD = "2h"
 STOCKS_INTERVAL = "1m"
 
 VERSION_LOGS = {
+    "1.0.3": "Fixed ACAS not making announcements.",
     "1.0.2": "Added ?updatelog.",
     "1.0.1": "Added ?status and minecraft server subscriptions.",
     "1.0.0": "Added settings, more portfolio info, and increased performance.",

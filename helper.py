@@ -10,6 +10,75 @@ cluster = MongoClient(MONGO_TOKEN)
 settings_data_store = cluster.discord_revamp.settings
 user_data_store = cluster.discord_revamp.user
 
+# data
+
+def get_settings(guild_id: int):
+    data = settings_data_store.find_one({"guild_id": guild_id}) 
+    if not data:
+        data = DEFAULT_GUILD_SETTINGS.copy()
+        data["guild_id"] = guild_id
+        settings_data_store.insert_one(data)
+    return data
+
+def save_settings(data):
+    settings_data_store.update_one({"guild_id": data["guild_id"]}, {"$set": data})
+
+def get_all_guild_data():
+    return list(settings_data_store.find({}))
+
+def get_user_data(user_id: int):
+    data = user_data_store.find_one({"user_id": user_id}) 
+    data_is_new = False
+
+    if not data:
+        data_is_new = True
+        data = DEFAULT_USER_DATA.copy()
+        data["user_id"] = user_id
+
+    attach_default_data(data)
+
+    if data_is_new:
+        user_data_store.insert_one(data)
+
+    return data
+
+def save_user_data(data):
+    user_data_store.update_one({"user_id": data["user_id"]}, {"$set": data})
+
+def get_all_user_data(name: str = None):
+    all_cursor_data = name and user_data_store.find().sort(name, -1) or user_data_store.find({})
+    all_data = []
+
+    for data in all_cursor_data:
+        data = attach_default_data(data)
+        all_data.append(data)
+        
+    return all_data
+
+# permissions
+
+def is_guild_owner():
+    def predicate(context):
+        return context.guild and context.guild.owner_id == context.author.id
+    return commands.check(predicate)
+
+def check_if_authorized(context, member: discord.Member):
+    author_top_role = context.author.top_role
+    member_top_role = member.top_role
+    
+    if member == context.guild.owner: # if target is server owner
+        return False
+    elif context.author == context.guild.owner: # is author server owner
+        return True
+    elif author_top_role and member_top_role and author_top_role.position > member_top_role.position: # is author higher than member
+        return True
+    elif author_top_role and not member_top_role: # does author have a role and member does not 
+        return True
+    else:
+        return False
+
+# local
+
 def attach_default_data(data):
     if not data.get("money"):
         data["money"] = ECONOMY_STARTING_MONEY
@@ -30,6 +99,8 @@ def attach_default_data(data):
         data["stock_orders"] = []
 
     return data
+
+# misc
 
 def create_embed(info: {} = {}, fields: {} = {}):
     embed = discord.Embed(
@@ -53,17 +124,6 @@ def create_embed(info: {} = {}, fields: {} = {}):
     
     return embed
 
-def get_settings(guild_id: int):
-    data = settings_data_store.find_one({"guild_id": guild_id}) 
-    if not data:
-        data = DEFAULT_GUILD_SETTINGS.copy()
-        data["guild_id"] = guild_id
-        settings_data_store.insert_one(data)
-    return data
-
-def save_settings(data):
-    settings_data_store.update_one({"guild_id": data["guild_id"]}, {"$set": data})
-
 def get_channel(text_channels: [], value):
     channel = None
 
@@ -83,11 +143,6 @@ def get_role(roles: [], value):
         pass
 
     return role
-
-def is_guild_owner():
-    def predicate(context):
-        return context.guild and context.guild.owner_id == context.author.id
-    return commands.check(predicate)
 
 def format_time(timestamp):
     hours = math.floor(timestamp / 60 / 60)
@@ -124,46 +179,3 @@ def sort_dictionary(dictionary, is_reversed = False):
         sorted_dictionary[value[0]] = value[1]
     return sorted_dictionary
 
-def check_if_authorized(context, member: discord.Member):
-    author_top_role = context.author.top_role
-    member_top_role = member.top_role
-    
-    if member == context.guild.owner: # if target is server owner
-        return False
-    elif context.author == context.guild.owner: # is author server owner
-        return True
-    elif author_top_role and member_top_role and author_top_role.position > member_top_role.position: # is author higher than member
-        return True
-    elif author_top_role and not member_top_role: # does author have a role and member does not 
-        return True
-    else:
-        return False
-
-def get_user_data(user_id: int):
-    data = user_data_store.find_one({"user_id": user_id}) 
-    data_is_new = False
-
-    if not data:
-        data_is_new = True
-        data = DEFAULT_USER_DATA.copy()
-        data["user_id"] = user_id
-
-    attach_default_data(data)
-
-    if data_is_new:
-        user_data_store.insert_one(data)
-
-    return data
-
-def save_user_data(data):
-    user_data_store.update_one({"user_id": data["user_id"]}, {"$set": data})
-
-def get_all_user_data(name: str = None):
-    all_cursor_data = name and user_data_store.find().sort(name, -1) or user_data_store.find({})
-    all_data = []
-
-    for data in all_cursor_data:
-        data = attach_default_data(data)
-        all_data.append(data)
-        
-    return all_data
