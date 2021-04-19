@@ -91,7 +91,7 @@ class fun(commands.Cog, description = "Fun commands."):
                 "Channel": channel
             }))
         except Exception as error_message:
-            await embed.edit(embed = create_embed({
+            await response.edit(embed = create_embed({
                 "title": "Could not impersonate user",
                 "color": discord.Color.red()
             }, {
