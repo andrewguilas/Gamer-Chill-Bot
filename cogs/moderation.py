@@ -1,211 +1,329 @@
 import discord
-from discord import Color as discord_color
 from discord.ext import commands
 
-import math
-import pytz
-from datetime import datetime
+from helper import create_embed, check_if_authorized
 
-def create_embed(title, color = discord_color.blue(), fields = {}):
-    embed = discord.Embed(
-        title = title,
-        colour = color or discord_color.blue()
-    )
-
-    for name, value in fields.items():
-        embed.add_field(
-            name = name,
-            value = value,
-            inline = True
-        )
-
-    embed.timestamp = datetime.now(tz = pytz.timezone("US/Eastern"))
-
-    return embed
-
-class moderation_commands(commands.Cog):
+class moderation(commands.Cog, description = "Server and member management commands for moderation."):
     def __init__(self, client):
         self.client = client
 
-    @commands.command()
+    @commands.command(aliases = ["delete"], description = "Clears a set amount of text messages.", brief = "bot creator or manage messages")
     @commands.check_any(commands.is_owner(), commands.has_permissions(manage_messages = True))
-    async def clear(self, context, amount = 1):
+    async def clear(self, context, amount: int = 1):
+        DELETE_RESPONSE_DELAY = 3
+
+        response = await context.send(embed = create_embed({
+            "title": "Clearing messages...",
+            "color": discord.Color.gold()
+        }))
+
+        deleted_messages_count = 0
+
         try:
-            deleted_messages = await context.channel.purge(limit = amount + 1)
+            def check(context2):
+                return context2.id != response.id
+
+            deleted_messages = await context.channel.purge(limit = amount + 2, check = check)
             deleted_messages_count = len(deleted_messages) - 1
         except Exception as error_message:
-            await context.send(embed = create_embed(f"Error: Something went wrong when deleting {str(amount)} messages", discord_color.red(), {
-                "Error Message": str(error_message)
+            await response.edit(embed = create_embed({
+                "title": "Could not delete messages",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
             }))
         else:
-            await context.send(embed = create_embed(f"Success: {str(deleted_messages_count)} messages were deleted", discord_color.green()), delete_after = 3)
+            await response.edit(embed = create_embed({
+                "title": f"Deleted {deleted_messages_count} messages",
+                "color": discord.Color.green()
+            }), delete_after = DELETE_RESPONSE_DELAY)
 
-    @commands.command()
+    @commands.command(description = "Kicks a member from the server. They can join back.", brief = "bot creator or kick members")
     @commands.check_any(commands.is_owner(), commands.has_permissions(kick_members = True))
-    async def kick(self, context, member: discord.Member, *, reason = None):
+    async def kick(self, context, member: discord.Member, *, reason: str = None):
+        response = await context.send(embed = create_embed({
+            "title": f"Kicking {member}...",
+            "color": discord.Color.gold()
+        }, {
+            "Reason": reason
+        }))
+
         try:
+            if not check_if_authorized(context, member):
+                await response.edit(embed = create_embed({
+                    "title": f"You cannot kick {member}",
+                    "color": discord.Color.red()
+                }, {
+                    "Reason": reason
+                }))
+                return
+
             await member.kick(reason = reason)
         except Exception as error_message:
-            embed = discord.Embed(
-                title = f"Error: Something went wrong when kicking {str(member)}",
-                colour = discord_color.red()
-            )
-            
-            embed.add_field(
-                name = "Error Message",
-                value = str(error_message)
-            )
-
-            await context.send(embed = embed)
+            await response.edit(embed = create_embed({
+                "title": f"Could not kick {member}",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message,
+                "Reason": reason
+            }))
         else:
-            await context.send(embed = discord.Embed(
-                title = f"Success: {str(member)} was kicked", 
-                colour = discord_color.green()
-            ))
+            await response.edit(embed = create_embed({
+                "title": f"{member} was kicked",
+                "color": discord.Color.green()
+            }, {
+                "Reason": reason
+            }))
 
-    @commands.command()
+    @commands.command(description = "Bans a member from the server. They cannot join back unless unbanned,", brief = "bot creator or ban members")
     @commands.check_any(commands.is_owner(), commands.has_permissions(ban_members = True))
     async def ban(self, context, member: discord.Member, *, reason = None):
+        response = await context.send(embed = create_embed({
+            "title": f"Banning {member}...",
+            "color": discord.Color.gold()
+        }, {
+            "Reason": reason
+        }))
+
         try:
+            if not check_if_authorized(context, member):
+                await response.edit(embed = create_embed({
+                    "title": f"You cannot ban {member}",
+                    "color": discord.Color.red()
+                }, {
+                    "Reason": reason
+                }))
+                return
+
             await member.ban(reason = reason)
         except Exception as error_message:
-            embed = discord.Embed(
-                title = f"Error: Something went wrong when banning {str(member)}",
-                colour = discord_color.red()
-            )
-            
-            embed.add_field(
-                name = "Error Message",
-                value = str(error_message)
-            )
-
-            await context.send(embed = embed)
+            await response.edit(embed = create_embed({
+                "title": f"Could not ban {member}",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message,
+                "Reason": reason
+            }))
         else:
-            await context.send(embed = discord.Embed(
-                title = f"Success: {str(member)} was banned", 
-                colour = discord_color.green()
-            ))
+            await response.edit(embed = create_embed({
+                "title": f"{member} was banned",
+                "color": discord.Color.green()
+            }, {
+                "Reason": reason
+            }))
 
-    @commands.command()
+    @commands.command(description = "Unbans a banned member from the server, allowing them to join back.", brief = "bot creator or ban members")
     @commands.check_any(commands.is_owner(), commands.has_permissions(ban_members = True))
-    async def unban(self, context, *, member):
+    async def unban(self, context, *, user: discord.User):
+        response = await context.send(embed = create_embed({
+            "title": f"Unbanning {user}...",
+            "color": discord.Color.gold()
+        }))
+
         try:
-            banned_users = await context.guild.bans()
-            member_name, member_discriminator = member.split("#")
+            if not user:
+                await response.edit(embed = create_embed({
+                    "title": f"Could not find {user}",
+                    "color": discord.Color.red()
+                }))
+                return
 
-            for ban_entry in banned_users:
-                user = ban_entry.user
-
-                if (user.name, user.discriminator) == (member_name, member_discriminator):
-                    await context.guild.unban(user)
-                    break
+            await context.guild.unban(user)
         except Exception as error_message:
-            embed = discord.Embed(
-                title = f"Error: Something went wrong when unbanning {str(member)}",
-                colour = discord_color.red()
-            )
-            
-            embed.add_field(
-                name = "Error Message",
-                value = str(error_message)
-            )
-
-            await context.send(embed = embed)
+            await response.edit(embed = create_embed({
+                "title": f"Could not unban {user}",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message,
+            }))
         else:
-            await context.send(embed = discord.Embed(
-                title = f"Success: {str(member)} was unbanned", 
-                colour = discord_color.green()
-            ))
+            await response.edit(embed = create_embed({
+                "title": f"{user} was unbanned",
+                "color": discord.Color.green()
+            }))
 
-    @commands.command()
+    @commands.command(description = "Gives/removes a role from a member.", brief = "bot creator or manage roles")
     @commands.check_any(commands.is_owner(), commands.has_permissions(manage_roles = True))
     async def role(self, context, member: discord.Member, *, role: discord.Role):
-        will_add_role = True
+        response = await context.send(embed = create_embed({
+            "title": f"Giving/removing {role} from {member}",
+            "color": discord.Color.gold()
+        }))
+
+        gave_role = True
 
         try:
+            if context.author != context.guild.owner and role.position >= member.top_role.position:
+                await response.edit(embed = create_embed({
+                    "title": "You don't have the power to give members this role",
+                    "color": discord.Color.red()
+                }))
+                return
+
             if role in member.roles:
                 await member.remove_roles(role)
-                will_add_role = False
+                gave_role = False
             else:
                 await member.add_roles(role)
         except Exception as error_message:
-            embed = discord.Embed(
-                title = will_add_role and f"Error: Something went wrong when giving the role `{str(role)}` to {str(member)}" or f"Error: Something went wrong when removing the role `{str(role)}` from {str(member)}",
-                colour = discord_color.red()
-            )
-            
-            embed.add_field(
-                name = "Error Message",
-                value = str(error_message)
-            )
-
-            await context.send(embed = embed)
-        else:
-            await context.send(embed = discord.Embed(
-                title = will_add_role and f"Success: The role `{str(role)}` given to {str(member)}" or f"Success: The role `{str(role)}` removed from {str(member)}", 
-                colour = discord_color.green()
-            ))
-
-    @commands.command()
-    @commands.check_any(commands.is_owner(), commands.has_permissions(change_nickname = True))
-    async def nick(self, context, member: discord.Member = None, *, new_nickname: str = ""): 
-        if (not member):
-            member = context.author
-
-        try:
-            await member.edit(nick = new_nickname)
-        except Exception as error_message:
-            fill_text = new_nickname and f"changing the nickname of {member} to {new_nickname}" or f"removing the nickname of {member}"
-            await context.send(embed = create_embed(f"Error: Something went wrong when {fill_text}", discord_color.red(), {
-                "Error Message": str(error_message)
+            await response.edit(embed = create_embed({
+                "title": f"Could not give/remove {role} from {member}",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
             }))
         else:
-            fill_text = new_nickname and f"changed to {new_nickname}" or "removed"
-            await context.send(embed = create_embed(f"Success: {member}'s nickname was {fill_text}", color = discord_color.green()))
+            await response.edit(embed = create_embed({
+                "title": "{fill_text} {role} {fill_text_2} {member}".format(
+                    fill_text = gave_role and "Gave" or "Removed",
+                    role = role,
+                    member = member,
+                    fill_text_2 = gave_role and "to" or "from"
+                ),
+                "color": discord.Color.green()
+            }))
 
-    @commands.command()
+    @commands.command(aliases = ["nickname", "name"], description = "Changes the nickname of a member.", brief = "bot creator or change_nickname")
+    @commands.check_any(commands.is_owner(), commands.has_permissions(change_nickname = True))
+    async def nick(self, context, member: discord.Member, *, new_nickname: str = None): 
+        response = await context.send(embed = create_embed({
+            "title": f"Changing {member}'s nickname to {new_nickname}",
+            "color": discord.Color.gold()
+        }))
+        
+        try:
+            if not check_if_authorized(context, member):
+                await response.edit(embed = create_embed({
+                    "title": f"You cannot change {member}'s nickname",
+                    "color": discord.Color.red()
+                }))
+                return
+
+            await member.edit(nick = new_nickname)
+        except Exception as error_message:
+            await response.edit(embed = create_embed({
+                "title": f"Could not change {member}'s nickname to {new_nickname}",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
+            }))
+        else:
+            await response.edit(embed = create_embed({
+                "title": f"Changed {member}'s nickname to {new_nickname}",
+                "color": discord.Color.green()
+            }))
+
+    @commands.command(aliases = ["silence"], description = "Mutes/unmutes the member in the voice channel.", brief = "bot creator or mute members")
     @commands.check_any(commands.is_owner(), commands.has_permissions(mute_members = True))
     async def mute(self, context, member: discord.Member = None): 
-        if (not member):
+        if not member:
             member = context.author
+
+        response = await context.send(embed = create_embed({
+            "title": f"Muting/unmuting {member}...",
+            "color": discord.Color.gold()
+        }))
+
+        if not member.voice or not member.voice.channel:
+            await response.edit(embed = create_embed({
+                "title": f"{member} is not connected to a voice channel",
+                "color": discord.Color.red()
+            }))
+            return
 
         will_mute = not member.voice.mute
 
         try:
             await member.edit(mute = will_mute)
         except Exception as error_message:
-            fill = will_mute and "muting" or "unmuting"
-            await context.send(embed = create_embed(f"Error: Something went wrong when {fill} {member}", discord_color.red(), {
-                "Error Message": str(error_message)
+            await response.edit(embed = create_embed({
+                "title": "Could not {status} {member}".format(
+                    status = will_mute and "mute" or "unmute",
+                    member = member
+                ),
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
             }))
         else:
-            fill = will_mute and "muted" or "unmuted"
-            await context.send(embed = create_embed(f"Success: {member} was {fill}", color = discord_color.green()))
+            await response.edit(embed = create_embed({
+                "title": "{status} {member}".format(
+                    status = will_mute and "Muted" or "Unmuted",
+                    member = member
+                ),
+                "color": discord.Color.green()
+            }))
 
-    @commands.command()
+    @commands.command(description = "Deafens/undeafens the member in the voice channel.", brief = "bot creator or mute members")
     @commands.check_any(commands.is_owner(), commands.has_permissions(mute_members = True))
     async def deafen(self, context, member: discord.Member = None): 
-        if (not member):
+        if not member:
             member = context.author
+
+        response = await context.send(embed = create_embed({
+            "title": f"Deafening/undeafening {member}...",
+            "color": discord.Color.gold()
+        }))
+
+        if not member.voice or not member.voice.channel:
+            await response.edit(embed = create_embed({
+                "title": f"{member} is not connected to a voice channel",
+                "color": discord.Color.red()
+            }))
+            return
 
         will_deafen = not member.voice.deaf
 
         try:
             await member.edit(deafen = will_deafen)
         except Exception as error_message:
-            fill = will_deafen and "deafening" or "undeafening"
-            await context.send(embed = create_embed(f"Error: Something went wrong when {fill} {member}", discord_color.red(), {
-                "Error Message": str(error_message)
+            await response.edit(embed = create_embed({
+                "title": "Could not {status} {member}".format(
+                    status = will_deafen and "deafen" or "undeafen",
+                    member = member
+                ),
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
             }))
         else:
-            fill = will_deafen and "deafened" or "undeafened"
-            await context.send(embed = create_embed(f"Success: {member} was {fill}", color = discord_color.green()))
+            await response.edit(embed = create_embed({
+                "title": "{status} {member}".format(
+                    status = will_deafen and "Deafened" or "Undeafened",
+                    member = member
+                ),
+                "color": discord.Color.green()
+            }))
 
-    @commands.command()
+    @commands.command(description = "Moves the member to the voice channel.", brief = "bot creator or move members")
     @commands.check_any(commands.is_owner(), commands.has_permissions(move_members = True))
-    async def move(self, context, member: discord.Member = None, *, voice_channel): 
-        channel = discord.utils.get(context.guild.voice_channels, name = voice_channel)
-        await member.move_to(channel)
+    async def move(self, context, member: discord.Member, *, voice_channel: discord.VoiceChannel): 
+        response = await context.send(embed = create_embed({
+            "title": f"Moving {member} to {voice_channel}...",
+            "color": discord.Color.gold()
+        }))
+
+        if not member.voice or not member.voice.channel:
+            await response.edit(embed = create_embed({
+                "title": f"{member} is not connected to a voice channel",
+                "color": discord.Color.red()
+            }))
+            return
+
+        try:
+            await member.move_to(voice_channel)
+        except Exception as error_message:
+            await response.edit(embed = create_embed({
+                "title": f"Could not move {member} to {voice_channel}",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
+            }))
+        else:
+            await response.edit(embed = create_embed({
+                "title": f"Moved {member} to {voice_channel}",
+                "color": discord.Color.green()
+            }))
 
 def setup(client):
-    client.add_cog(moderation_commands(client))
+    client.add_cog(moderation(client))
