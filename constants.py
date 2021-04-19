@@ -49,6 +49,7 @@ STOCKS_PERIOD = "2h"
 STOCKS_INTERVAL = "1m"
 
 VERSION_LOGS = {
+    "1.0.6": "Added net-worth to ?bal",
     "1.0.5": "Removed minecraft subscription and status because it caused the bot to randomly disconnect and slow down.",
     "1.0.4": "Added money reward for leveling up.",
     "1.0.3": "Fixed ACAS not making announcements.",

@@ -3,6 +3,7 @@ from discord.ext import commands
 
 from constants import ECONOMY_MAX_FIELDS_FOR_LEADERBOARD_EMBED
 from helper import create_embed, get_settings, get_user_data, save_user_data, get_all_user_data
+from cogs.stocks import get_price
 
 class economy(commands.Cog, description = "Economy system commands."):
     def __init__(self, client):
@@ -20,10 +21,25 @@ class economy(commands.Cog, description = "Economy system commands."):
 
         try:
             user_data = get_user_data(member.id)
+            net_worth = 0
             money = round(user_data["money"], 2)
+            portfolio = 0
+
+            for order in user_data["stock_orders"]:
+                ticker_price = get_price(order["ticker"])
+                if ticker_price:
+                    portfolio += ticker_price * order["shares"]
+
+            net_worth = round(money + portfolio, 2)
+
             await response.edit(embed = create_embed({
-                "title": f"{member}'s Balance: ${money}"
+                "title": f"{member}'s Balance: ${net_worth}"
+            }, {
+                "Bank": f"${money}",
+                "Stocks": f"${portfolio}"
             }))
+
+
         except Exception as error_message:
             await response.edit(embed = create_embed({
                 "title": f"Could not load {member}'s balance",
