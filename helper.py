@@ -54,6 +54,7 @@ def get_settings(guild_id: int):
     data = settings_data_store.find_one({"guild_id": guild_id}) 
     if not data:
         data = DEFAULT_GUILD_SETTINGS.copy()
+        data["guild_id"] = guild_id
         settings_data_store.insert_one(data)
     return data
 
