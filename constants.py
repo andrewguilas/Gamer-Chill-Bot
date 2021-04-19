@@ -47,3 +47,9 @@ LEVELING_UNFILL_EMOJI = "⬜"
 
 STOCKS_PERIOD = "2h"
 STOCKS_INTERVAL = "1m"
+
+VERSION_LOGS = {
+    "1.0.2": "Added ?updatelog.",
+    "1.0.1": "Added ?status and minecraft server subscriptions.",
+    "1.0.0": "Added settings, more portfolio info, and increased performance.",
+}

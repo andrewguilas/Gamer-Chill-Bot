@@ -1,12 +1,19 @@
 import discord
 from discord.ext import commands
-
 import os
 import sys
 import time
 import math
+import requests
 
 from helper import create_embed, get_settings, save_settings, get_channel, get_role, is_guild_owner, format_time
+from constants import VERSION_LOGS
+
+def get_first_n_items(dictionary, number):
+    new_dictionary = {}
+    for index in list(dictionary)[:number]:
+        new_dictionary[index] = dictionary.get(index)
+    return new_dictionary
 
 class bot(commands.Cog, description = "Bot management and settings."):
     def __init__(self, client):
@@ -503,6 +510,13 @@ class bot(commands.Cog, description = "Bot management and settings."):
             }, {
                 "Error Message": error_message
             }))
+
+    @commands.command()
+    async def updatelog(self, context):
+        logs = get_first_n_items(VERSION_LOGS, 10)
+        await context.send(embed = create_embed({
+            "title": "Update Log",
+        }, logs))
 
 def setup(client):
     client.add_cog(bot(client))
