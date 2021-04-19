@@ -23,6 +23,9 @@ def attach_default_data(data):
     if not data["subscriptions"].get("roblox"):
         data["subscriptions"]["roblox"] = []
 
+    if not data["subscriptions"].get("minecraft"):
+        data["subscriptions"]["minecraft"] = []
+
     if not data.get("stock_orders"):
         data["stock_orders"] = []
 
