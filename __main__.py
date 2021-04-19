@@ -109,4 +109,4 @@ client.remove_command("help")
 for extension in EXTENSIONS:
     client.load_extension(f"cogs.{extension}")
 
-client.run(TEST_TOKEN)
+client.run(TOKEN)
