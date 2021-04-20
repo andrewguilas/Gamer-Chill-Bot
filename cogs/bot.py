@@ -134,8 +134,7 @@ class bot(commands.Cog, description = "Bot management and settings."):
         }))
         sys.exit()
 
-    @commands.command(aliases = ["set"], description = "Changes a server specific setting in the data stores.", brief = "bot creator or administrator")
-    @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
+    @commands.command(aliases = ["set"], description = "Changes a server specific setting in the data stores.", brief = "specific")
     async def setsettings(self, context, name: str, *, value = None):
         response = await context.send(embed = create_embed({
             "title": "Changing settings...",
@@ -149,6 +148,13 @@ class bot(commands.Cog, description = "Bot management and settings."):
             settings = get_settings(context.guild.id)
             name = name.lower()
             if name == "join_channel":
+                if not context.author.guild_permissions.administrator and not await self.client.is_owner(context.author):
+                    await response.edit(embed = create_embed({
+                        "title": f"You don't have administrator or bot creator permissions",
+                        "color": discord.Color.red(),
+                    }))
+                    return
+
                 if not value or value.lower() == "none":
                     settings["join_channel"] = None
                     save_settings(settings)
@@ -173,6 +179,13 @@ class bot(commands.Cog, description = "Bot management and settings."):
                             "color": discord.Color.red(),
                         }))
             elif name == "default_role":
+                if not context.author.guild_permissions.administrator and not await self.client.is_owner(context.author):
+                    await response.edit(embed = create_embed({
+                        "title": f"You don't have administrator or bot creator permissions",
+                        "color": discord.Color.red(),
+                    }))
+                    return
+
                 if not value or value.lower() == "none":
                     settings["default_role"] = None
                     save_settings(settings)
@@ -198,6 +211,13 @@ class bot(commands.Cog, description = "Bot management and settings."):
                         }))
             
             elif name == "acas_channel":
+                if not context.author.guild_permissions.administrator and not await self.client.is_owner(context.author):
+                    await response.edit(embed = create_embed({
+                        "title": f"You don't have administrator or bot creator permissions",
+                        "color": discord.Color.red(),
+                    }))
+                    return
+
                 if not value or value.lower() == "none":
                     settings["acas_channel"] = None
                     save_settings(settings)
@@ -222,6 +242,13 @@ class bot(commands.Cog, description = "Bot management and settings."):
                             "color": discord.Color.red(),
                         }))
             elif name == "acas_role":
+                if not context.author.guild_permissions.administrator and not await self.client.is_owner(context.author):
+                    await response.edit(embed = create_embed({
+                        "title": f"You don't have administrator or bot creator permissions",
+                        "color": discord.Color.red(),
+                    }))
+                    return
+
                 if not value or value.lower() == "none":
                     settings["acas_role"] = None
                     save_settings(settings)
@@ -343,6 +370,13 @@ class bot(commands.Cog, description = "Bot management and settings."):
                     return
             
             elif name == "voice_exp":
+                if not context.author.guild_permissions.administrator and not await self.client.is_owner(context.author):
+                    await response.edit(embed = create_embed({
+                        "title": f"You don't have administrator or bot creator permissions",
+                        "color": discord.Color.red(),
+                    }))
+                    return
+
                 value = int(value)
                 if value:
                     settings["voice_exp"] = value
@@ -359,6 +393,13 @@ class bot(commands.Cog, description = "Bot management and settings."):
                     }))
                     return
             elif name == "message_exp":
+                if not context.author.guild_permissions.administrator and not await self.client.is_owner(context.author):
+                    await response.edit(embed = create_embed({
+                        "title": f"You don't have administrator or bot creator permissions",
+                        "color": discord.Color.red(),
+                    }))
+                    return
+
                 value = int(value)
                 if value:
                     settings["message_exp"] = value
@@ -375,6 +416,13 @@ class bot(commands.Cog, description = "Bot management and settings."):
                     }))
                     return
             elif name == "level_dificulty":
+                if not context.author.guild_permissions.administrator and not await self.client.is_owner(context.author):
+                    await response.edit(embed = create_embed({
+                        "title": f"You don't have administrator or bot creator permissions",
+                        "color": discord.Color.red(),
+                    }))
+                    return
+            
                 value = int(value)
                 if value:
                     settings["level_dificulty"] = value
@@ -391,6 +439,13 @@ class bot(commands.Cog, description = "Bot management and settings."):
                     }))
                     return
             elif name == "message_cooldown":
+                if not context.author.guild_permissions.administrator and not await self.client.is_owner(context.author):
+                    await response.edit(embed = create_embed({
+                        "title": f"You don't have administrator or bot creator permissions",
+                        "color": discord.Color.red(),
+                    }))
+                    return
+
                 value = int(value)
                 if value:
                     settings["message_cooldown"] = value
@@ -407,6 +462,13 @@ class bot(commands.Cog, description = "Bot management and settings."):
                     }))
                     return
             elif name == "money_per_level":
+                if not context.author.guild_permissions.administrator and not await self.client.is_owner(context.author):
+                    await response.edit(embed = create_embed({
+                        "title": f"You don't have administrator or bot creator permissions",
+                        "color": discord.Color.red(),
+                    }))
+                    return
+
                 value = int(value)
                 if value:
                     settings["money_per_level"] = value
@@ -438,8 +500,7 @@ class bot(commands.Cog, description = "Bot management and settings."):
                 "Value": value,
             }))            
 
-    @commands.command(aliases = ["settings"], description = "Retrieves a list of server specific settings in the data store.", brief = "bot creator or administrator")
-    @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
+    @commands.command(aliases = ["settings"], description = "Retrieves a list of server specific settings in the data store.")
     async def getsettings(self, context):
         response = await context.send(embed = create_embed({
             "title": "Loading settings...",
