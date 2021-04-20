@@ -1,11 +1,13 @@
-TOKEN = "ODEzMjU4Njg3MjI5NDYwNDkw.YDMsLA.Tc2QvlTr_-SBZnoJ88W8SLSZUUE"
-TEST_TOKEN = "ODI3MjIzMDExNzM5ODI4MjM0.YGX5dw.x0ZjP8RgiV1JujgmAdlIkimsGKQ"
-MONGO_TOKEN = "mongodb+srv://admin:QZnOT86qe3TQ@cluster0.meksl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
-CLIENT_ID = "813258687229460490"
+import os
+
+TOKEN = os.environ.get("GCB_TOKEN")
+TEST_TOKEN = os.environ.get("GCB_TEST_TOKEN")
+MONGO_TOKEN = os.environ.get("GCB_DB_TOKEN")
+CLIENT_ID = os.environ.get("GCB_CLIENT_ID")
 REDDIT_INFO = {
-    "client_id": "cTdcYAFeJKqwKg",
-    "client_secret": "QO0zyzU_pB8voB0nQUvfXIRgqmL02g", 
-    "password": "6&OB7s4PcCKz&08o",
-    "user_agent": "gamer-chill-bot",
-    "username": "Hast1e"
+    "client_id": os.environ.get("GCB_REDDIT_CLIENT_ID"),
+    "client_secret": os.environ.get("GCB_REDDIT_CLIENT_SECRET"),
+    "password": os.environ.get("GCB_REDDIT_PASSWORD"),
+    "user_agent": os.environ.get("GCB_REDDIT_USER_AGENT"),
+    "username": os.environ.get("GCB_REDDIT_USERNAME"),
 }
