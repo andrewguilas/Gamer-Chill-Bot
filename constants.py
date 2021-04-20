@@ -4,7 +4,6 @@ DEFAULT_USER_DATA = {"user_id": None}
 EXTENSIONS = [
     "events",
     "bot",
-    "acas",
     "default",
     "fun",
     "moderation",
