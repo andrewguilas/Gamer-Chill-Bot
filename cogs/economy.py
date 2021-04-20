@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 
 from constants import ECONOMY_MAX_FIELDS_FOR_LEADERBOARD_EMBED
-from helper import create_embed, get_settings, get_user_data, save_user_data, get_all_user_data
+from helper import create_embed, get_settings, get_user_data, save_user_data, get_all_user_data, sort_dictionary
 from cogs.stocks import get_price
 
 class economy(commands.Cog, description = "Economy system commands."):
@@ -55,32 +55,35 @@ class economy(commands.Cog, description = "Economy system commands."):
             "color": discord.Color.gold()
         }))
 
-        try:
-            all_user_data = get_all_user_data("money")
-            guild_user_data = []
-            for data in all_user_data:
-                if context.guild.get_member(data["user_id"]):
-                    guild_user_data.append(data)
+        all_user_data = get_all_user_data("money")
+        richest_list = {}
+        for data in all_user_data:
+            user = context.guild.get_member(data["user_id"])
+            if user:
+                net_worth = 0
+                money = round(data["money"], 2)
+                portfolio = 0
 
-            fields = {}
-            for rank, member_data in enumerate(guild_user_data):
-                member = context.guild.get_member(member_data["user_id"])
-                money = round(member_data["money"], 2)
-                fields[f"{rank + 1}. {member.name}"] = f"${money}"
-                
-                if rank == ECONOMY_MAX_FIELDS_FOR_LEADERBOARD_EMBED - 1:
-                    break
-        
-            await response.edit(embed = create_embed({
-                "title": "Forbes"
-            }, fields))
-        except Exception as error_message:
-            await response.edit(embed = create_embed({
-                "title": f"Could not load Forbes...",
-                "color": discord.Color.red()
-            }, {
-                "Error Message": error_message
-            }))
+                for order in data["stock_orders"]:
+                    ticker_price = get_price(order["ticker"])
+                    if ticker_price:
+                        portfolio += ticker_price * order["shares"]
+
+                net_worth = round(money + portfolio, 2)
+                richest_list[user.name] = net_worth
+
+        richest_list = sort_dictionary(richest_list, True)
+
+        fields = {}
+        for rank, member_name in enumerate(richest_list):
+            net_worth = richest_list.get(member_name)
+            fields[f"{rank + 1}. {member_name}"] = f"${net_worth}"
+            if rank == ECONOMY_MAX_FIELDS_FOR_LEADERBOARD_EMBED - 1:
+                break
+
+        await response.edit(embed = create_embed({
+            "title": "Forbes"
+        }, fields))
 
     @commands.command(description = "Gives a member money.")
     async def give(self, context, member: discord.Member, amount: float):

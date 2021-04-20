@@ -38,7 +38,7 @@ async def load(context, extension: str):
 
 @client.command(description = "Disables a cog.", brief = "bot creator or administrator")
 @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
-async def unload(context, extension):
+async def unload(context , extension):
     response = await context.send(embed = create_embed({
         "title": f"Unloading {extension}...",
         "color": discord.Color.gold(),
