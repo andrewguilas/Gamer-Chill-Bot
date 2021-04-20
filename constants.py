@@ -4,7 +4,6 @@ DEFAULT_USER_DATA = {"user_id": None}
 EXTENSIONS = [
     "events",
     "bot",
-    "acas",
     "default",
     "fun",
     "moderation",
@@ -18,7 +17,7 @@ EXTENSIONS = [
 
 ACAS_BLACKLISTED_DAYS = [4, 5, 6]
 ACAS_REMINDER_BLOCK_TIMES = ["09:20:00", "10:50:00", "12:35:00", "14:35:00"]
-ACAS_BLOCK_TIMES = ["9:25:00", "10:55:00", "12:40:00", "14:40:00"]
+ACAS_BLOCK_TIMES = ["09:25:00", "10:55:00", "12:40:00", "14:40:00"]
 ACAS_UPDATE_DELAY = 1
 
 ECONOMY_MAX_FIELDS_FOR_LEADERBOARD_EMBED = 10
