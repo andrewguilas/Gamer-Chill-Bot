@@ -11,3 +11,11 @@ REDDIT_INFO = {
     "user_agent": os.getenv("GCB_REDDIT_USER_AGENT"),
     "username": os.getenv("GCB_REDDIT_USERNAME"),
 }
+
+print("---------- ENV VARS ----------")
+print(TOKEN)
+print(TEST_TOKEN)
+print(MONGO_TOKEN)
+print(CLIENT_ID)
+print(REDDIT_INFO)
+print("------------------------------")
