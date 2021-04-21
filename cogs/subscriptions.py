@@ -40,7 +40,7 @@ class subscriptions(commands.Cog, description = "Subscribe to different events."
                     roblox_players[roblox_player_id].append(user_data["user_id"])
 
                 if not self.roblox_user_status.get(roblox_player_id):
-                    self.roblox_user_status[roblox_player_id] = "offline"
+                    self.roblox_user_status[roblox_player_id] = ""
 
         for roblox_player_id, users_to_notify in roblox_players.items():
             try:
@@ -59,7 +59,7 @@ class subscriptions(commands.Cog, description = "Subscribe to different events."
                 status = status_data["LastLocation"].lower()
                 status = status == "playing" and "online" or status == "online" and "online" or "offline"
 
-                if self.roblox_user_status[roblox_player_id] != status:
+                if self.roblox_user_status[roblox_player_id] != "" and self.roblox_user_status[roblox_player_id] != status:
                     self.roblox_user_status[roblox_player_id] = status
 
                     for user_to_notify in users_to_notify:
@@ -74,6 +74,8 @@ class subscriptions(commands.Cog, description = "Subscribe to different events."
                                 username = user_data["Username"],
                                 current_time = datetime.now(tz = pytz.timezone("US/Eastern")).strftime("%m/%d/%y at %I:%M %p")
                             ))
+                elif self.roblox_user_status[roblox_player_id] == "":
+                    self.roblox_user_status[roblox_player_id] = status
             except Exception as error_message:
                 print(f"ERROR: Something went wrong when checking the roblox user {roblox_player_id}'s status")
                 print(error_message)

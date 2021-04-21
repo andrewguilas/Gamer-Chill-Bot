@@ -333,6 +333,8 @@ STOCKS_PERIOD = "2h"
 STOCKS_INTERVAL = "1m"
 
 VERSION_LOGS = {
+    "1.0.11": "Fixed notifying users of subscriptions upon bot startup",
+    "1.0.10": "Added ?get to view valid vc_accent and vc_language settings.",
     "1.0.9": "Made ?forbes list net-worth instead of bank balance.",
     "1.0.8": "Created specific permissions for changing certain settings.",
     "1.0.7": "Merged ACAS with subscriptions. Do `?subscribe acas` to subscribe/unsubscribe from acas. Fixed acas not announcing block 1.",
