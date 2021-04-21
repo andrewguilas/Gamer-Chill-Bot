@@ -6,7 +6,7 @@ import time
 import math
 
 from helper import create_embed, get_settings, save_settings, get_channel, get_role, is_guild_owner, format_time
-from constants import VERSION_LOGS
+from constants import VERSION_LOGS, VC_LANGUAGES, VC_ACCENTS
 
 def get_first_n_items(dictionary, number):
     new_dictionary = {}
@@ -316,6 +316,13 @@ class bot(commands.Cog, description = "Bot management and settings."):
             elif name == "vc_accent":
                 value = str(value)
                 if value:
+                    if not VC_ACCENTS.get(value):
+                        await response.edit(embed = create_embed({
+                            "title": f"{value} is not a valid accent",
+                            "color": discord.Color.red()
+                        }))
+                        return
+
                     settings["vc_accent"] = value
                     save_settings(settings)
 
@@ -328,10 +335,16 @@ class bot(commands.Cog, description = "Bot management and settings."):
                         "title": f"{value} could not be converted to a string",
                         "color": discord.Color.red()
                     }))
-                    return
             elif name == "vc_language":
                 value = str(value)
                 if value:
+                    if not VC_LANGUAGES.get(value):
+                        await response.edit(embed = create_embed({
+                            "title": f"{value} is not a valid language",
+                            "color": discord.Color.red()
+                        }))
+                        return
+
                     settings["vc_language"] = value
                     save_settings(settings)
 
@@ -519,6 +532,63 @@ class bot(commands.Cog, description = "Bot management and settings."):
                 "color": discord.Color.red(),
             }, {
                 "Error Message": error_message,
+            }))
+
+    @commands.command(description = "Gets specific data.")
+    async def get(self, context, name: str, *, value = None):
+        response = await context.send(embed = create_embed({
+            "title": f"Loading {name}...",
+            "color": discord.Color.gold()
+        }))
+
+        try:
+            if name == "vc_language":
+                if value:
+                    value = int(value)
+                else:
+                    value = 1
+
+                first_page = value * 25 - 25
+                last_page = value * 25
+
+                fields = {}
+                for key, language_name in enumerate(list(VC_LANGUAGES.keys())):
+                    if key >= first_page and key < last_page:
+                        fields[language_name] = VC_LANGUAGES[language_name]
+
+                await response.edit(embed = create_embed({
+                    "title": f"VC Languages (Page {value})",
+                    "inline": True,
+                }, fields))
+            elif name == "vc_accent":
+                if value:
+                    value = int(value)
+                else:
+                    value = 1
+
+                first_page = value * 25 - 25
+                last_page = value * 25
+
+                fields = {}
+                for key, language_name in enumerate(list(VC_ACCENTS.keys())):
+                    if key >= first_page and key < last_page:
+                        fields[language_name] = VC_ACCENTS[language_name]
+
+                await response.edit(embed = create_embed({
+                    "title": f"VC Accents (Page {value})",
+                    "inline": True,
+                }, fields))
+            else:
+                await response.edit(embed = create_embed({
+                    "title": f"{name} does not have any data",
+                    "color": discord.Color.red()
+                }))
+        except Exception as error_message:
+            await response.edit(embed = create_embed({
+                "title": f"Could not get {name}",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
             }))
 
     @commands.command(description = "Retrieves the Python and discord.py version the bot is running on.")
