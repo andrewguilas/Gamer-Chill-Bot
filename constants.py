@@ -333,6 +333,7 @@ STOCKS_PERIOD = "2h"
 STOCKS_INTERVAL = "1m"
 
 VERSION_LOGS = {
+    "1.0.13": "Rounded values in ?bal",
     "1.0.12": "Fixed showing incorrect accents.",
     "1.0.11": "Fixed notifying users of subscriptions upon bot startup",
     "1.0.10": "Added ?get to view valid vc_accent and vc_language settings.",

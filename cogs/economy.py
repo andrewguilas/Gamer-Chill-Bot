@@ -30,6 +30,7 @@ class economy(commands.Cog, description = "Economy system commands."):
                 if ticker_price:
                     portfolio += ticker_price * order["shares"]
 
+            portfolio = round(portfolio, 2)
             net_worth = round(money + portfolio, 2)
 
             await response.edit(embed = create_embed({
