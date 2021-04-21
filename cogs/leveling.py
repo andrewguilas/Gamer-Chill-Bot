@@ -34,7 +34,7 @@ class leveling(commands.Cog, description = "Leveling system commands."):
 
             for voice_channel in guild.voice_channels:
                 for member in voice_channel.members:
-                    if member.voice.self_deaf:
+                    if member.bot or member.voice.self_deaf:
                         continue
 
                     # give exp
@@ -90,6 +90,13 @@ class leveling(commands.Cog, description = "Leveling system commands."):
         if not member:
             member = context.author
     
+        if member.bot:
+            await context.send(embed = create_embed({
+                "title": f"{member} is a bot",
+                "color": discord.Color.red()
+            }))
+            return
+
         response = await context.send(embed = create_embed({
             "title": f"Loading {member}'s rank",
             "color": discord.Color.gold()

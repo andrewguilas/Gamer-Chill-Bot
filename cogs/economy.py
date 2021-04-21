@@ -14,6 +14,13 @@ class economy(commands.Cog, description = "Economy system commands."):
         if not member:
             member = context.author
 
+        if member.bot:
+            await context.send(embed = create_embed({
+                "title": f"{member} is a bot",
+                "color": discord.Color.red()
+            }))
+            return
+
         response = await context.send(embed = create_embed({
             "title": f"Loading {member}'s balance",
             "color": discord.Color.gold()
@@ -88,6 +95,13 @@ class economy(commands.Cog, description = "Economy system commands."):
 
     @commands.command(description = "Gives a member money.")
     async def give(self, context, member: discord.Member, amount: float):
+        if member.bot:
+            await context.send(embed = create_embed({
+                "title": f"{member} is a bot",
+                "color": discord.Color.red()
+            }))
+            return
+
         response = await context.send(embed = create_embed({
             "title": f"Giving {member} ${amount}",
             "color": discord.Color.gold()
