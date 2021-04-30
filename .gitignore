@@ -2,3 +2,5 @@
 /.vscode
 /__pycache__
 */__pycache__
+/__temp__
+*/__temp__

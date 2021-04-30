@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from pymongo import MongoClient
 import os
+import math
 from constants import DEFAULT_GUILD_DATA, DEFAULT_USER_DATA, IS_TESTING, LIVE_DATASTORE, TESTING_DATASTORE
 
 MONGO_TOKEN = os.getenv("GCB_DB_TOKEN")
@@ -93,7 +94,7 @@ def create_embed(info: {} = {}, fields: {} = {}):
     if info.get("author"):
         embed.set_author(name = info.author.name, url = info.author.mention, icon_url = info.author.avatar_url)
     if info.get("footer"):
-        embed.set_footer(text = info.footer)
+        embed.set_footer(text = info.get("footer"))
     if info.get("image"):
         embed.set_image(url = info.url)
     if info.get("thumbnail"):
@@ -147,3 +148,9 @@ def sort_dictionary(dictionary, is_reversed = False):
     for value in sorted_list:
         sorted_dictionary[value[0]] = value[1]
     return sorted_dictionary
+
+def get_first_n_items(dictionary, number):
+    new_dictionary = {}
+    for index in list(dictionary)[:number]:
+        new_dictionary[index] = dictionary.get(index)
+    return new_dictionary

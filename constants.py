@@ -1,6 +1,6 @@
 EXTENSIONS = [
     "events",
-    # "bot",
+    "bot",
     # "default",
     # "fun",
     # "moderation",
@@ -358,7 +358,7 @@ LEVELING_MONEY_PER_LEVEL = 10
 STOCKS_PERIOD = "2h"
 STOCKS_INTERVAL = "1m"
 
-MAX_LEADERBOARD_FIELDS  = 10
+MAX_LEADERBOARD_FIELDS = 10
 MAX_FILL = 10
 
 FILL_EMOJI = "🟦"
