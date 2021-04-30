@@ -1,15 +1,15 @@
 EXTENSIONS = [
-    "events",
-    "bot",
-    "default",
-    "fun",
-    "moderation",
-    "server",
-    "vc",
-    "subscriptions",
-    "leveling",
-    "economy",
-    "stocks"
+    # "events",
+    # "bot",
+    # "default",
+    # "fun",
+    # "moderation",
+    # "server",
+    # "vc",
+    # "subscriptions",
+    # "leveling",
+    # "economy",
+    # "stocks"
 ]
 
 DEFAULT_GUILD_DATA = {

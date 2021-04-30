@@ -1,3 +1,5 @@
+import discord
+from discord.ext import commands
 from pymongo import MongoClient
 import os
 from constants import DEFAULT_GUILD_DATA, DEFAULT_USER_DATA, IS_TESTING, LIVE_DATASTORE, TESTING_DATASTORE
