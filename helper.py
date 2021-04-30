@@ -1,104 +1,81 @@
-import discord
-from discord.ext import commands
 from pymongo import MongoClient
-import math
 import os
+from constants import DEFAULT_GUILD_DATA, DEFAULT_USER_DATA, IS_TESTING, LIVE_DATASTORE, TESTING_DATASTORE
 
-from constants import DEFAULT_GUILD_SETTINGS, DEFAULT_USER_DATA, ECONOMY_STARTING_MONEY, LEVELING_DEFAULT_EXPERIENCE
-
-MONGO_TOKEN = os.getenv("GCB_DB_TOKEN")
+MONGO_TOKEN = os.getenv("GCS_MONGO_TOKEN")
 cluster = MongoClient(MONGO_TOKEN)
-settings_data_store = cluster.discord_revamp.settings
-user_data_store = cluster.discord_revamp.user
+datastore_name = IS_TESTING and TESTING_DATASTORE or LIVE_DATASTORE
 
-# data
+guild_datastore = cluster[datastore_name]["guild"]
+user_datastore = cluster[datastore_name]["user"]
 
-def get_settings(guild_id: int):
-    data = settings_data_store.find_one({"guild_id": guild_id}) 
-    if not data:
-        data = DEFAULT_GUILD_SETTINGS.copy()
-        data["guild_id"] = guild_id
-        settings_data_store.insert_one(data)
-    return data
+# guild data
 
-def save_settings(data):
-    settings_data_store.update_one({"guild_id": data["guild_id"]}, {"$set": data})
+def attach_default_guild_data(guild_data):
+    new_guild_data = DEFAULT_GUILD_DATA.copy()
+    for key in new_guild_data.keys():
+        if guild_data.get(key):
+            new_guild_data[key] = guild_data[key]
+    return new_guild_data
 
-def get_all_guild_data():
-    return list(settings_data_store.find({}))
+def get_guild_data(guild_id: int):
+    guild_data = guild_datastore.find_one({"guild_id": guild_id})
+    if not guild_data:
+        guild_data = DEFAULT_GUILD_DATA.copy()
+        guild_data["guild_id"] = guild_id
+        guild_data = attach_default_guild_data(guild_data)
+        guild_datastore.insert_one(guild_data)
+    else:
+        guild_data = attach_default_guild_data(guild_data)
+    return guild_data
 
-def get_user_data(user_id: int):
-    data = user_data_store.find_one({"user_id": user_id}) 
-    data_is_new = False
+def save_guild_data(guild_data):
+    guild_datastore.update_one({"guild_id": guild_data["guild_id"]}, {"$set": guild_data})
 
-    if not data:
-        data_is_new = True
-        data = DEFAULT_USER_DATA.copy()
-        data["user_id"] = user_id
-
-    attach_default_data(data)
-
-    if data_is_new:
-        user_data_store.insert_one(data)
-
-    return data
-
-def save_user_data(data):
-    user_data_store.update_one({"user_id": data["user_id"]}, {"$set": data})
-
-def get_all_user_data(name: str = None):
-    all_cursor_data = name and user_data_store.find().sort(name, -1) or user_data_store.find({})
-    all_data = []
-
-    for data in all_cursor_data:
-        data = attach_default_data(data)
-        all_data.append(data)
-        
+def get_all_guild_data(sort_value: str = None):
+    all_data = sort_value and guild_datastore.find().sort(sort_value, -1) or guild_datastore.find({})
+    for index, data in all_data.items():
+        all_data[index] = attach_default_guild_data(data)
     return all_data
 
-# permissions
+# user data
 
-def is_guild_owner():
-    def predicate(context):
-        return context.guild and context.guild.owner_id == context.author.id
-    return commands.check(predicate)
+def attach_default_user_data(user_data):
+    new_user_data = DEFAULT_USER_DATA.copy()
+    for key in new_user_data.keys():
+        if user_data.get(key):
+            new_user_data[key] = user_data[key]
+    return new_user_data
 
-def check_if_authorized(context, member: discord.Member):
-    author_top_role = context.author.top_role
-    member_top_role = member.top_role
-    
-    if member == context.guild.owner: # if target is server owner
-        return False
-    elif context.author == context.guild.owner: # is author server owner
-        return True
-    elif author_top_role and member_top_role and author_top_role.position > member_top_role.position: # is author higher than member
-        return True
-    elif author_top_role and not member_top_role: # does author have a role and member does not 
-        return True
+def get_user_data(user_id: int):
+    user_data = user_datastore.find_one({"user_id": user_id})
+    if not user_data:
+        user_data = DEFAULT_USER_DATA.copy()
+        user_data["user_id"] = user_id
+        user_data = attach_default_user_data(user_data)
+        user_datastore.insert_one(user_data)
     else:
-        return False
+        user_data = attach_default_user_data(user_data)
+    return user_data
 
-# local
+def save_user_data(user_data):
+    user_datastore.update_one({"user_id": user_data["user_id"]}, {"$set": user_data})
 
-def attach_default_data(data):
-    if not data.get("money"):
-        data["money"] = ECONOMY_STARTING_MONEY
+def get_all_user_data(sort_value: str = None):
+    all_data = sort_value and user_datastore.find().sort(sort_value, -1) or user_datastore.find({})
+    for index, data in all_data.items():
+        all_data[index] = attach_default_user_data(data)
+    return all_data
 
-    if not data.get("experience"):
-        data["experience"] = LEVELING_DEFAULT_EXPERIENCE
+# other
 
-    if not data.get("subscriptions"):
-        data["subscriptions"] = {"roblox": []}
-
-    if not data["subscriptions"].get("roblox"):
-        data["subscriptions"]["roblox"] = []
-
-    if not data.get("stock_orders"):
-        data["stock_orders"] = []
-
-    return data
-
-# misc
+def get_object(objects: [], value):
+    for obj in objects:
+        try:
+            if obj.name == value or value == obj.mention or obj.id == int(value):
+                return obj
+        except:
+            pass
 
 def create_embed(info: {} = {}, fields: {} = {}):
     embed = discord.Embed(
@@ -122,25 +99,25 @@ def create_embed(info: {} = {}, fields: {} = {}):
     
     return embed
 
-def get_channel(text_channels: [], value):
-    channel = None
+def is_guild_owner():
+    def predicate(context):
+        return context.guild and context.guild.owner_id == context.author.id
+    return commands.check(predicate)
 
-    try:
-        channel = discord.utils.find(lambda channel: channel.name == value, text_channels) or discord.utils.find(lambda channel: channel.mention == value, text_channels) or discord.utils.find(lambda channel: channel.id == int(value), text_channels)
-    except Exception:
-        pass
-
-    return channel
-
-def get_role(roles: [], value):
-    role = None
-
-    try:
-        role = discord.utils.find(lambda role: role.name == value, roles) or discord.utils.find(lambda role: role.mention == value, roles) or discord.utils.find(lambda role: role.id == int(value), roles)
-    except Exception:
-        pass
-
-    return role
+def check_if_authorized(context, member: discord.Member):
+    author_top_role = context.author.top_role
+    member_top_role = member.top_role
+    
+    if member == context.guild.owner: # if target is server owner
+        return False
+    elif context.author == context.guild.owner: # is author server owner
+        return True
+    elif author_top_role and member_top_role and author_top_role.position > member_top_role.position: # is author higher than member
+        return True
+    elif author_top_role and not member_top_role: # does author have a role and member does not 
+        return True
+    else:
+        return False
 
 def format_time(timestamp):
     hours = math.floor(timestamp / 60 / 60)
@@ -162,18 +139,9 @@ def format_time(timestamp):
     timestamp_text = f"{hours}:{minutes}:{seconds}"
     return timestamp_text
 
-def list_to_string(list: []):
-    string = ""
-    for index, value in enumerate(list):
-        if index > 0:
-            string = string + ", "
-        string = string + value
-    return string
-
 def sort_dictionary(dictionary, is_reversed = False):
     sorted_dictionary = {}
     sorted_list = sorted(dictionary.items(), key = lambda x: x[1], reverse = is_reversed)
     for value in sorted_list:
         sorted_dictionary[value[0]] = value[1]
     return sorted_dictionary
-

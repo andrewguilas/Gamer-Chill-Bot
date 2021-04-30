@@ -359,3 +359,7 @@ MAX_FILL = 10
 
 FILL_EMOJI = "🟦"
 UNFILL_EMOJI = "⬜"
+
+IS_TESTING = True
+LIVE_DATASTORE = "datastore1"
+TESTING_DATASTORE = "datastore2"
