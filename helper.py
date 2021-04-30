@@ -2,10 +2,11 @@ import discord
 from discord.ext import commands
 from pymongo import MongoClient
 import math
+import os
 
-from secrets import MONGO_TOKEN
 from constants import DEFAULT_GUILD_SETTINGS, DEFAULT_USER_DATA, ECONOMY_STARTING_MONEY, LEVELING_DEFAULT_EXPERIENCE
 
+MONGO_TOKEN = os.getenv("GCB_DB_TOKEN")
 cluster = MongoClient(MONGO_TOKEN)
 settings_data_store = cluster.discord_revamp.settings
 user_data_store = cluster.discord_revamp.user

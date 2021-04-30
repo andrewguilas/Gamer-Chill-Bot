@@ -1,7 +1,9 @@
 import discord
 from discord.ext import commands
 from helper import create_embed, list_to_string, sort_dictionary
-from secrets import CLIENT_ID
+import os
+
+CLIENT_ID = os.getenv("GCB_CLIENT_ID")
 
 class default(commands.Cog, description = "Default bot commands."):
     def __init__(self, client):

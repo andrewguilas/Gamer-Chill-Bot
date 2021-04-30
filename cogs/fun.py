@@ -6,16 +6,16 @@ import random
 import asyncpraw
 from translate import Translator
 from datetime import datetime
+import os
 
-from secrets import REDDIT_INFO
 from helper import create_embed
 
 reddit = asyncpraw.Reddit(
-    client_id = REDDIT_INFO["client_id"],
-    client_secret = REDDIT_INFO["client_secret"], 
-    password = REDDIT_INFO["password"],
-    user_agent = REDDIT_INFO["user_agent"],
-    username = REDDIT_INFO["username"]
+    client_id = os.getenv("GCB_REDDIT_CLIENT_ID"),
+    client_secret = os.getenv("GCB_REDDIT_CLIENT_SECRET"),
+    password = os.getenv("GCB_REDDIT_PASSWORD"),
+    user_agent = os.getenv("GCB_REDDIT_USER_AGENT"),
+    username = os.getenv("GCB_REDDIT_USERNAME"),
 )
 
 async def get_meme():

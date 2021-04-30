@@ -1,6 +1,3 @@
-PREFIX = "?"
-DEFAULT_GUILD_SETTINGS = {"guild_id": None}
-DEFAULT_USER_DATA = {"user_id": None}
 EXTENSIONS = [
     "events",
     "bot",
@@ -15,98 +12,49 @@ EXTENSIONS = [
     "stocks"
 ]
 
-ACAS_BLACKLISTED_DAYS = [4, 5, 6]
-ACAS_REMINDER_BLOCK_TIMES = ["09:20:00", "10:50:00", "12:35:00", "14:35:00"]
-ACAS_BLOCK_TIMES = ["09:25:00", "10:55:00", "12:40:00", "14:40:00"]
-ACAS_UPDATE_DELAY = 1
+DEFAULT_GUILD_DATA = {
+    "guild_id": None,
+    "prefix": "?",
+    "vc_language": "en",
+    "vc_accent": "com",
+    "vc_slowmode": False,
+    "message_cooldown": 10,
+    "exp_per_message": 5,
+    "exp_channels": [],
+}
 
-ECONOMY_MAX_FIELDS_FOR_LEADERBOARD_EMBED = 10
-ECONOMY_STARTING_MONEY = 1000
+DEFAULT_USER_DATA = {
+    "user_id": None,
+    "money": 1000,
+    "experience": 0
+}
 
-VC_LANGUAGE = "en"
-VC_ACCENT = "com"
-VC_VOICE_IS_SLOW = False
+VERSION_LOGS = {
+    "1.0.14": "Fixed bot's receiving EXP and money.",
+    "1.0.13": "Rounded values in ?bal.",
+    "1.0.12": "Fixed showing incorrect accents.",
+    "1.0.11": "Fixed notifying users of subscriptions upon bot startup.",
+    "1.0.10": "Added ?get to view valid vc_accent and vc_language settings.",
+    "1.0.9": "Made ?forbes list net-worth instead of bank balance.",
+    "1.0.8": "Created specific permissions for changing certain settings.",
+    "1.0.7": "Merged ACAS with subscriptions. Do `?subscribe acas` to subscribe/unsubscribe from acas. Fixed acas not announcing block 1.",
+    "1.0.6": "Added net-worth to ?bal.",
+    "1.0.5": "Removed minecraft subscription and status because it caused the bot to randomly disconnect and slow down.",
+    "1.0.4": "Added money reward for leveling up.",
+    "1.0.3": "Fixed ACAS not making announcements.",
+    "1.0.2": "Added ?updatelog.",
+    "1.0.1": "Added ?status and minecraft server subscriptions.",
+    "1.0.0": "Added settings, more portfolio info, and increased performance.",
+}
 
-VC_LANGUAGES = {
-    "af": "Afrikaans",
-    "ar": "Arabic",
-    "bn": "Bengali",
-    "bs": "Bosnian",
-    "ca": "Catalan",
-    "cs": "Czech",
-    "cy": "Welsh",
-    "da": "Danish",
-    "de": "German",
-    "el": "Greek",
-    "en-au": "English (Australia)",
-    "en-ca": "English (Canada)",
-    "en-gb": "English (UK)",
-    "en-gh": "English (Ghana)",
-    "en-ie": "English (Ireland)",
-    "en-in": "English (India)",
-    "en-ng": "English (Nigeria)",
-    "en-nz": "English (New Zealand)",
-    "en-ph": "English (Philippines)",
-    "en-tz": "English (Tanzania)",
-    "en-uk": "English (UK)",
-    "en-us": "English (US)",
-    "en-za": "English (South Africa)",
-    "en": "English",
-    "eo": "Esperanto",
-    "es-es": "Spanish (Spain)",
-    "es-us": "Spanish (United States)",
-    "es": "Spanish",
-    "et": "Estonian",
-    "fi": "Finnish",
-    "fr-ca": "French (Canada)",
-    "fr-fr": "French (France)",
-    "fr": "French",
-    "gu": "Gujarati",
-    "hi": "Hindi",
-    "hr": "Croatian",
-    "hu": "Hungarian",
-    "hy": "Armenian",
-    "id": "Indonesian",
-    "is": "Icelandic",
-    "it": "Italian",
-    "ja": "Japanese",
-    "jw": "Javanese",
-    "km": "Khmer",
-    "kn": "Kannada",
-    "ko": "Korean",
-    "la": "Latin",
-    "lv": "Latvian",
-    "mk": "Macedonian",
-    "ml": "Malayalam",
-    "mr": "Marathi",
-    "my": "Myanmar (Burmese)",
-    "ne": "Nepali",
-    "nl": "Dutch",
-    "no": "Norwegian",
-    "pl": "Polish",
-    "pt-br": "Portuguese (Brazil)",
-    "pt-pt": "Portuguese (Portugal)",
-    "pt": "Portuguese",
-    "ro": "Romanian",
-    "ru": "Russian",
-    "si": "Sinhala",
-    "sk": "Slovak",
-    "sq": "Albanian",
-    "sr": "Serbian",
-    "su": "Sundanese",
-    "sv": "Swedish",
-    "sw": "Swahili",
-    "ta": "Tamil",
-    "te": "Telugu",
-    "th": "Thai",
-    "tl": "Filipino",
-    "tr": "Turkish",
-    "uk": "Ukrainian",
-    "ur": "Urdu",
-    "vi": "Vietnamese",
-    "zh-CN": "Chinese",
-    "zh-cn": "Chinese (Mandarin/China)",
-    "zh-tw": "Chinese (Mandarin/Taiwan)"
+SETTINGS = {
+    "prefix <prefix: str>": "Changes the bot's prefix for activating commands.",
+    "vc_language <lan: str>": "Changes the bot's TTS language.",
+    "vc_accent <acc: str>": "Changes the bot's TTS accent.",
+    "vc_slowmode <is_slow: bool": "Changes whether the bot will speak slowly.",
+    "message_cooldown <sec: int>": "Changes the cooldown for earning EXP for messaging.",
+    "exp_per_message <exp: int>": "Changes the amount of EXP a user will receive for messaging.",
+    "exp_channels <chan: chan>": "Adds/removes a channel where users can receive EXP for messaging."
 }
 
 VC_ACCENTS = {
@@ -312,40 +260,102 @@ VC_ACCENTS = {
     "co.zw": "Zimbabwe"
 }
 
-SUBSCRIPTIONS_STATUS_URL = "http://api.roblox.com/users/USER_ID/onlinestatus/"
-SUBSCRIPTIONS_USERNAME_URL = "http://api.roblox.com/users/USER_ID"
-SUBSCRIPTIONS_UPDATE_DELAY = 60
+VC_LANGUAGES = {
+    "af": "Afrikaans",
+    "ar": "Arabic",
+    "bn": "Bengali",
+    "bs": "Bosnian",
+    "ca": "Catalan",
+    "cs": "Czech",
+    "cy": "Welsh",
+    "da": "Danish",
+    "de": "German",
+    "el": "Greek",
+    "en-au": "English (Australia)",
+    "en-ca": "English (Canada)",
+    "en-gb": "English (UK)",
+    "en-gh": "English (Ghana)",
+    "en-ie": "English (Ireland)",
+    "en-in": "English (India)",
+    "en-ng": "English (Nigeria)",
+    "en-nz": "English (New Zealand)",
+    "en-ph": "English (Philippines)",
+    "en-tz": "English (Tanzania)",
+    "en-uk": "English (UK)",
+    "en-us": "English (US)",
+    "en-za": "English (South Africa)",
+    "en": "English",
+    "eo": "Esperanto",
+    "es-es": "Spanish (Spain)",
+    "es-us": "Spanish (United States)",
+    "es": "Spanish",
+    "et": "Estonian",
+    "fi": "Finnish",
+    "fr-ca": "French (Canada)",
+    "fr-fr": "French (France)",
+    "fr": "French",
+    "gu": "Gujarati",
+    "hi": "Hindi",
+    "hr": "Croatian",
+    "hu": "Hungarian",
+    "hy": "Armenian",
+    "id": "Indonesian",
+    "is": "Icelandic",
+    "it": "Italian",
+    "ja": "Japanese",
+    "jw": "Javanese",
+    "km": "Khmer",
+    "kn": "Kannada",
+    "ko": "Korean",
+    "la": "Latin",
+    "lv": "Latvian",
+    "mk": "Macedonian",
+    "ml": "Malayalam",
+    "mr": "Marathi",
+    "my": "Myanmar (Burmese)",
+    "ne": "Nepali",
+    "nl": "Dutch",
+    "no": "Norwegian",
+    "pl": "Polish",
+    "pt-br": "Portuguese (Brazil)",
+    "pt-pt": "Portuguese (Portugal)",
+    "pt": "Portuguese",
+    "ro": "Romanian",
+    "ru": "Russian",
+    "si": "Sinhala",
+    "sk": "Slovak",
+    "sq": "Albanian",
+    "sr": "Serbian",
+    "su": "Sundanese",
+    "sv": "Swedish",
+    "sw": "Swahili",
+    "ta": "Tamil",
+    "te": "Telugu",
+    "th": "Thai",
+    "tl": "Filipino",
+    "tr": "Turkish",
+    "uk": "Ukrainian",
+    "ur": "Urdu",
+    "vi": "Vietnamese",
+    "zh-CN": "Chinese",
+    "zh-cn": "Chinese (Mandarin/China)",
+    "zh-tw": "Chinese (Mandarin/Taiwan)"
+}
+
+ACAS_BLACKLISTED_DAYS = [4, 5, 6]
+ACAS_REMINDER_BLOCK_TIMES = ["09:20:00", "10:50:00", "12:35:00", "14:35:00"]
+ACAS_BLOCK_TIMES = ["09:25:00", "10:55:00", "12:40:00", "14:40:00"]
+ACAS_UPDATE_DELAY = 1
 
 LEVELING_UPDATE_DELAY = 60
-LEVELING_MESSAGE_COOLDOWN = 30
-LEVELING_MESSAGE_EXP = 5
-LEVELING_VOICE_EXP = 1
-LEVELING_LEVEL_DIFFICULTY = 20
-LEVELING_MAX_BOXES_FOR_RANK_EMBED = 10
-LEVELING_MAX_FIELDS_FOR_LEADERBOARD_EMBED = 10
-LEVELING_DEFAULT_EXPERIENCE = 0
-LEVELING_MONEY_PER_LEVEL = 50
-
-LEVELING_FILL_EMOJI = "🟦"
-LEVELING_UNFILL_EMOJI = "⬜"
+LEVELING_LEVEL_DIFFICULTY = 50
+LEVELING_MONEY_PER_LEVEL = 10
 
 STOCKS_PERIOD = "2h"
 STOCKS_INTERVAL = "1m"
 
-VERSION_LOGS = {
-    "1.0.14": "Fixed bot's receiving EXP and money.",
-    "1.0.13": "Rounded values in ?bal.",
-    "1.0.12": "Fixed showing incorrect accents.",
-    "1.0.11": "Fixed notifying users of subscriptions upon bot startup.",
-    "1.0.10": "Added ?get to view valid vc_accent and vc_language settings.",
-    "1.0.9": "Made ?forbes list net-worth instead of bank balance.",
-    "1.0.8": "Created specific permissions for changing certain settings.",
-    "1.0.7": "Merged ACAS with subscriptions. Do `?subscribe acas` to subscribe/unsubscribe from acas. Fixed acas not announcing block 1.",
-    "1.0.6": "Added net-worth to ?bal.",
-    "1.0.5": "Removed minecraft subscription and status because it caused the bot to randomly disconnect and slow down.",
-    "1.0.4": "Added money reward for leveling up.",
-    "1.0.3": "Fixed ACAS not making announcements.",
-    "1.0.2": "Added ?updatelog.",
-    "1.0.1": "Added ?status and minecraft server subscriptions.",
-    "1.0.0": "Added settings, more portfolio info, and increased performance.",
-}
+MAX_LEADERBOARD_FIELDS  = 10
+MAX_FILL = 10
+
+FILL_EMOJI = "🟦"
+UNFILL_EMOJI = "⬜"

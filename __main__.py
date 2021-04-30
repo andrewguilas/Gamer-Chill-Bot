@@ -1,9 +1,8 @@
 import discord
 from discord.ext import commands
 from pymongo import MongoClient
-import logging
+import os
 
-from secrets import TOKEN, TEST_TOKEN
 from constants import PREFIX, EXTENSIONS, DEFAULT_GUILD_SETTINGS
 from helper import create_embed, get_settings
 
@@ -11,6 +10,8 @@ async def get_prefix(client, context):
     guild_data = get_settings(context.guild.id)
     return guild_data.get("prefix") or PREFIX
 
+TOKEN = os.getenv("GCB_TOKEN")
+TEST_TOKEN = os.getenv("GCB_TEST_TOKEN")
 client = commands.Bot(command_prefix = get_prefix, intents = discord.Intents.all())
 
 @client.command(description = "Enables a cog.", brief = "bot creator or administrator")
@@ -109,4 +110,4 @@ client.remove_command("help")
 for extension in EXTENSIONS:
     client.load_extension(f"cogs.{extension}")
 
-client.run(TOKEN)
+client.run(TEST_TOKEN)
