@@ -1,7 +1,7 @@
 EXTENSIONS = [
     "events",
     "bot",
-    # "default",
+    "default",
     # "fun",
     # "moderation",
     # "server",
@@ -17,12 +17,16 @@ DEFAULT_GUILD_DATA = {
     "prefix": "?",
     "vc_language": "en",
     "vc_accent": "com",
-    "vc_slowmode": False,
+    "vc_slow_mode": False,
     "message_cooldown": 10,
     "exp_per_message": 5,
     "exp_channels": [],
     "join_channel": None,
     "default_role": None,
+    "acas_channel": None,
+    "acas_role": None,
+    "acas_enabled": False,
+    "voice_exp": 1,
 }
 
 DEFAULT_USER_DATA = {
@@ -53,12 +57,21 @@ SETTINGS = {
     "prefix <prefix: str>": "Changes the bot's prefix for activating commands.",
     "vc_language <lan: str>": "Changes the bot's TTS language.",
     "vc_accent <acc: str>": "Changes the bot's TTS accent.",
-    "vc_slowmode <is_slow: bool": "Changes whether the bot will speak slowly.",
+    "vc_slow_mode <is_slow: bool": "Changes whether the bot will speak slowly.",
     "message_cooldown <sec: int>": "Changes the cooldown for earning EXP for messaging.",
     "exp_per_message <exp: int>": "Changes the amount of EXP a user will receive for messaging.",
     "exp_channels <chann: chann>": "Adds/removes a channel where users can receive EXP for messaging.",
     "join_channel <chann: chann>": "Changes the channel where member join and leave messages will be sent.",
     "default_role <role: role>": "Changes the role that will be given to members who join the server.",
+    "acas_channel <chann: chann>": "Changes the channel where ACAS announcements will be sent.",
+    "acas_role <role: role>": "Changes the role that will be pinged for every ACAS announcement.",
+    "acas_enabled <is_enabled: bool>": "Changes whether ACAS announcements will be sent.",
+    "voice_exp <exp: int>": "Changes the amount of EXP rewarded to members for being connected to a VC every minute."
+}
+
+GET_FLAGS = {
+    "vc_language": "Supported TTS languages.",
+    "vc_accent": "Supported TTS accents.",
 }
 
 VC_ACCENTS = {
