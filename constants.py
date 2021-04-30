@@ -1,5 +1,5 @@
 EXTENSIONS = [
-    # "events",
+    "events",
     # "bot",
     # "default",
     # "fun",
@@ -21,6 +21,8 @@ DEFAULT_GUILD_DATA = {
     "message_cooldown": 10,
     "exp_per_message": 5,
     "exp_channels": [],
+    "join_channel": None,
+    "default_role": None,
 }
 
 DEFAULT_USER_DATA = {
@@ -54,7 +56,9 @@ SETTINGS = {
     "vc_slowmode <is_slow: bool": "Changes whether the bot will speak slowly.",
     "message_cooldown <sec: int>": "Changes the cooldown for earning EXP for messaging.",
     "exp_per_message <exp: int>": "Changes the amount of EXP a user will receive for messaging.",
-    "exp_channels <chan: chan>": "Adds/removes a channel where users can receive EXP for messaging."
+    "exp_channels <chann: chann>": "Adds/removes a channel where users can receive EXP for messaging.",
+    "join_channel <chann: chann>": "Changes the channel where member join and leave messages will be sent.",
+    "default_role <role: role>": "Changes the role that will be given to members who join the server.",
 }
 
 VC_ACCENTS = {

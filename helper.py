@@ -4,7 +4,7 @@ from pymongo import MongoClient
 import os
 from constants import DEFAULT_GUILD_DATA, DEFAULT_USER_DATA, IS_TESTING, LIVE_DATASTORE, TESTING_DATASTORE
 
-MONGO_TOKEN = os.getenv("GCS_MONGO_TOKEN")
+MONGO_TOKEN = os.getenv("GCB_DB_TOKEN")
 cluster = MongoClient(MONGO_TOKEN)
 datastore_name = IS_TESTING and TESTING_DATASTORE or LIVE_DATASTORE
 

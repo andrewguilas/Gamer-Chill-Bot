@@ -7,8 +7,8 @@ from constants import EXTENSIONS, IS_TESTING
 from helper import create_embed, get_guild_data
 
 async def get_prefix(client, context):
-    guild_data = get_settings(context.guild.id)
-    return guild_data.get("prefix")
+    guild_data = get_guild_data(context.guild.id)
+    return guild_data["prefix"]
 
 intents = discord.Intents.default()
 intents.members = True
