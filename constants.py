@@ -2,7 +2,7 @@ EXTENSIONS = [
     "events",
     "bot",
     "default",
-    # "fun",
+    "fun",
     # "moderation",
     # "server",
     # "vc",
@@ -359,6 +359,32 @@ VC_LANGUAGES = {
     "zh-tw": "Chinese (Mandarin/Taiwan)"
 }
 
+EIGHTBALL_RESPONSES = [
+    "It is certain.",
+    "It is decidedly so.",
+    "Without a doubt.",
+    "Yes - definitely.",
+    "You may rely on it.",
+    "As I see it, yes.",
+    "Most likely.",
+    "Outlook good.",
+    "Yes.",
+    "Signs point to yes.",
+    "Reply hazy, try again.",
+    "Ask again later.",
+    "Better not tell you now.",
+    "Cannot predict now.",
+    "Concentrate and ask again.",
+    "Don't count on it.",
+    "My reply is no.",
+    "My sources say no.",
+    "Outlook not so good.",
+    "Very doubtful.",
+    "No.",
+    "Your question isn't important, but btc to the moon is.",
+    "Ask better questions next time.",
+]
+
 ACAS_BLACKLISTED_DAYS = [4, 5, 6]
 ACAS_REMINDER_BLOCK_TIMES = ["09:20:00", "10:50:00", "12:35:00", "14:35:00"]
 ACAS_BLOCK_TIMES = ["09:25:00", "10:55:00", "12:40:00", "14:40:00"]
@@ -380,3 +406,6 @@ UNFILL_EMOJI = "⬜"
 IS_TESTING = True
 LIVE_DATASTORE = "datastore1"
 TESTING_DATASTORE = "datastore2"
+
+MAX_MEMES = 5
+MEME_SUBREDDIT = "memes"
