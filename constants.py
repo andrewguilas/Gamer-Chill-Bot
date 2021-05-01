@@ -3,7 +3,7 @@ EXTENSIONS = [
     "bot",
     "default",
     "fun",
-    # "vc",
+    "vc",
     # "subscriptions",
     # "leveling",
     # "economy",
@@ -409,3 +409,6 @@ MAX_MEMES = 5
 MEME_SUBREDDIT = "memes"
 
 DELETE_RESPONSE_DELAY = 3
+
+TEMP_PATH = "__temp__"
+TTS_PATH = "__temp__/tts.mp3"

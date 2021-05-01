@@ -3,16 +3,20 @@ from discord.ext import commands
 from gtts import gTTS 
 from mutagen.mp3 import MP3
 import asyncio
+import os
 
-from helper import create_embed, get_settings
-from constants import VC_LANGUAGE, VC_ACCENT, VC_VOICE_IS_SLOW
+from helper import create_embed, get_guild_data
+from constants import TEMP_PATH, TTS_PATH
 
 def create_voice_file(message: str, guild_id: int):
-    guild_settings = get_settings(guild_id)
-    audio = gTTS(text = message, lang = guild_settings.get("vc_language") or VC_LANGUAGE, tld = guild_settings.get("vc_accent") or VC_ACCENT, slow = guild_settings.get("vc_slow_mode") or VC_VOICE_IS_SLOW) 
-    file_name = "TTS\\output_message.mp3"
-    audio.save(file_name) 
-    return file_name
+    guild_settings = get_guild_data(guild_id)
+    audio = gTTS(text = message, lang = guild_settings["vc_language"], tld = guild_settings["vc_accent"], slow = guild_settings["vc_slow_mode"]) 
+
+    if not os.path.isdir(TEMP_PATH):
+        os.mkdir(TEMP_PATH)
+    audio.save(TTS_PATH) 
+    
+    return TTS_PATH
 
 class vc(commands.Cog, description = "Bot management for voice channels."):
     def __init__(self, client):
@@ -36,8 +40,7 @@ class vc(commands.Cog, description = "Bot management for voice channels."):
                 response = "left"
 
             if response:
-                response = f"{user.nick or user.name} {response}"
-                voice_file = create_voice_file(response, user.guild.id)
+                voice_file = create_voice_file(f"{user.nick or user.name} {response}", user.guild.id)
                 voice_client.stop()
                 voice_client.play(discord.FFmpegPCMAudio(voice_file))
 
@@ -86,12 +89,11 @@ class vc(commands.Cog, description = "Bot management for voice channels."):
             }))
         except Exception as error_message:
             await response.edit(embed = create_embed({
-                "title": "Could not join voice channel",
+                "title": "Could not join the voice channel",
                 "color": discord.Color.red()
             }, {
                 "Error Message": error_message
             }))
-            return
 
     @commands.command(description = "Makes the bot leave the voice channel.")
     async def leave(self, context):
@@ -135,10 +137,8 @@ class vc(commands.Cog, description = "Bot management for voice channels."):
     @commands.command(description = "Says a TTS message in the voice channel.")
     async def say(self, context, *, message: str):
         response = await context.send(embed = create_embed({
-            "title": "Saying message...",
+            "title": f"Saying {message}...",
             "color": discord.Color.gold()
-        }, {
-            "Message": message
         }))
 
         try:
@@ -163,7 +163,6 @@ class vc(commands.Cog, description = "Bot management for voice channels."):
                 await voice_client.disconnect()
             if not voice_client or voice_client.channel != voice_channel:
                 voice_client = await voice_channel.connect()
-
                 voice_file = create_voice_file("Gamer Chill Bot Joined", context.guild.id)
                 voice_client.stop()
                 voice_client.play(discord.FFmpegPCMAudio(voice_file))
@@ -172,20 +171,17 @@ class vc(commands.Cog, description = "Bot management for voice channels."):
             voice_file = create_voice_file(message, context.guild.id)
             voice_client.stop()
             voice_client.play(discord.FFmpegPCMAudio(voice_file))
+
+            await response.edit(embed = create_embed({
+                "title": f"Said {message}",
+                "color": discord.Color.green()
+            }))
         except Exception as error_message:
             await response.edit(embed = create_embed({
-                "title": "Could not say message",
+                "title": f"Could not say {message}",
                 "color": discord.Color.red()
             }, {
                 "Error Message": error_message,
-                "Message": message
-            }))
-        else:
-            await response.edit(embed = create_embed({
-                "title": "Message said",
-                "color": discord.Color.green()
-            }, {
-                "Message": message
             }))
 
 def setup(client):
