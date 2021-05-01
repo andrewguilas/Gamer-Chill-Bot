@@ -1,9 +1,10 @@
 import discord
 from discord.ext import commands
 import os
+import re
 
-from helper import create_embed, get_guild_data, save_guild_data, get_object
-from constants import SETTINGS, GET_FLAGS, VC_ACCENTS, VC_LANGUAGES
+from helper import create_embed, get_guild_data, save_guild_data, get_object, check_if_authorized, sort_dictionary
+from constants import SETTINGS, GET_FLAGS, VC_ACCENTS, VC_LANGUAGES, DELETE_RESPONSE_DELAY
 
 CLIENT_ID = os.getenv("GCB_CLIENT_ID")
 
@@ -734,6 +735,66 @@ class default(commands.Cog, description = "Default bot commands."):
         except Exception as error_message:
             await response.edit(embed = create_embed({
                 "title": f"Could not get {name}",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
+            }))
+
+    @commands.command(aliases = ["delete"], description = "Clears a set amount of text messages.", brief = "manage messages")
+    @commands.check_any(commands.is_owner(), commands.has_permissions(manage_messages = True))
+    async def clear(self, context, amount: int = 1):
+        response = await context.send(embed = create_embed({
+            "title": f"Clearing {amount} messages...",
+            "color": discord.Color.gold()
+        }))
+
+        try:
+            deleted_messages_count = 0
+
+            def check(context2):
+                return context2.id != response.id
+
+            deleted_messages = await context.channel.purge(limit = amount + 2, check = check)
+            deleted_messages_count = len(deleted_messages) - 1
+
+            await response.edit(embed = create_embed({
+                "title": f"Deleted {deleted_messages_count} messages",
+                "color": discord.Color.green()
+            }), delete_after = DELETE_RESPONSE_DELAY)
+        except Exception as error_message:
+            await response.edit(embed = create_embed({
+                "title": f"Could not delete {amount} messages",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
+            }))
+
+    @commands.command(description = "Lists the top messagers in the server.")
+    async def messageleaderboard(self, context):
+        response = await context.send(embed = create_embed({
+            "title": "Loading message leaderboard...",
+            "color": discord.Color.gold()
+        }))
+
+        try:
+            members = {}
+            for channel in context.guild.text_channels:
+                messages = await channel.history().flatten()
+                for message in messages:
+                    author_name = message.author.name
+                    if not members.get(author_name):
+                        members[author_name] = 1
+                    else:
+                        members[author_name] += 1
+
+            members = sort_dictionary(members, True)
+
+            await response.edit(embed = create_embed({
+                "title": "Message Leaderboard"
+            }, members))
+        except Exception as error_message:
+            await response.edit(embed = create_embed({
+                "title": "Could not load message leaderboard",
                 "color": discord.Color.red()
             }, {
                 "Error Message": error_message

@@ -3,8 +3,6 @@ EXTENSIONS = [
     "bot",
     "default",
     "fun",
-    "moderation",
-    # "server",
     # "vc",
     # "subscriptions",
     # "leveling",
