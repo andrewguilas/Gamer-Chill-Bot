@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import yfinance as yf
 
-from helper import create_embed, get_settings, get_user_data, save_user_data
+from helper import create_embed, get_guild_data, get_user_data, save_user_data
 from constants import STOCKS_PERIOD, STOCKS_INTERVAL
 
 def get_price(ticker: str):

@@ -6,7 +6,7 @@ EXTENSIONS = [
     "vc",
     "acas",
     "leveling",
-    # "economy",
+    "economy",
     # "stocks"
 ]
 
@@ -31,7 +31,8 @@ DEFAULT_GUILD_DATA = {
 DEFAULT_USER_DATA = {
     "user_id": None,
     "money": 1000,
-    "experience": 0
+    "experience": 0,
+    "stocks": {}
 }
 
 VERSION_LOGS = {
