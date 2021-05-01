@@ -37,9 +37,12 @@ def save_guild_data(guild_data):
 
 def get_all_guild_data(sort_value: str = None):
     all_data = sort_value and guild_datastore.find().sort(sort_value, -1) or guild_datastore.find({})
-    for index, data in all_data.items():
-        all_data[index] = attach_default_guild_data(data)
-    return all_data
+    # all_data is a custom object
+    # not allowing item item assignment
+    new_all_data = []
+    for index, data in enumerate(list(all_data)):
+        new_all_data.insert(index, attach_default_guild_data(data))
+    return new_all_data
 
 # user data
 

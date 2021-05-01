@@ -4,7 +4,7 @@ EXTENSIONS = [
     "default",
     "fun",
     "vc",
-    # "subscriptions",
+    "acas",
     # "leveling",
     # "economy",
     # "stocks"
