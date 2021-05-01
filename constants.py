@@ -3,7 +3,7 @@ EXTENSIONS = [
     "bot",
     "default",
     "fun",
-    # "moderation",
+    "moderation",
     # "server",
     # "vc",
     # "subscriptions",
@@ -409,3 +409,5 @@ TESTING_DATASTORE = "datastore2"
 
 MAX_MEMES = 5
 MEME_SUBREDDIT = "memes"
+
+DELETE_RESPONSE_DELAY = 3
