@@ -3,8 +3,8 @@ from discord.ext import commands, tasks
 import time
 import math
 
-from helper import create_embed, get_settings, get_user_data, save_user_data, get_all_user_data
-from constants import LEVELING_UPDATE_DELAY, LEVELING_MESSAGE_COOLDOWN, LEVELING_MESSAGE_EXP, LEVELING_VOICE_EXP, LEVELING_LEVEL_DIFFICULTY, LEVELING_MAX_BOXES_FOR_RANK_EMBED, LEVELING_MAX_FIELDS_FOR_LEADERBOARD_EMBED, LEVELING_FILL_EMOJI, LEVELING_UNFILL_EMOJI, LEVELING_MONEY_PER_LEVEL
+from helper import create_embed, get_guild_data, get_user_data, save_user_data, get_all_user_data
+from constants import LEVELING_UPDATE_DELAY, LEVELING_LEVEL_DIFFICULTY, MAX_FILL, FILL_EMOJI, UNFILL_EMOJI, MAX_LEADERBOARD_FIELDS
 
 def get_level_from_experience(experience, level_dificulty):
     return math.floor(experience / level_dificulty)
@@ -29,52 +29,46 @@ class leveling(commands.Cog, description = "Leveling system commands."):
         await self.client.wait_until_ready()
 
         for guild in self.client.guilds:
-            guild_settings = get_settings(guild.id)
-            level_dificulty = guild_settings.get("level_dificulty") or LEVELING_LEVEL_DIFFICULTY
+            guild_settings = get_guild_data(guild.id)
 
             for voice_channel in guild.voice_channels:
+                if voice_channel == guild.afk_channel or len(voice_channel.members) < 2:
+                    continue
+
                 for member in voice_channel.members:
                     if member.bot or member.voice.self_deaf:
                         continue
 
                     # give exp
                     user_data = get_user_data(member.id)
-                    old_level = get_level_from_experience(user_data["experience"], level_dificulty)
-                    user_data["experience"] += guild_settings.get("voice_exp") or LEVELING_VOICE_EXP
+                    old_level = get_level_from_experience(user_data["experience"], LEVELING_LEVEL_DIFFICULTY)
+                    user_data["experience"] += guild_settings["voice_exp"]
 
-                    new_level = get_level_from_experience(user_data["experience"], level_dificulty)
+                    new_level = get_level_from_experience(user_data["experience"], LEVELING_LEVEL_DIFFICULTY)
                     if old_level != new_level:
-                        user_data["money"] += guild_settings.get("money_per_level") or LEVELING_MONEY_PER_LEVEL
+                        user_data["money"] += guild_settings["money_per_level"]
 
                     save_user_data(user_data)
 
     @commands.Cog.listener()
     async def on_message(self, message):
         author = message.author
-
         if author.bot:
             return
 
         # cooldown
-        guild_settings = get_settings(message.guild.id)
-        level_dificulty = guild_settings.get("level_dificulty") or LEVELING_LEVEL_DIFFICULTY
+        guild_settings = get_guild_data(message.guild.id)
         time_since_last_message = self.recent_messagers.get(author.id)
-        if time_since_last_message:
-            duration_since_last_message = int(time.time() - time_since_last_message)
-            cooldown = int(guild_settings.get("message_cooldown") or LEVELING_MESSAGE_COOLDOWN)
-            if duration_since_last_message < cooldown:
-                return
-            else:
-                self.recent_messagers[author.id] = None
-        else:
-            self.recent_messagers[author.id] = time.time()
+        if time_since_last_message and time.time() - time_since_last_message < guild_settings["message_cooldown"]:
+            return
+        self.recent_messagers[author.id] = time.time()
 
         # give exp
         user_data = get_user_data(author.id)
-        old_level = get_level_from_experience(user_data["experience"], level_dificulty)
-        user_data["experience"] += guild_settings.get("message_exp") or LEVELING_MESSAGE_EXP
+        old_level = get_level_from_experience(user_data["experience"], LEVELING_LEVEL_DIFFICULTY)
+        user_data["experience"] += guild_settings["exp_per_message"]
 
-        new_level = get_level_from_experience(user_data["experience"], level_dificulty)
+        new_level = get_level_from_experience(user_data["experience"], LEVELING_LEVEL_DIFFICULTY)
         if old_level != new_level:
             user_data["money"] += guild_settings.get("money_per_level") or LEVELING_MONEY_PER_LEVEL * new_level
             await message.channel.send(embed = create_embed({
@@ -82,8 +76,6 @@ class leveling(commands.Cog, description = "Leveling system commands."):
             }))
 
         save_user_data(user_data)
-
-        # await self.client.process_commands(message)
 
     @commands.command(description = "Retrieves the user's level, experience, and rank.")
     async def rank(self, context, member: discord.Member = None):
@@ -98,19 +90,15 @@ class leveling(commands.Cog, description = "Leveling system commands."):
             return
 
         response = await context.send(embed = create_embed({
-            "title": f"Loading {member}'s rank",
+            "title": f"Loading {member}'s rank...",
             "color": discord.Color.gold()
         }))
 
         try:
-            guild_settings = get_settings(context.guild.id)
-            level_dificulty = guild_settings.get("level_dificulty") or LEVELING_LEVEL_DIFFICULTY
-
             user_data = get_user_data(member.id)
-            experience = user_data["experience"]
-            level = get_level_from_experience(experience, level_dificulty)
-            
-            experience_for_level = get_experience_from_level(level + 1, level_dificulty)
+            level = get_level_from_experience(user_data["experience"], LEVELING_LEVEL_DIFFICULTY)
+            experience = user_data["experience"] - get_experience_from_level(level, LEVELING_LEVEL_DIFFICULTY)
+            experience_for_level = get_experience_from_level(level + 1, LEVELING_LEVEL_DIFFICULTY) - get_experience_from_level(level, LEVELING_LEVEL_DIFFICULTY)
 
             all_user_data = get_all_user_data("experience")
             guild_user_data = []
@@ -123,9 +111,9 @@ class leveling(commands.Cog, description = "Leveling system commands."):
                     rank = index + 1
                     break
 
-            blue_boxes = int(experience / experience_for_level * LEVELING_MAX_BOXES_FOR_RANK_EMBED)
-            white_boxes = (LEVELING_MAX_BOXES_FOR_RANK_EMBED - blue_boxes)
-            progress_bar = blue_boxes * LEVELING_FILL_EMOJI + white_boxes * LEVELING_UNFILL_EMOJI
+            blue_boxes = int(experience / experience_for_level * MAX_FILL)
+            white_boxes = (MAX_FILL - blue_boxes)
+            progress_bar = blue_boxes * FILL_EMOJI + white_boxes * UNFILL_EMOJI
 
             await response.edit(embed = create_embed({
                 "title": f"{member}'s rank...",
@@ -136,7 +124,7 @@ class leveling(commands.Cog, description = "Leveling system commands."):
             }))
         except Exception as error_message:
             await response.edit(embed = create_embed({
-                "title": f"Could not load {member}'s rank...",
+                "title": f"Could not load {member}'s rank",
                 "color": discord.Color.red()
             }, {
                 "Error Message": error_message
@@ -150,9 +138,6 @@ class leveling(commands.Cog, description = "Leveling system commands."):
         }))
 
         try:
-            guild_settings = get_settings(context.guild.id)
-            level_dificulty = guild_settings.get("level_dificulty") or LEVELING_LEVEL_DIFFICULTY
-
             all_user_data = get_all_user_data("experience")
             guild_user_data = []
             for user_data in all_user_data:
@@ -164,20 +149,20 @@ class leveling(commands.Cog, description = "Leveling system commands."):
             for rank, member_data in enumerate(guild_user_data):
                 member = context.guild.get_member(member_data["user_id"])
                 if member:
-                    experience = member_data["experience"]
-                    level = get_level_from_experience(experience, level_dificulty)
-                    experience_for_level = get_experience_from_level(level + 1, level_dificulty)
+                    level = get_level_from_experience(user_data["experience"], LEVELING_LEVEL_DIFFICULTY)
+                    experience = user_data["experience"] - get_experience_from_level(level, LEVELING_LEVEL_DIFFICULTY)
+                    experience_for_level = get_experience_from_level(level + 1, LEVELING_LEVEL_DIFFICULTY) - get_experience_from_level(level, LEVELING_LEVEL_DIFFICULTY)
                     fields[f"{rank + 1}. {member.name}"] = f"Level {level} ({experience}/{experience_for_level})"
                 
-                if rank == LEVELING_MAX_FIELDS_FOR_LEADERBOARD_EMBED - 1:
-                    break
+                    if rank == MAX_LEADERBOARD_FIELDS - 1:
+                        break
         
                 await response.edit(embed = create_embed({
                     "title": "Leaderboard"
                 }, fields))
         except Exception as error_message:
             await response.edit(embed = create_embed({
-                "title": f"Could not load leaderboard...",
+                "title": f"Could not load leaderboard",
                 "color": discord.Color.red()
             }, {
                 "Error Message": error_message

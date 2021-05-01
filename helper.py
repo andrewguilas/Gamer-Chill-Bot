@@ -69,9 +69,12 @@ def save_user_data(user_data):
 
 def get_all_user_data(sort_value: str = None):
     all_data = sort_value and user_datastore.find().sort(sort_value, -1) or user_datastore.find({})
-    for index, data in all_data.items():
-        all_data[index] = attach_default_user_data(data)
-    return all_data
+    # all_data is a custom object
+    # not allowing item item assignment
+    new_all_data = []
+    for index, data in enumerate(list(all_data)):
+        new_all_data.insert(index, attach_default_user_data(data))
+    return new_all_data
 
 # other
 

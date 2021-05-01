@@ -5,7 +5,7 @@ EXTENSIONS = [
     "fun",
     "vc",
     "acas",
-    # "leveling",
+    "leveling",
     # "economy",
     # "stocks"
 ]
@@ -25,6 +25,7 @@ DEFAULT_GUILD_DATA = {
     "acas_role": None,
     "acas_enabled": False,
     "voice_exp": 1,
+    "money_per_level": 10
 }
 
 DEFAULT_USER_DATA = {
@@ -390,7 +391,6 @@ ACAS_UPDATE_DELAY = 1
 
 LEVELING_UPDATE_DELAY = 60
 LEVELING_LEVEL_DIFFICULTY = 50
-LEVELING_MONEY_PER_LEVEL = 10
 
 STOCKS_PERIOD = "2h"
 STOCKS_INTERVAL = "1m"
