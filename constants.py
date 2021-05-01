@@ -7,7 +7,7 @@ EXTENSIONS = [
     "acas",
     "leveling",
     "economy",
-    # "stocks"
+    "stocks"
 ]
 
 DEFAULT_GUILD_DATA = {
@@ -391,7 +391,7 @@ ACAS_BLOCK_TIMES = ["09:25:00", "10:55:00", "12:40:00", "14:40:00"]
 ACAS_UPDATE_DELAY = 1
 
 LEVELING_UPDATE_DELAY = 60
-LEVELING_LEVEL_DIFFICULTY = 50
+LEVELING_LEVEL_DIFFICULTY = 500
 
 STOCKS_PERIOD = "2h"
 STOCKS_INTERVAL = "1m"
