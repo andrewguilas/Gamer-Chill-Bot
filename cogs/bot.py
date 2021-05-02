@@ -5,7 +5,7 @@ import sys
 import time
 
 from helper import create_embed, is_guild_owner, format_time
-from constants import VERSION_LOGS, MAX_LEADERBOARD_FIELDS
+from constants import MAX_LEADERBOARD_FIELDS
 
 class bot(commands.Cog, description = "Bot management and settings."):
     def __init__(self, client):
@@ -180,34 +180,6 @@ class bot(commands.Cog, description = "Bot management and settings."):
             }, {
                 "Error Message": error_message
             }))
-
-    @commands.command()
-    async def updatelog(self, context, page: int = 1):
-        response = await context.send(embed = create_embed({
-            "title": f"Loading update log...",
-            "color": discord.Color.gold()
-        }))
-
-        try:
-            first_page = page * MAX_LEADERBOARD_FIELDS - MAX_LEADERBOARD_FIELDS
-            last_page = page * MAX_LEADERBOARD_FIELDS
-
-            fields = {}
-            for key, version in enumerate(list(VERSION_LOGS.keys())):
-                if key >= first_page and key < last_page:
-                    fields[version] = VERSION_LOGS[version]
-
-            await response.edit(embed = create_embed({
-                "title": "Update Log",
-                "footer": f"Page {page}"
-            }, fields))
-        except Exception as error_message:
-            create_embed({
-                "title": f"Could not load update log",
-                "color": discord.Color.red()
-            }, {
-                "Error Message": error_message
-            })
 
 def setup(client):
     client.add_cog(bot(client))
