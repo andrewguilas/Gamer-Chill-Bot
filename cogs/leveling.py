@@ -149,17 +149,17 @@ class leveling(commands.Cog, description = "Leveling system commands."):
             for rank, member_data in enumerate(guild_user_data):
                 member = context.guild.get_member(member_data["user_id"])
                 if member:
-                    level = get_level_from_experience(user_data["experience"], LEVELING_LEVEL_DIFFICULTY)
-                    experience = user_data["experience"] - get_experience_from_level(level, LEVELING_LEVEL_DIFFICULTY)
+                    level = get_level_from_experience(member_data["experience"], LEVELING_LEVEL_DIFFICULTY)
+                    experience = member_data["experience"] - get_experience_from_level(level, LEVELING_LEVEL_DIFFICULTY)
                     experience_for_level = get_experience_from_level(level + 1, LEVELING_LEVEL_DIFFICULTY) - get_experience_from_level(level, LEVELING_LEVEL_DIFFICULTY)
                     fields[f"{rank + 1}. {member.name}"] = f"Level {level} ({experience}/{experience_for_level})"
                 
                     if rank == MAX_LEADERBOARD_FIELDS - 1:
                         break
         
-                await response.edit(embed = create_embed({
-                    "title": "Leaderboard"
-                }, fields))
+            await response.edit(embed = create_embed({
+                "title": "Leaderboard"
+            }, fields))
         except Exception as error_message:
             await response.edit(embed = create_embed({
                 "title": f"Could not load leaderboard",

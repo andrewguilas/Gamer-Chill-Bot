@@ -419,7 +419,7 @@ class default(commands.Cog, description = "Default bot commands."):
                     return
 
                 value = int(value)
-                settings["message_exp"] = value
+                settings["exp_per_message"] = value
                 save_guild_data(settings)
 
                 await response.edit(embed = create_embed({
