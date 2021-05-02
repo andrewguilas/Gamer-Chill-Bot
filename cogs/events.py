@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from helper import get_settings, create_embed
+from helper import get_guild_data, create_embed
 
 class events(commands.Cog, description = "Bot and server events."):
     def __init__(self, client):
@@ -24,22 +24,27 @@ class events(commands.Cog, description = "Bot and server events."):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        settings = get_settings(member.guild.id)
-        if settings.get("join_channel"):
-            channel = self.client.get_channel(settings["join_channel"])
+        guild_data = get_guild_data(member.guild.id)
+        join_channel_id = guild_data.get("join_channel")
+        if join_channel_id:
+            channel = member.guild.get_channel(join_channel_id)
             if channel:
                 await channel.send(embed = create_embed({
                     "title": f"{member} joined"
                 }))
 
-        if settings.get("default_role"):
-            await member.add_roles(discord.utils.get(member.guild.roles, id = settings.get("default_role")))
+        default_role_id = settings.get("default_role")
+        if default_role_id:
+            role = member.guild.get_role(default_role_id)
+            if role:
+                await member.add_roles(role)
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
-        settings = get_settings(member.guild.id)
-        if settings.get("join_channel"):
-            channel = self.client.get_channel(settings["join_channel"])
+        guild_data = get_guild_data(member.guild.id)
+        join_channel_id = guild_data.get("join_channel")
+        if join_channel_id:
+            channel = member.guild.get_channel(join_channel_id)
             if channel:
                 await channel.send(embed = create_embed({
                     "title": f"{member} left"
