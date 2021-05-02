@@ -2,9 +2,7 @@ import discord
 from discord.ext import commands
 
 import random
-import random
 import asyncpraw
-from translate import Translator
 from datetime import datetime
 import os
 

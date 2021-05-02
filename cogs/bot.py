@@ -4,8 +4,8 @@ import os
 import sys
 import time
 
-from helper import create_embed, get_guild_data, save_guild_data, get_object, is_guild_owner, format_time, get_first_n_items
-from constants import VERSION_LOGS, VC_LANGUAGES, VC_ACCENTS, MAX_LEADERBOARD_FIELDS
+from helper import create_embed, is_guild_owner, format_time
+from constants import VERSION_LOGS, MAX_LEADERBOARD_FIELDS
 
 class bot(commands.Cog, description = "Bot management and settings."):
     def __init__(self, client):

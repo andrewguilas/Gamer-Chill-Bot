@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 
 from constants import MAX_LEADERBOARD_FIELDS
-from helper import create_embed, get_guild_data, get_user_data, save_user_data, get_all_user_data, sort_dictionary
+from helper import create_embed, get_user_data, save_user_data, get_all_user_data, sort_dictionary
 from cogs.stocks import get_price
 
 class economy(commands.Cog, description = "Economy system commands."):

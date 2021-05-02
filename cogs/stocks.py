@@ -2,8 +2,7 @@ import discord
 from discord.ext import commands
 from yahoo_fin import stock_info as si
 
-from helper import create_embed, get_guild_data, get_user_data, save_user_data
-from constants import STOCKS_PERIOD, STOCKS_INTERVAL
+from helper import create_embed, get_user_data, save_user_data
 
 def get_price(ticker: str):
     price = si.get_live_price(ticker.lower())

@@ -1,9 +1,8 @@
 import discord
 from discord.ext import commands
 import os
-import re
 
-from helper import create_embed, get_guild_data, save_guild_data, get_object, check_if_authorized, sort_dictionary
+from helper import create_embed, get_guild_data, save_guild_data, get_object, sort_dictionary
 from constants import SETTINGS, GET_FLAGS, VC_ACCENTS, VC_LANGUAGES, DELETE_RESPONSE_DELAY
 
 CLIENT_ID = os.getenv("GCB_CLIENT_ID")
