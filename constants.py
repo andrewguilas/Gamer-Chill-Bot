@@ -35,25 +35,6 @@ DEFAULT_USER_DATA = {
     "stocks": {}
 }
 
-VERSION_LOGS = {
-    "1.0.15": "Patch update to prepare for next minor update. Added better error handling. Removed roblox subscription. Removed invite to server, invite to channel, translate, and moderation commands. Fixed errors when selling all shares of a stock and rank showing incorrect progress. Increased performance.",
-    "1.0.14": "Fixed bot's receiving EXP and money.",
-    "1.0.13": "Rounded values in ?bal.",
-    "1.0.12": "Fixed showing incorrect accents.",
-    "1.0.11": "Fixed notifying users of subscriptions upon bot startup.",
-    "1.0.10": "Added ?get to view valid vc_accent and vc_language settings.",
-    "1.0.9": "Made ?forbes list net-worth instead of bank balance.",
-    "1.0.8": "Created specific permissions for changing certain settings.",
-    "1.0.7": "Merged ACAS with subscriptions. Do `?subscribe acas` to subscribe/unsubscribe from acas. Fixed acas not announcing block 1.",
-    "1.0.6": "Added net-worth to ?bal.",
-    "1.0.5": "Removed minecraft subscription and status because it caused the bot to randomly disconnect and slow down.",
-    "1.0.4": "Added money reward for leveling up.",
-    "1.0.3": "Fixed ACAS not making announcements.",
-    "1.0.2": "Added ?updatelog.",
-    "1.0.1": "Added ?status and minecraft server subscriptions.",
-    "1.0.0": "Added settings, more portfolio info, and increased performance.",
-}
-
 SETTINGS = {
     "prefix <prefix: str>": "Changes the bot's prefix for activating commands.",
     "vc_language <lan: str>": "Changes the bot's TTS language.",

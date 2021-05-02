@@ -65,7 +65,9 @@ class default(commands.Cog, description = "Default bot commands."):
                     "Commands": "help command <command_name>",
                     "Cogs": "help cog <cog_name>",
                     "Settings": "help settings",
-                    "Get Flags": "help get_flag"
+                    "Get Flags": "help get_flag",
+                    "Source Code": "https://github.com/Vex87/Gamer-Chill-Bot",
+                    "Wiki": "https://github.com/Vex87/Gamer-Chill-Bot/wiki",
                 }))
             elif flag == "command":
                 for command in self.client.commands:
@@ -419,7 +421,7 @@ class default(commands.Cog, description = "Default bot commands."):
                     return
 
                 value = int(value)
-                settings["message_exp"] = value
+                settings["exp_per_message"] = value
                 save_guild_data(settings)
 
                 await response.edit(embed = create_embed({
