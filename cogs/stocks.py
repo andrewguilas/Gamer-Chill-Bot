@@ -3,6 +3,7 @@ from discord.ext import commands, tasks
 from yahoo_fin import stock_info as si
 import yfinance as yf
 import asyncio
+import requests
 
 from helper import create_embed, get_user_data, save_user_data
 from constants import UPDATE_TICKERS, TICKER_PERIOD, TICKER_INTERVAL
@@ -47,17 +48,22 @@ class stocks(commands.Cog, description = "Stock market commands."):
         await self.client.wait_until_ready()
         while True:
             for nickname, info in self.tickers.items():
-                ticker = info["ticker"]
-                open_price = get_open(ticker, info["round_to"])
-                current_price = get_price(ticker, info["round_to"])
+                try:
+                    ticker = info["ticker"]
+                    open_price = get_open(ticker, info["round_to"])
+                    current_price = get_price(ticker, info["round_to"])
 
-                change = round(current_price - open_price, info["round_to"])
-                change_text = change < 0 and f"-${abs(change)}" or f"+${change}"
-                change_percent = round(change / open_price * 100, 2)
-                change_percent_text = change_percent < 0 and f"-{abs(change_percent)}" or f"+{change_percent}"
+                    change = round(current_price - open_price, info["round_to"])
+                    change_text = change < 0 and f"-${abs(change)}" or f"+${change}"
+                    change_percent = round(change / open_price * 100, 2)
+                    change_percent_text = change_percent < 0 and f"-{abs(change_percent)}" or f"+{change_percent}"
 
-                status = open_price and current_price < open_price and discord.Status.dnd or discord.Status.online
-                await self.client.change_presence(activity = discord.Game(name = f"{nickname}: ${current_price} | {change_percent_text}% | {change_text}"), status = status)
+                    status = open_price and current_price < open_price and discord.Status.dnd or discord.Status.online
+                    await self.client.change_presence(activity = discord.Game(name = f"{nickname}: ${current_price} | {change_percent_text}% | {change_text}"), status = status)
+                except requests.exceptions.ConnectionError:
+                    print("ERROR: Max retrieves with live tickers")
+                except Exception as error_message:
+                    print(error_message)
                 await asyncio.sleep(UPDATE_TICKERS)
 
     @commands.command(description = "Gets the most recent price of the stock.")
