@@ -119,7 +119,7 @@ class stocks(commands.Cog, description = "Stock market commands."):
             user_data = get_user_data(context.author.id)
             if user_data["money"] < total_price:
                 await response.edit(embed = create_embed({
-                    "title": f"You do not have enough money to purchase {shares_to_purchase} of {ticker} (-${total_price})",
+                    "title": f"You do not have enough money to purchase {shares_to_purchase} of {ticker}",
                     "color": discord.Color.red()
                 }, {
                     "Total Price": f"${total_price}",
@@ -148,7 +148,7 @@ class stocks(commands.Cog, description = "Stock market commands."):
             # response
             save_user_data(user_data)
             await response.edit(embed = create_embed({
-                "title": f"Bought {shares_to_purchase} shares of {ticker} at ${share_price}",
+                "title": f"Bought {shares_to_purchase} shares of {ticker} at ${share_price} (-${total_price})",
                 "color": discord.Color.green()
             }, {
                 "Shares Owned": "{} Shares".format(user_data["stocks"][ticker]["shares"]),
@@ -238,6 +238,8 @@ class stocks(commands.Cog, description = "Stock market commands."):
 
         try:
             user_data = get_user_data(member.id)
+            total_equity = 0
+            total_profit = 0
             fields = {}
             for ticker, stock_data in user_data["stocks"].items():
                 share_price = get_price(ticker)
@@ -249,8 +251,11 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 equity = round(total_shares * average_price, 2)
                 profit = round((share_price - average_price) * total_shares, 2)
 
+                total_equity += equity
+                total_profit += profit
                 fields[ticker.upper()] = f"{total_shares} Shares @ ${average_price} | Equity: ${equity} | Profit: ${profit}"
 
+            fields["SUMMARY"] = f"Equity: ${total_equity} | Profit: ${total_profit}"
             await response.edit(embed = create_embed({
                 "title": f"{member}'s Portfolio"
             }, fields))
