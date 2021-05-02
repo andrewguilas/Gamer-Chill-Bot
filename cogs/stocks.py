@@ -65,7 +65,7 @@ class stocks(commands.Cog, description = "Stock market commands."):
             user_data = get_user_data(context.author.id)
             if user_data["money"] < total_price:
                 await response.edit(embed = create_embed({
-                    "title": f"You do not have enough money to purchase {shares_to_purchase} of {ticker}",
+                    "title": f"You do not have enough money to purchase {shares_to_purchase} of {ticker} (-${total_price})",
                     "color": discord.Color.red()
                 }, {
                     "Total Price": f"${total_price}",
@@ -159,7 +159,7 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 shares_remaining = user_data["stocks"][ticker]["shares"]
 
             await response.edit(embed = create_embed({
-                "title": f"Sold {shares_to_sell} shares of {ticker} at {share_price}",
+                "title": f"Sold {shares_to_sell} shares of {ticker} at ${share_price} (+${total_price})",
                 "color": discord.Color.green()
             }, {
                 "Shares Remaining": f"{shares_remaining} Shares",

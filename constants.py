@@ -36,6 +36,7 @@ DEFAULT_USER_DATA = {
 }
 
 VERSION_LOGS = {
+    "1.0.15": "Patch update to prepare for next minor update. Added better error handling. Removed roblox subscription. Removed invite to server, invite to channel, translate, and moderation commands. Fixed errors when selling all shares of a stock and rank showing incorrect progress. Increased performance.",
     "1.0.14": "Fixed bot's receiving EXP and money.",
     "1.0.13": "Rounded values in ?bal.",
     "1.0.12": "Fixed showing incorrect accents.",
@@ -402,7 +403,7 @@ MAX_FILL = 10
 FILL_EMOJI = "🟦"
 UNFILL_EMOJI = "⬜"
 
-IS_TESTING = True
+IS_TESTING = False
 LIVE_DATASTORE = "datastore1"
 TESTING_DATASTORE = "datastore2"
 

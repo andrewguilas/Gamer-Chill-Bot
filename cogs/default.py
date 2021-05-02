@@ -778,7 +778,7 @@ class default(commands.Cog, description = "Default bot commands."):
         try:
             members = {}
             for channel in context.guild.text_channels:
-                messages = await channel.history().flatten()
+                messages = await channel.history(limit = None).flatten()
                 for message in messages:
                     author_name = message.author.name
                     if not members.get(author_name):
