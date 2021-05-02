@@ -3,7 +3,7 @@ dnspython==1.16.0
 async-timeout==3.0.1
 pytz
 pymongo==3.11.2
-yfinance==0.1.55
+yahoo-fin==0.8.8
 asyncpraw==7.2.0
 gTTS==2.2.2
 mutagen==1.45.1
