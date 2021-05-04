@@ -34,6 +34,10 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 "ticker": "ADA-USD",
                 "round_to": 2,
             },
+            "SPY": {
+                "ticker": "SPY",
+                "round_to": 2,
+            },
         }
         self.update_tickers.start()
 
