@@ -2,8 +2,8 @@ import discord
 from discord.ext import commands
 import os
 
-from helper import create_embed, get_guild_data, save_guild_data, get_object, sort_dictionary
-from constants import SETTINGS, GET_FLAGS, VC_ACCENTS, VC_LANGUAGES, DELETE_RESPONSE_DELAY
+from helper import create_embed, get_guild_data, save_guild_data, get_object, sort_dictionary, get_first_n_items
+from constants import SETTINGS, GET_FLAGS, VC_ACCENTS, VC_LANGUAGES, DELETE_RESPONSE_DELAY, MAX_LEADERBOARD_FIELDS
 
 CLIENT_ID = os.getenv("GCB_CLIENT_ID")
 
@@ -787,9 +787,9 @@ class default(commands.Cog, description = "Default bot commands."):
                         members[author_name] = 1
                     else:
                         members[author_name] += 1
-
+            
             members = sort_dictionary(members, True)
-
+            members = get_first_n_items(members, MAX_LEADERBOARD_FIELDS)
             await response.edit(embed = create_embed({
                 "title": "Message Leaderboard"
             }, members))
