@@ -44,7 +44,8 @@ class vc(commands.Cog, description = "Bot management for voice channels."):
                 voice_client.stop()
                 voice_client.play(discord.FFmpegPCMAudio(voice_file))
 
-    @commands.command(aliases = ["summon"], description = "Makes the bot join the voice channel.")
+    @commands.command(aliases = ["summon"])
+    @commands.guild_only()
     async def join(self, context):
         response = await context.send(embed = create_embed({
             "title": "Joining the voice channel...",
@@ -95,7 +96,8 @@ class vc(commands.Cog, description = "Bot management for voice channels."):
                 "Error Message": error_message
             }))
 
-    @commands.command(description = "Makes the bot leave the voice channel.")
+    @commands.command()
+    @commands.guild_only()
     async def leave(self, context):
         response = await context.send(embed = create_embed({
             "title": "Leaving the voice channel...",
@@ -134,7 +136,8 @@ class vc(commands.Cog, description = "Bot management for voice channels."):
             }))
             return
 
-    @commands.command(description = "Says a TTS message in the voice channel.")
+    @commands.command()
+    @commands.guild_only()
     async def say(self, context, *, message: str):
         response = await context.send(embed = create_embed({
             "title": f"Saying {message}...",

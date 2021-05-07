@@ -9,7 +9,8 @@ class economy(commands.Cog, description = "Economy system commands."):
     def __init__(self, client):
         self.client = client
 
-    @commands.command(aliases = ["bal"], description = "Loads the member's balance.")
+    @commands.command(aliases = ["bal"])
+    @commands.guild_only()
     async def balance(self, context, member: discord.Member = None):
         if not member:
             member = context.author
@@ -54,7 +55,8 @@ class economy(commands.Cog, description = "Economy system commands."):
                 "Error Message": error_message
             }))
 
-    @commands.command(description = "Retrieves the leaderboard for the richest people in the server.")
+    @commands.command()
+    @commands.guild_only()
     async def forbes(self, context):
         response = await context.send(embed = create_embed({
             "title": f"Loading Forbes...",
@@ -100,7 +102,8 @@ class economy(commands.Cog, description = "Economy system commands."):
                 "Error Message": error_message
             }))
 
-    @commands.command(description = "Gives a member money.")
+    @commands.command()
+    @commands.guild_only()
     async def give(self, context, member: discord.Member, amount: float):
         if member.bot:
             await context.send(embed = create_embed({

@@ -386,7 +386,7 @@ FILL_EMOJI = "🟦"
 UNFILL_EMOJI = "⬜"
 CHECK_EMOJI = "✅"
 
-IS_TESTING = False
+IS_TESTING = True
 LIVE_DATASTORE = "datastore1"
 TESTING_DATASTORE = "datastore2"
 

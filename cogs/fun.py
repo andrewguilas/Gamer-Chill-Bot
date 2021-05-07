@@ -26,7 +26,8 @@ class fun(commands.Cog, description = "Fun commands."):
     def __init__(self, client):
         self.client = client
 
-    @commands.command(aliases = ["8ball"], description = "Retrieves a random response to a yes/no question.")
+    @commands.command(aliases = ["8ball"])
+    @commands.guild_only()
     async def eightball(self, context, *, question: str):
         response = await context.send(embed = create_embed({
             "title": "Loading response...",
@@ -47,7 +48,8 @@ class fun(commands.Cog, description = "Fun commands."):
                 "Question": question,
             }))
 
-    @commands.command(aliases = ["dice"], description = "Chooses a random number between 1 and 6 or 1 and the specific number.")
+    @commands.command()
+    @commands.guild_only()
     async def roll(self, context, max_number: int = 6):
         response = await context.send(embed = create_embed({
             "title": f"Rolling a die of {max_number}",
@@ -67,7 +69,8 @@ class fun(commands.Cog, description = "Fun commands."):
                 "Error Message": error_message
             }))
 
-    @commands.command(aliases = ["become"], description = "Sends a message disguised as the member.")
+    @commands.command()
+    @commands.guild_only()
     async def impersonate(self, context, member: discord.Member, channel: discord.TextChannel, *, message: str):
         response = await context.send(embed = create_embed({
             "title": "Impersonaitng user...",
@@ -100,7 +103,8 @@ class fun(commands.Cog, description = "Fun commands."):
                 "Error Message": error_message
             }))
 
-    @commands.command(description = "Retrieves a random person from the server.")
+    @commands.command()
+    @commands.guild_only()
     async def randomperson(self, context):
         response = await context.send(embed = create_embed({
             "title": f"Choosing random person...",
@@ -120,7 +124,8 @@ class fun(commands.Cog, description = "Fun commands."):
                 "Error Message": error_message
             }))
 
-    @commands.command(aliases = ["m", "meme"], description = "Retrieves a random meme from r/memes.")
+    @commands.command(aliases = ["m", "meme"])
+    @commands.guild_only()
     async def getmeme(self, context, amount: int = 1):
         try:
             if amount > MAX_MEMES:

@@ -72,8 +72,9 @@ class acas(commands.Cog, description = "Subscribe to different events."):
                 # testing bot will attempt to view settings of guilds it's not connected to
                 print("ERROR: Bot cannot access guild {}".format(guild_settings["guild_id"]))
     
-    @commands.command(aliases = ["acas"], description = "Get notified when class starts.")
-    async def subscribeacas(self, context):
+    @commands.command(aliases = ["acas"])
+    @commands.guild_only()
+    async def toggleacas(self, context):
         response = await context.send(embed = create_embed({
             "title": f"Subscribing/unsubscribing to ACAS...",
             "color": discord.Color.gold()

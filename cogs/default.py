@@ -6,50 +6,9 @@ import asyncio
 from helper import create_embed, get_guild_data, save_guild_data, get_object, sort_dictionary, get_first_n_items
 from constants import SETTINGS, GET_FLAGS, VC_ACCENTS, VC_LANGUAGES, DELETE_RESPONSE_DELAY, MAX_LEADERBOARD_FIELDS, CHECK_EMOJI
 
-CLIENT_ID = os.getenv("GCB_CLIENT_ID")
-
 class default(commands.Cog, description = "Default bot commands."):
     def __init__(self, client):
         self.client = client
-
-    @commands.command(description = "Retrieves the client to bot latency.")
-    async def ping(self, context):
-        response = await context.send(embed = create_embed({
-            "title": "Loading ping...",
-            "color": discord.Color.gold()
-        }))
-
-        try:
-            ping = round(self.client.latency * 1000)
-            await response.edit(embed = create_embed({
-                "title": f"{ping} ms",
-            }))
-        except Exception as error_message:
-            await response.edit(embed = create_embed({
-                "title": "Could not load ping",
-            }, {
-                "Error Message": error_message
-            }))
-
-    @commands.command(description = "Retrieves an invite link for the bot.")
-    async def invite(self, context):
-        response = await context.send(embed = create_embed({
-            "title": "Loading bot invite...",
-            "color": discord.Color.gold()
-        }))
-
-        try:
-            invite_url = discord.utils.oauth_url(client_id = CLIENT_ID, permissions = discord.Permissions(8))
-            await response.edit(embed = create_embed({
-                "title": f"Bot Invite",
-                "url": invite_url
-            }))
-        except Exception as error_message:
-            await response.edit(embed = create_embed({
-                "title": "Could not load bot invite",
-            }, {
-                "Error Message": error_message
-            }))
 
     @commands.command(aliases = ["cmds"], description = "Retrieves a list of all the bot commands.")
     async def help(self, context, flag: str = None, value: str = None):

@@ -70,7 +70,8 @@ class stocks(commands.Cog, description = "Stock market commands."):
                     print(error_message)
                 await asyncio.sleep(UPDATE_TICKERS)
 
-    @commands.command(description = "Gets the most recent price of the stock.")
+    @commands.command()
+    @commands.guild_only()
     async def getprice(self, context, ticker: str):
         ticker = ticker.upper()
         response = await context.send(embed = create_embed({
@@ -91,7 +92,8 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 "Error Message": error_message
             }))
 
-    @commands.command(description = "Buys shares of a stock.")
+    @commands.command()
+    @commands.guild_only()
     async def buyshares(self, context, ticker: str, shares_to_purchase: float):
         ticker = ticker.upper()
         shares_to_purchase = round(shares_to_purchase, 2)
@@ -166,7 +168,8 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 "Error Message": error_message
             }))
 
-    @commands.command(description = "Sells shares of a stock.")
+    @commands.command()
+    @commands.guild_only()
     async def sellshares(self, context, ticker: str, shares_to_sell: float):
         ticker = ticker.upper()
         shares_to_sell = round(shares_to_sell, 2)
@@ -230,7 +233,8 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 "Error Message": error_message
             }))
 
-    @commands.command(description = "Gets owned stocks of the user.")
+    @commands.command()
+    @commands.guild_only()
     async def portfolio(self, context, member: discord.Member = None):
         if not member:
             member = context.author
