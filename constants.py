@@ -384,6 +384,7 @@ MAX_FILL = 10
 
 FILL_EMOJI = "🟦"
 UNFILL_EMOJI = "⬜"
+CHECK_EMOJI = "✅"
 
 IS_TESTING = False
 LIVE_DATASTORE = "datastore1"
