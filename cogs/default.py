@@ -88,9 +88,9 @@ class default(commands.Cog, description = "Default bot commands."):
                 "Name": user,
                 "User ID": user.id,
                 "Nickname": user.nick,
-                "Account Creation Date": user.created_at,
-                "Server Join Date": user.joined_at,
-                "Premium Join Date": user.premium_since,
+                "Created Account": user.created_at,
+                "Joined Server": user.joined_at,
+                "Subscribed to Nitro": user.premium_since,
                 "Is Bot": user.bot,
                 "Is Pending": user.pending,
                 "Roles": roles,
@@ -98,7 +98,7 @@ class default(commands.Cog, description = "Default bot commands."):
                 "Activity": user.activity and user.activity.name or "None",
                 "Device": user.desktop_status and "Desktop" or user.mobile_status and "Mobile" or user.web_status and "Web" or "Unknown",
                 "Status": user.status,
-                "Is In Voice Channel": user.voice and user.voice.channel or "False",
+                "Is In VC": user.voice and user.voice.channel or "False",
             }))
         except Exception as error_message:
             await response.edit(embed = create_embed({
@@ -117,29 +117,13 @@ class default(commands.Cog, description = "Default bot commands."):
             "color": discord.Color.gold()
         }))
 
-        humans = 0
-        bots = 0
-
-        online = 0
-        idle = 0
-        dnd = 0
-        offline = 0
-
         try:
-            for member in guild.members:
-                if member.bot:
-                    bots += 1
-                else:
-                    humans += 1
-
-                if str(member.status) == "online":
-                    online += 1
-                elif str(member.status) == "idle":
-                    idle += 1
-                elif str(member.status) == "dnd":
-                    dnd += 1
-                elif str(member.status) == "offline":
-                    offline += 1
+            humans = len(list(filter(lambda u: not u.bot, guild.members)))
+            bots = len(list(filter(lambda u: u.bot, guild.members)))
+            online = len(list(filter(lambda u: str(u.status) == "online", guild.members)))
+            idle = len(list(filter(lambda u: str(u.status) == "idle", guild.members)))
+            dnd = len(list(filter(lambda u: str(u.status) == "dnd", guild.members)))
+            offline = len(list(filter(lambda u: str(u.status) == "offline", guild.members)))
 
             await response.edit(embed = create_embed({
                 "title": f"{guild.name} server info",
@@ -148,7 +132,7 @@ class default(commands.Cog, description = "Default bot commands."):
             }, {
                 "Name": guild.name,
                 "ID": guild.id,
-                "Creation Date": guild.created_at,
+                "Server Created": guild.created_at,
                 "Owner": guild.owner.mention,
                 "Region": guild.region,
                 "Invites": len(await guild.invites()),
