@@ -1,9 +1,10 @@
 import discord
 from discord.ext import commands
 import os
+import asyncio
 
 from helper import create_embed, get_guild_data, save_guild_data, get_object, sort_dictionary, get_first_n_items
-from constants import SETTINGS, GET_FLAGS, VC_ACCENTS, VC_LANGUAGES, DELETE_RESPONSE_DELAY, MAX_LEADERBOARD_FIELDS
+from constants import SETTINGS, GET_FLAGS, VC_ACCENTS, VC_LANGUAGES, DELETE_RESPONSE_DELAY, MAX_LEADERBOARD_FIELDS, CHECK_EMOJI
 
 CLIENT_ID = os.getenv("GCB_CLIENT_ID")
 
@@ -774,8 +775,10 @@ class default(commands.Cog, description = "Default bot commands."):
     async def messageleaderboard(self, context):
         response = await context.send(embed = create_embed({
             "title": "Loading message leaderboard...",
+            "description": f"React with {CHECK_EMOJI} to be pinged when the message leaderboard is done",
             "color": discord.Color.gold()
         }))
+        await response.add_reaction(CHECK_EMOJI)
 
         try:
             members = {}
@@ -783,17 +786,35 @@ class default(commands.Cog, description = "Default bot commands."):
                 messages = await channel.history(limit = None).flatten()
                 for message in messages:
                     author_name = message.author.name
+                    if not context.guild.get_member(message.author.id):
+                        continue
+
                     if not members.get(author_name):
                         members[author_name] = 1
                     else:
                         members[author_name] += 1
-            
+
             members = sort_dictionary(members, True)
             members = get_first_n_items(members, MAX_LEADERBOARD_FIELDS)
             await response.edit(embed = create_embed({
                 "title": "Message Leaderboard"
             }, members))
+
+            response2 = await response.channel.fetch_message(response.id)
+            for reaction in response2.reactions:
+                if str(reaction.emoji) == CHECK_EMOJI:
+                    users = [] 
+                    async for user in reaction.users():
+                        if not user.bot:
+                            users.append(user.mention)
+
+                    if len(users) > 0:
+                        ping = " ".join(users)
+                        await context.send(" ".join(users))
+                    break
+
         except Exception as error_message:
+            # traceback.print_exc()
             await response.edit(embed = create_embed({
                 "title": "Could not load message leaderboard",
                 "color": discord.Color.red()
