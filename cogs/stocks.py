@@ -259,6 +259,8 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 total_profit += profit
                 fields[ticker.upper()] = f"{total_shares} Shares @ ${average_price} | Equity: ${equity} | Profit: ${profit}"
 
+            total_equity = round(total_equity, 2)
+            total_profit = round(total_profit, 2)
             fields["SUMMARY"] = f"Equity: ${total_equity} | Profit: ${total_profit}"
             await response.edit(embed = create_embed({
                 "title": f"{member}'s Portfolio"
