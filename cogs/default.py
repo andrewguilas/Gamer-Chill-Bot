@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 import os
 import asyncio
+import pdb
 
 from helper import create_embed, get_guild_data, save_guild_data, get_object, sort_dictionary, get_first_n_items
 from constants import SETTINGS, GET_FLAGS, VC_ACCENTS, VC_LANGUAGES, DELETE_RESPONSE_DELAY, MAX_LEADERBOARD_FIELDS, CHECK_EMOJI, NEXT_EMOJI, BACK_EMOJI, COMMANDS
@@ -155,455 +156,66 @@ class default(commands.Cog, description = "Default bot commands."):
                 "Error Message": error_message
             }))
 
-    @commands.command(aliases = ["set"], description = "Changes a server specific setting in the data stores.", brief = "specific")
-    async def setsettings(self, context, name: str, *, value = None):
-        response = await context.send(embed = create_embed({
-            "title": f"Changing {name} to {value}...",
-            "color": discord.Color.gold(),
-        }))
-
-        try:
-            settings = get_guild_data(context.guild.id)
-            name = name.lower()
-            if name == "prefix":
-                if not value:
-                    await response.edit(embed = create_embed({
-                        "title": "No prefix entered",
-                        "color": discord.Color.red()
-                    }))
-                    return
-
-                value = str(value)
-                settings["prefix"] = value
-                save_guild_data(settings)
-
-                await response.edit(embed = create_embed({
-                    "title": f"Changed prefix to {value}",
-                    "color": discord.Color.green(),
-                }))
-            elif name == "vc_language":
-                if not value:
-                    await response.edit(embed = create_embed({
-                        "title": "No language entered",
-                        "color": discord.Color.red()
-                    }))
-                    return
-
-                value = str(value)
-                if not VC_LANGUAGES.get(value):
-                    await response.edit(embed = create_embed({
-                        "title": f"{value} is not a valid language",
-                        "color": discord.Color.red()
-                    }))
-                    return
-
-                settings["vc_language"] = value
-                save_guild_data(settings)
-
-                await response.edit(embed = create_embed({
-                    "title": f"Changed the bot's language to {value}",
-                    "color": discord.Color.green(),
-                }))
-            elif name == "vc_accent":
-                if not value:
-                    await response.edit(embed = create_embed({
-                        "title": "No accent entered",
-                        "color": discord.Color.red()
-                    }))
-                    return
-
-                value = str(value)
-                if not VC_ACCENTS.get(value):
-                    await response.edit(embed = create_embed({
-                        "title": f"{value} is not a valid accent",
-                        "color": discord.Color.red()
-                    }))
-                    return
-
-                settings["vc_accent"] = value
-                save_guild_data(settings)
-
-                await response.edit(embed = create_embed({
-                    "title": f"Changed the bot's accent to {value}",
-                    "color": discord.Color.green(),
-                }))
-            elif name == "vc_slow_mode":
-                if not value or value.lower() == "false":
-                    settings["vc_slow_mode"] = False
-                    save_guild_data(settings)
-
-                    await response.edit(embed = create_embed({
-                        "title": "Disabled bot slow mode",
-                        "color": discord.Color.green(),
-                    }))
-                elif value.lower() == "true":
-                    settings["vc_slow_mode"] = True
-                    save_guild_data(settings)
-
-                    await response.edit(embed = create_embed({
-                        "title": "Enabled bot slow mode",
-                        "color": discord.Color.green(),
-                    }))
-                else:
-                    await response.edit(embed = create_embed({
-                        "title": f"{value} is not a valid boolean (true/false)",
-                        "color": discord.Color.red()
-                    }))
-                    return
-            elif name == "message_cooldown":
-                if not context.author.guild_permissions.administrator and not await self.client.is_owner(context.author):
-                    await response.edit(embed = create_embed({
-                        "title": f"You don't have administrator or bot creator permissions",
-                        "color": discord.Color.red(),
-                    }))
-                    return
-
-                if not value:
-                    await response.edit(embed = create_embed({
-                        "title": "No prefix entered",
-                        "color": discord.Color.red()
-                    }))
-                    return
-
-                value = int(value)
-                settings["message_cooldown"] = value
-                save_guild_data(settings)
-
-                await response.edit(embed = create_embed({
-                    "title": f"Set message cooldown to {value} seconds",
-                    "color": discord.Color.green(),
-                }))
-            elif name == "exp_per_message":
-                if not context.author.guild_permissions.administrator and not await self.client.is_owner(context.author):
-                    await response.edit(embed = create_embed({
-                        "title": f"You don't have administrator or bot creator permissions",
-                        "color": discord.Color.red(),
-                    }))
-                    return
-
-                if not value:
-                    await response.edit(embed = create_embed({
-                        "title": "No prefix entered",
-                        "color": discord.Color.red()
-                    }))
-                    return
-
-                value = int(value)
-                settings["exp_per_message"] = value
-                save_guild_data(settings)
-
-                await response.edit(embed = create_embed({
-                    "title": f"Set message EXP to {value}",
-                    "color": discord.Color.green(),
-                }))
-            elif name == "exp_channels":
-                channel = get_object(context.guild.text_channels, value)
-                if not channel:
-                    await response.edit(embed = create_embed({
-                        "title": f"Could not get channel {value}",
-                        "color": discord.Color.red()
-                    }))
-                    return
-
-                if channel.id in settings["exp_channels"]:
-                    settings["exp_channels"].pop(channel.id)
-                    save_guild_data(settings)
-                    await response.edit(embed = create_embed({
-                        "title": f"Removed {channel} from EXP channels",
-                        "color": discord.Color.green()
-                    }))
-                else:
-                    settings["exp_channels"].append(channel.id)
-                    save_guild_data(settings)
-                    await response.edit(embed = create_embed({
-                        "title": f"Added {channel} from EXP channels",
-                        "color": discord.Color.green()
-                    }))
-            elif name == "join_channel":
-                if not context.author.guild_permissions.administrator and not await self.client.is_owner(context.author):
-                    await response.edit(embed = create_embed({
-                        "title": f"You don't have administrator or bot creator permissions",
-                        "color": discord.Color.red(),
-                    }))
-                    return
-
-                if not value or value.lower() == "none":
-                    settings["join_channel"] = None
-                    save_guild_data(settings)
-
-                    await response.edit(embed = create_embed({
-                        "title": "Removed join channel",
-                        "color": discord.Color.green(),
-                    }))
-                else:
-                    channel = get_object(context.guild.text_channels, value)
-                    if channel:
-                        settings["join_channel"] = channel.id
-                        save_guild_data(settings)
-
-                        await response.edit(embed = create_embed({
-                            "title": f"Set join channel to {channel}",
-                            "color": discord.Color.green(),
-                        }))
-                    else:
-                        await response.edit(embed = create_embed({
-                            "title": f"Could not find channel {value}",
-                            "color": discord.Color.red(),
-                        }))
-            elif name == "default_role":
-                if not context.author.guild_permissions.administrator and not await self.client.is_owner(context.author):
-                    await response.edit(embed = create_embed({
-                        "title": f"You don't have administrator or bot creator permissions",
-                        "color": discord.Color.red(),
-                    }))
-                    return
-
-                if not value or value.lower() == "none":
-                    settings["default_role"] = None
-                    save_guild_data(settings)
-
-                    await response.edit(embed = create_embed({
-                        "title": "Removed default role",
-                        "color": discord.Color.green(),
-                    }))
-                else:
-                    role = get_object(context.guild.roles, value)
-                    if role:
-                        settings["default_role"] = role.id
-                        save_guild_data(settings)
-
-                        await response.edit(embed = create_embed({
-                            "title": f"Set default role to {role}",
-                            "color": discord.Color.green(),
-                        }))
-                    else:
-                        await response.edit(embed = create_embed({
-                            "title": f"Could not get role {value}",
-                            "color": discord.Color.red(),
-                        }))
-            elif name == "acas_channel":
-                if not context.author.guild_permissions.administrator and not await self.client.is_owner(context.author):
-                    await response.edit(embed = create_embed({
-                        "title": f"You don't have administrator or bot creator permissions",
-                        "color": discord.Color.red(),
-                    }))
-                    return
-
-                if not value or value.lower() == "none":
-                    settings["acas_channel"] = None
-                    save_guild_data(settings)
-
-                    await response.edit(embed = create_embed({
-                        "title": "Removed ACAS channel",
-                        "color": discord.Color.green(),
-                    }))
-                else:
-                    channel = get_object(context.guild.text_channels, value)
-                    if channel:
-                        settings["acas_channel"] = channel.id
-                        save_guild_data(settings)
-
-                        await response.edit(embed = create_embed({
-                            "title": f"Set ACAS channel to {channel}",
-                            "color": discord.Color.green(),
-                        }))
-                    else:
-                        await response.edit(embed = create_embed({
-                            "title": f"Could not get channel {value}",
-                            "color": discord.Color.red(),
-                        }))
-            elif name == "acas_role":
-                if not context.author.guild_permissions.administrator and not await self.client.is_owner(context.author):
-                    await response.edit(embed = create_embed({
-                        "title": f"You don't have administrator or bot creator permissions",
-                        "color": discord.Color.red(),
-                    }))
-                    return
-
-                if not value or value.lower() == "none":
-                    settings["acas_role"] = None
-                    save_guild_data(settings)
-
-                    await response.edit(embed = create_embed({
-                        "title": "Removed ACAS role",
-                        "color": discord.Color.green(),
-                    }))
-                else:
-                    role = get_object(context.guild.roles, value)
-                    if role:
-                        settings["acas_role"] = role.id
-                        save_guild_data(settings)
-
-                        await response.edit(embed = create_embed({
-                            "title": f"Set ACAS role to {role}",
-                            "color": discord.Color.green(),
-                        }))
-                    else:
-                        await response.edit(embed = create_embed({
-                            "title": f"Could not get role {value}",
-                            "color": discord.Color.red(),
-                        })) 
-            elif name == "acas_enabled":
-                if not value or value.lower() == "false":
-                    settings["acas_enabled"] = False
-                    save_guild_data(settings)
-
-                    await response.edit(embed = create_embed({
-                        "title": "Disabled ACAS",
-                        "color": discord.Color.green(),
-                    }))
-                elif value.lower() == "true":
-                    settings["acas_enabled"] = True
-                    save_guild_data(settings)
-
-                    await response.edit(embed = create_embed({
-                        "title": "Enabled ACAS",
-                        "color": discord.Color.green(),
-                    }))
-                else:
-                    await response.edit(embed = create_embed({
-                        "title": f"{value} is not a valid boolean (true/false)",
-                        "color": discord.Color.red()
-                    }))
-                    return
-            elif name == "voice_exp":
-                if not context.author.guild_permissions.administrator and not await self.client.is_owner(context.author):
-                    await response.edit(embed = create_embed({
-                        "title": f"You don't have administrator or bot creator permissions",
-                        "color": discord.Color.red(),
-                    }))
-                    return
-
-                if not value:
-                    await response.edit(embed = create_embed({
-                        "title": "No amount entered",
-                        "color": discord.Color.red()
-                    }))
-                    return
-
-                value = int(value)
-                settings["voice_exp"] = value
-                save_guild_data(settings)
-
-                await response.edit(embed = create_embed({
-                    "title": f"Set voice EXP to {value}",
-                    "color": discord.Color.green(),
-                }))
-            else:
-                await response.edit(embed = create_embed({
-                    "title": f"{name} is not a valid setting",
-                    "color": discord.Color.red(),
-                }))
-        except Exception as error_message:
-            await response.edit(embed = create_embed({
-                "title": f"Could not change {name} to {value}",
-                "color": discord.Color.red(),
-            }, {
-                "Error Message": error_message,
-            }))            
-
-    @commands.command(aliases = ["settings"], description = "Retrieves a list of server specific settings in the data store.")
-    async def getsettings(self, context):
-        response = await context.send(embed = create_embed({
+    @commands.command()
+    @commands.check_any(commands.is_owner(), commands.has_permissions(administrator=True))
+    async def settings(self, context):
+        response = await context.send(embed=create_embed({
             "title": "Loading settings...",
-            "color": discord.Color.gold(),
-        }))
+            "color": discord.Color.gold()
+        }))        
 
         try:
-            settings = get_guild_data(context.guild.id)
+            guild_data = get_guild_data(context.guild.id)
+            
+            # format settings
 
-            if settings.get("_id"):
-                settings.pop("_id")
+            if guild_data.get("_id"):
+                guild_data.pop("_id")
+            if guild_data.get("guild_id"):
+                guild_data.pop("guild_id")
 
-            if settings.get("guild_id"):
-                settings.pop("guild_id")
-
-            if len(settings["exp_channels"]) > 0:
+            if guild_data.get("exp_channels") and len(guild_data["exp_channels"]) > 0:
                 channels = []
-                for channel_id in settings["exp_channels"]:
-                    channel = get_object(context.guild.text_channels, channel_id)
+                for channel_id in guild_data["exp_channels"]:
+                    channel = context.guild.get_channel(channel_id)
                     if channel:
                         channels.append(channel.mention)
-                settings["exp_channels"] = ", ".join(channels)
+                guild_data["exp_channels"] = ", ".join(channels)                    
             else:
-                settings["exp_channels"] = "None"
+                guild_data["exp_channels"] = "None"
 
-            if settings.get("join_channel"):
-                channel = get_object(context.guild.text_channels, settings["join_channel"])
-                if channel:
-                    settings["join_channel"] = channel.mention
-
-            if settings.get("default_role"):
-                role = context.guild.get_role(settings["default_role"])
-                if role:
-                    settings["default_role"] = role.mention
-
-            if settings.get("acas_channel"):
-                channel = get_object(context.guild.text_channels, settings["acas_channel"])
-                if channel:
-                    settings["acas_channel"] = channel.mention
-
-            if settings.get("acas_role"):
-                role = context.guild.get_role(settings["acas_role"])
-                if role:
-                    settings["acas_role"] = role.mention
-
-            await response.edit(embed = create_embed({
-                "title": "Settings",
-                "inline": True,
-            }, settings))
-        except Exception as error_message:
-            await response.edit(embed = create_embed({
-                "title": "Unable to load settings",
-                "color": discord.Color.red(),
-            }, {
-                "Error Message": error_message,
-            }))
-
-    @commands.command(description = "Gets specific info.")
-    async def get(self, context, name: str, *, page: int = 1):
-        response = await context.send(embed = create_embed({
-            "title": f"Loading {name}...",
-            "color": discord.Color.gold()
-        }))
-
-        try:
-            if name == "vc_language":
-                first_page = page * 25 - 25
-                last_page = page * 25
-
-                fields = {}
-                for key, language_name in enumerate(list(VC_LANGUAGES.keys())):
-                    if key >= first_page and key < last_page:
-                        fields[language_name] = VC_LANGUAGES[language_name]
-
-                await response.edit(embed = create_embed({
-                    "title": f"VC Languages (Page {page})",
-                    "inline": True,
-                    "footer": f"Page {page}"
-                }, fields))
-            elif name == "vc_accent":
-                first_page = page * 25 - 25
-                last_page = page * 25
-
-                fields = {}
-                for key, language_name in enumerate(list(VC_ACCENTS.keys())):
-                    if key >= first_page and key < last_page:
-                        fields[language_name] = VC_ACCENTS[language_name]
-
-                await response.edit(embed = create_embed({
-                    "title": f"VC Accents",
-                    "inline": True,
-                    "footer": f"Page {page}"
-                }, fields))
+            if guild_data.get("join_channel"):
+                channel = context.guild.get_channel(guild_data["join_channel"])
+                guild_data["join_channel"] = channel.mention
             else:
-                await response.edit(embed = create_embed({
-                    "title": f"{name} does not have any data",
-                    "color": discord.Color.red()
-                }))
+                guild_data["join_channel"] = "None"
+
+            if guild_data.get("default_role"):
+                role = context.guild.get_role(guild_data["default_role"])
+                guild_data["default_role"] = role.mention
+            else:
+                guild_data["default_role"] = "None"
+
+            if guild_data.get("acas_channel"):
+                channel = context.guild.get_channel(guild_data["acas_channel"])
+                guild_data["acas_channel"] = channel.mention
+            else:
+                guild_data["acas_channel"] = "None"
+
+            if guild_data.get("acas_role"):
+                role = context.guild.get_role(guild_data["acas_role"])
+                guild_data["acas_role"] = role.mention
+            else:
+                guild_data["acas_role"] = "None"
+
+            await response.edit(embed=create_embed({
+                "Title": "Settings",
+                "inline": True
+            }, guild_data))
         except Exception as error_message:
-            await response.edit(embed = create_embed({
-                "title": f"Could not get {name}",
+            traceback.print_exc()
+            await response.edit(embed=create_embed({
+                "title": "Could not load settings",
                 "color": discord.Color.red()
             }, {
                 "Error Message": error_message
