@@ -160,3 +160,11 @@ def get_first_n_items(dictionary, number):
     for index in list(dictionary)[:number]:
         new_dictionary[index] = dictionary.get(index)
     return new_dictionary
+
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+ 

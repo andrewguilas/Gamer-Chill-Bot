@@ -4,8 +4,8 @@ import os
 import asyncio
 import pdb
 
-from helper import create_embed, get_guild_data, save_guild_data, get_object, sort_dictionary, get_first_n_items
-from constants import SETTINGS, GET_FLAGS, VC_ACCENTS, VC_LANGUAGES, DELETE_RESPONSE_DELAY, MAX_LEADERBOARD_FIELDS, CHECK_EMOJI, NEXT_EMOJI, BACK_EMOJI, COMMANDS
+from helper import create_embed, get_guild_data, save_guild_data, get_object, sort_dictionary, get_first_n_items, is_number
+from constants import SETTINGS, GET_FLAGS, VC_ACCENTS, VC_LANGUAGES, DELETE_RESPONSE_DELAY, MAX_LEADERBOARD_FIELDS, CHECK_EMOJI, NEXT_EMOJI, BACK_EMOJI, COMMANDS, CHANGE_EMOJI, DEFAULT_GUILD_DATA, WAIT_DELAY
 
 class default(commands.Cog, description = "Default bot commands."):
     def __init__(self, client):
@@ -165,55 +165,195 @@ class default(commands.Cog, description = "Default bot commands."):
         }))        
 
         try:
-            guild_data = get_guild_data(context.guild.id)
-            
-            # format settings
+            while True:
+                guild_data = get_guild_data(context.guild.id)
+                
+                # format settings
 
-            if guild_data.get("_id"):
-                guild_data.pop("_id")
-            if guild_data.get("guild_id"):
-                guild_data.pop("guild_id")
+                if guild_data.get("_id"):
+                    guild_data.pop("_id")
+                if guild_data.get("guild_id"):
+                    guild_data.pop("guild_id")
 
-            if guild_data.get("exp_channels") and len(guild_data["exp_channels"]) > 0:
-                channels = []
-                for channel_id in guild_data["exp_channels"]:
-                    channel = context.guild.get_channel(channel_id)
-                    if channel:
-                        channels.append(channel.mention)
-                guild_data["exp_channels"] = ", ".join(channels)                    
-            else:
-                guild_data["exp_channels"] = "None"
+                if guild_data.get("exp_channels") and len(guild_data["exp_channels"]) > 0:
+                    channels = []
+                    for channel_id in guild_data["exp_channels"]:
+                        channel = context.guild.get_channel(channel_id)
+                        if channel:
+                            channels.append(channel.mention)
+                    guild_data["exp_channels"] = ", ".join(channels)                    
+                else:
+                    guild_data["exp_channels"] = "None"
 
-            if guild_data.get("join_channel"):
-                channel = context.guild.get_channel(guild_data["join_channel"])
-                guild_data["join_channel"] = channel.mention
-            else:
-                guild_data["join_channel"] = "None"
+                if guild_data.get("join_channel"):
+                    channel = context.guild.get_channel(guild_data["join_channel"])
+                    guild_data["join_channel"] = channel.mention
+                else:
+                    guild_data["join_channel"] = "None"
 
-            if guild_data.get("default_role"):
-                role = context.guild.get_role(guild_data["default_role"])
-                guild_data["default_role"] = role.mention
-            else:
-                guild_data["default_role"] = "None"
+                if guild_data.get("default_role"):
+                    role = context.guild.get_role(guild_data["default_role"])
+                    guild_data["default_role"] = role.mention
+                else:
+                    guild_data["default_role"] = "None"
 
-            if guild_data.get("acas_channel"):
-                channel = context.guild.get_channel(guild_data["acas_channel"])
-                guild_data["acas_channel"] = channel.mention
-            else:
-                guild_data["acas_channel"] = "None"
+                if guild_data.get("acas_channel"):
+                    channel = context.guild.get_channel(guild_data["acas_channel"])
+                    guild_data["acas_channel"] = channel.mention
+                else:
+                    guild_data["acas_channel"] = "None"
 
-            if guild_data.get("acas_role"):
-                role = context.guild.get_role(guild_data["acas_role"])
-                guild_data["acas_role"] = role.mention
-            else:
-                guild_data["acas_role"] = "None"
+                if guild_data.get("acas_role"):
+                    role = context.guild.get_role(guild_data["acas_role"])
+                    guild_data["acas_role"] = role.mention
+                else:
+                    guild_data["acas_role"] = "None"
 
-            await response.edit(embed=create_embed({
-                "Title": "Settings",
-                "inline": True
-            }, guild_data))
+                await response.edit(embed=create_embed({
+                    "title": "Settings",
+                    "inline": True,
+                    "description": f"Press {CHANGE_EMOJI} to change settings"
+                }, guild_data))
+
+                # change settings
+
+                def check_reaction(reaction, user):
+                    return user == context.author and reaction.message == response and str(reaction.emoji) == CHANGE_EMOJI
+
+                try:
+                    await response.add_reaction(CHANGE_EMOJI)
+                    await self.client.wait_for("reaction_add", check=check_reaction, timeout=60)
+                    await response.clear_reaction(CHANGE_EMOJI)
+                except asyncio.TimeoutError:
+                    await response.edit(embed=create_embed({
+                        "title": "Settings",
+                        "inline": True,
+                    }, guild_data))
+                    await response.clear_reaction(CHANGE_EMOJI)
+                    return
+
+                # get setting to change
+
+                await response.edit(embed=create_embed({
+                    "title": "Type the setting you would like to change",
+                    "color": discord.Color.gold(),
+                    "inline": True
+                }, guild_data))
+
+                def check_message(message):
+                    return message.author == context.author and message.channel == context.channel
+
+                setting_name = None
+
+                try:
+                    message = await self.client.wait_for("message", check=check_message, timeout=60)
+                    await message.delete()
+                    setting_name = message.content.lower()
+                except asyncio.TimeoutError:
+                    await response.edit(embed=create_embed({
+                        "title": "You did not respond in time",
+                        "inline": True,
+                        "color": discord.Color.red(),
+                    }, guild_data))
+                    await asyncio.sleep(WAIT_DELAY)
+                    continue
+
+                if not setting_name:
+                    await response.edit(embed=create_embed({
+                        "title": "You did not enter a setting to change",
+                        "color": discord.Color.red(),
+                        "inline": True
+                    }, guild_data))
+                    await asyncio.sleep(WAIT_DELAY)
+                    continue
+
+                settings_list = list(DEFAULT_GUILD_DATA.keys())
+                settings_list.remove("guild_id")
+                if not setting_name in settings_list:
+                    await response.edit(embed=create_embed({
+                        "title": f"{setting_name} is an invalid setting",
+                        "color": discord.Color.red(),
+                        "inline": True,
+                    }, guild_data))
+                    await asyncio.sleep(WAIT_DELAY)
+                    continue
+
+                # get value to change the setting to
+
+                await response.edit(embed=create_embed({
+                    "title": f"Type the value you would like to set {setting_name} to",
+                    "color": discord.Color.gold(),
+                    "inline": True
+                }, guild_data))
+
+                setting_value = None
+
+                try:
+                    message = await self.client.wait_for("message", check=check_message, timeout=60)
+                    await message.delete()
+                    setting_value = message.content
+                except asyncio.TimeoutError:
+                    await response.edit(embed=create_embed({
+                        "title": "You did not respond in time",
+                        "inline": True,
+                        "color": discord.Color.red(),
+                    }, guild_data))
+                    await asyncio.sleep(WAIT_DELAY)
+                    continue
+
+                if not setting_value:
+                    await response.edit(embed=create_embed({
+                        "title": "You did not enter a value",
+                        "color": discord.Color.red(),
+                        "inline": True
+                    }, guild_data))
+                    await asyncio.sleep(WAIT_DELAY)
+                    continue
+
+                # change settings
+
+                if setting_name == "prefix":
+                    setting_value = setting_value.lower()
+
+                    if len(setting_value) > 1:
+                        await response.edit(embed=create_embed({
+                            "title": "Prefix must be one letter",
+                            "color": discord.Color.red(),
+                            "inline": True,
+                        }, guild_data))
+                        await asyncio.sleep(WAIT_DELAY)
+                        continue
+
+                    if is_number(setting_value):
+                        await response.edit(embed=create_embed({
+                            "title": "Prefix must be a letter",
+                            "color": discord.Color.red(),
+                            "inline": True,
+                        }, guild_data))
+                        await asyncio.sleep(WAIT_DELAY)
+                        continue
+
+                    new_guild_data = get_guild_data(context.guild.id)
+                    guild_data["prefix"] = setting_value
+                    new_guild_data["prefix"] = setting_value
+                    save_guild_data(new_guild_data)
+
+                    await response.edit(embed=create_embed({
+                        "title": f"Changed prefix to {setting_value}",
+                        "color": discord.Color.green(),
+                        "inline": True,
+                    }, guild_data))
+                    await asyncio.sleep(WAIT_DELAY)
+                else:
+                    await response.edit(embed=create_embed({
+                        "title": f"{setting_name} is an invalid setting",
+                        "color": discord.Color.red(),
+                        "inline": True,
+                    }, guild_data))
+                    await asyncio.sleep(WAIT_DELAY)
+                    continue
         except Exception as error_message:
-            traceback.print_exc()
+            # traceback.print_exc()
             await response.edit(embed=create_embed({
                 "title": "Could not load settings",
                 "color": discord.Color.red()

@@ -432,6 +432,7 @@ UNFILL_EMOJI = "⬜"
 CHECK_EMOJI = "✅"
 NEXT_EMOJI = "▶️"
 BACK_EMOJI = "◀️"
+CHANGE_EMOJI = "\N{gear}"
 
 IS_TESTING = True
 LIVE_DATASTORE = "datastore1"
@@ -441,6 +442,7 @@ MAX_MEMES = 5
 MEME_SUBREDDIT = "memes"
 
 DELETE_RESPONSE_DELAY = 3
+WAIT_DELAY = 3
 
 TEMP_PATH = "__temp__"
 TTS_PATH = "__temp__/tts.mp3"
