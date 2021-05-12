@@ -344,6 +344,29 @@ class default(commands.Cog, description = "Default bot commands."):
                         "inline": True,
                     }, guild_data))
                     await asyncio.sleep(WAIT_DELAY)
+                elif setting_name == "vc_language":
+                    setting_value = setting_value.lower()
+                    
+                    if not VC_LANGUAGES.get(setting_value):
+                        await response.edit(embed=create_embed({
+                            "title": "{setting_value} is an invalid language",
+                            "color": discord.Color.red(),
+                            "inline": True,
+                        }, guild_data))
+                        await asyncio.sleep(WAIT_DELAY)
+                        continue
+
+                    new_guild_data = get_guild_data(context.guild.id)
+                    guild_data["vc_language"] = setting_value
+                    new_guild_data["vc_language"] = setting_value
+                    save_guild_data(new_guild_data)
+
+                    await response.edit(embed=create_embed({
+                        "title": f"Changed VC language to {setting_value}",
+                        "color": discord.Color.green(),
+                        "inline": True,
+                    }, guild_data))
+                    await asyncio.sleep(WAIT_DELAY)
                 else:
                     await response.edit(embed=create_embed({
                         "title": f"{setting_name} is an invalid setting",
@@ -351,7 +374,6 @@ class default(commands.Cog, description = "Default bot commands."):
                         "inline": True,
                     }, guild_data))
                     await asyncio.sleep(WAIT_DELAY)
-                    continue
         except Exception as error_message:
             # traceback.print_exc()
             await response.edit(embed=create_embed({
