@@ -390,6 +390,39 @@ class default(commands.Cog, description = "Default bot commands."):
                         "inline": True,
                     }, guild_data))
                     await asyncio.sleep(WAIT_DELAY)
+                elif setting_name == "vc_slow_mode":
+                    setting_value = setting_value.lower()
+                    if setting_value == "true":
+                        new_guild_data = get_guild_data(context.guild.id)
+                        guild_data["vc_slow_mode"] = True
+                        new_guild_data["vc_slow_mode"] = True
+                        save_guild_data(new_guild_data)
+
+                        await response.edit(embed=create_embed({
+                            "title": "Turned on VC slow mode",
+                            "color": discord.Color.green(),
+                            "inline": True,
+                        }, guild_data))
+                        await asyncio.sleep(WAIT_DELAY)
+                    elif setting_value == "false":
+                        new_guild_data = get_guild_data(context.guild.id)
+                        guild_data["vc_slow_mode"] = False
+                        new_guild_data["vc_slow_mode"] = False
+                        save_guild_data(new_guild_data)
+
+                        await response.edit(embed=create_embed({
+                            "title": "Turned off VC slow mode",
+                            "color": discord.Color.green(),
+                            "inline": True,
+                        }, guild_data))
+                        await asyncio.sleep(WAIT_DELAY)
+                    else:
+                        await response.edit(embed=create_embed({
+                            "title": f"{setting_value} is an invalid value",
+                            "color": discord.Color.red(),
+                            "inline": True,
+                        }, guild_data))
+                        await asyncio.sleep(WAIT_DELAY)
                 else:
                     await response.edit(embed=create_embed({
                         "title": f"{setting_name} is an invalid setting",
