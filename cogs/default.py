@@ -4,7 +4,7 @@ import os
 import asyncio
 import pdb
 
-from helper import create_embed, get_guild_data, save_guild_data, get_object, sort_dictionary, get_first_n_items, is_number
+from helper import create_embed, get_guild_data, save_guild_data, get_object, sort_dictionary, get_first_n_items, is_number, get_object
 from constants import SETTINGS, GET_FLAGS, VC_ACCENTS, VC_LANGUAGES, DELETE_RESPONSE_DELAY, MAX_LEADERBOARD_FIELDS, CHECK_EMOJI, NEXT_EMOJI, BACK_EMOJI, COMMANDS, CHANGE_EMOJI, DEFAULT_GUILD_DATA, WAIT_DELAY
 
 class default(commands.Cog, description = "Default bot commands."):
@@ -451,6 +451,58 @@ class default(commands.Cog, description = "Default bot commands."):
                         "inline": True,
                     }, guild_data))
                     await asyncio.sleep(WAIT_DELAY)
+                elif setting_name == "exp_channels":
+                    channel = get_object(context.guild.text_channels, setting_value)
+                    if not channel:
+                        await response.edit(embed=create_embed({
+                            "title": f"Could not find text chanel {setting_value}",
+                            "color": discord.Color.red(),
+                            "inline": True,
+                        }, guild_data))
+                        await asyncio.sleep(WAIT_DELAY)
+                        continue
+
+                    new_guild_data = get_guild_data(context.guild.id)
+                    if channel.id in new_guild_data["exp_channels"]:
+                        new_guild_data["exp_channels"].remove(channel.id)
+                        save_guild_data(new_guild_data)
+
+                        if len(new_guild_data["exp_channels"]) > 0:
+                            exp_channels = []
+                            for point_channel_id in new_guild_data["exp_channels"]:
+                                point_channel = context.guild.get_channel(point_channel_id)
+                                if point_channel:
+                                    exp_channels.append(point_channel.mention)
+                            guild_data["exp_channels"] = ", ".join(exp_channels)
+                        else:
+                            guild_data["exp_channels"] = "None"
+                        
+                        await response.edit(embed=create_embed({
+                            "title": f"Removed {channel} from EXP channels",
+                            "color": discord.Color.green(),
+                            "inline": True,
+                        }, guild_data))
+                        await asyncio.sleep(WAIT_DELAY)
+                    else:
+                        new_guild_data["exp_channels"].append(channel.id)
+                        save_guild_data(new_guild_data)
+
+                        if len(new_guild_data["exp_channels"]) > 0:
+                            exp_channels = []
+                            for point_channel_id in new_guild_data["exp_channels"]:
+                                point_channel = context.guild.get_channel(point_channel_id)
+                                if point_channel:
+                                    exp_channels.append(point_channel.mention)
+                            guild_data["exp_channels"] = ", ".join(exp_channels)
+                        else:
+                            guild_data["exp_channels"] = "None"
+                        
+                        await response.edit(embed=create_embed({
+                            "title": f"Added {channel} to EXP channels",
+                            "color": discord.Color.green(),
+                            "inline": True,
+                        }, guild_data))
+                        await asyncio.sleep(WAIT_DELAY)
                 else:
                     await response.edit(embed=create_embed({
                         "title": f"{setting_name} is an invalid setting",
