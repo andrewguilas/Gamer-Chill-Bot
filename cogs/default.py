@@ -680,6 +680,20 @@ class default(commands.Cog, description = "Default bot commands."):
                             "inline": True,
                         }, guild_data))
                         await asyncio.sleep(WAIT_DELAY)
+                elif setting_name == "voice_exp":
+                    setting_value = int(setting_value)
+                    
+                    new_guild_data = get_guild_data(context.guild.id)
+                    guild_data["voice_exp"] = setting_value
+                    new_guild_data["voice_exp"] = setting_value
+                    save_guild_data(new_guild_data)
+
+                    await response.edit(embed=create_embed({
+                        "title": f"Set voice EXP to {setting_value}",
+                        "color": discord.Color.green(),
+                        "inline": True,
+                    }, guild_data))
+                    await asyncio.sleep(WAIT_DELAY)
                 else:
                     await response.edit(embed=create_embed({
                         "title": f"{setting_name} is an invalid setting",
