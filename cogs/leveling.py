@@ -77,7 +77,8 @@ class leveling(commands.Cog, description = "Leveling system commands."):
 
         save_user_data(user_data)
 
-    @commands.command(description = "Retrieves the user's level, experience, and rank.")
+    @commands.command()
+    @commands.guild_only()
     async def rank(self, context, member: discord.Member = None):
         if not member:
             member = context.author
@@ -130,7 +131,8 @@ class leveling(commands.Cog, description = "Leveling system commands."):
                 "Error Message": error_message
             }))
 
-    @commands.command(description = "Retrieves the ranks of all the members in a server.")
+    @commands.command()
+    @commands.guild_only()
     async def leaderboard(self, context):
         response = await context.send(embed = create_embed({
             "title": f"Loading leaderboard...",

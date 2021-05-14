@@ -367,6 +367,51 @@ EIGHTBALL_RESPONSES = [
     "Ask better questions next time.",
 ]
 
+COMMANDS = {
+    "Default": {
+        "acas": "Subscribes/unsubscribes to ACAS.",
+        "help": "Retrieves bot commands.",
+        "userinfo <user>": "Retrieves info of the user.",
+        "serverinfo": "Retrieves server info.",
+        "settings": "Retrieves/changes settings.",
+        "clear <amount>": "Clears the amount of messages in the channel.",
+        "messageleaderboard": "Retrieves the users with the most messages in the server.",
+    },
+    "Economy, Leveling, Stocks": {
+        "bal": "Retrieves your balanace.",
+        "forbes": "Retrieves the users in the server with the most money.",
+        "give <member> <amount>": "Gives the user money.",
+        "rank <user>": "Retrieves the user's rank.",
+        "leaderboard": "Retrieves the users in the server with the highest level.",
+        "getprice <ticker>": "Gets the price of the stock.",
+        "buyshares <ticker> <shares>": "Buys shares of the stock.",
+        "sellshares <ticker> <shares>": "Sells owned shares of the stock.",
+        "portfolio <user>": "Retrieves the user's points.",
+    },
+    "Fun": {
+        "8ball": "Retrieves a random response to a question.",
+        "roll <number>": "Retrieves a die of number.",
+        "impersonate": "Impersonates sending a message as a user.",
+        "randomperson": "Retrieves a random user in the server.",
+        "m": "Retrieves a random meme from r/meme.",
+        "join": "Makes the bot join your VC.",
+        "leave": "Makes the bot leave your VC.",
+        "say <message>": "Makes the bot say the message.",
+    },
+    "Bot": {
+        "load <extension>": "Loads an extension.",
+        "unload <extension>": "Unloads an extension.",
+        "reload <extension>": "Reloads an extension.",
+        "update": "Reloads all extensions.",
+        "run <code>": "Runs code through the bot.",
+        "cls": "Clears the terminal.",
+        "changeactivity <activity>": "Changes the bot's activity.",
+        "changestatus <status>": "Changes the bot's status.",
+        "restart": "Restarts the bot.",
+        "info": "Retrieves the bot's ping, invite link, uptime, connected servers, members watching, and users watching."
+    },
+}
+
 ACAS_BLACKLISTED_DAYS = [4, 5, 6]
 ACAS_REMINDER_BLOCK_TIMES = ["09:20:00", "10:50:00", "12:35:00", "14:35:00"]
 ACAS_BLOCK_TIMES = ["09:25:00", "10:55:00", "12:40:00", "14:40:00"]
@@ -385,6 +430,9 @@ MAX_FILL = 10
 FILL_EMOJI = "🟦"
 UNFILL_EMOJI = "⬜"
 CHECK_EMOJI = "✅"
+NEXT_EMOJI = "▶️"
+BACK_EMOJI = "◀️"
+CHANGE_EMOJI = "\N{gear}"
 
 IS_TESTING = False
 LIVE_DATASTORE = "datastore1"
@@ -394,6 +442,7 @@ MAX_MEMES = 5
 MEME_SUBREDDIT = "memes"
 
 DELETE_RESPONSE_DELAY = 3
+WAIT_DELAY = 3
 
 TEMP_PATH = "__temp__"
 TTS_PATH = "__temp__/tts.mp3"
