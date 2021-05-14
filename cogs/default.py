@@ -539,6 +539,42 @@ class default(commands.Cog, description = "Default bot commands."):
                             "inline": True,
                         }, guild_data))
                         await asyncio.sleep(WAIT_DELAY)
+                elif setting_name == "default_role":
+                    if setting_value.lower() == "none":
+                        new_guild_data = get_guild_data(context.guild.id)
+                        new_guild_data["default_role"] = None
+                        guild_data["default_role"] = "None"
+                        save_guild_data(new_guild_data)
+
+                        await response.edit(embed=create_embed({
+                            "title": "Removed default role",
+                            "color": discord.Color.green(),
+                            "inline": True,
+                        }, guild_data))
+                        await asyncio.sleep(WAIT_DELAY)
+                        continue
+                    else:
+                        role = get_object(context.guild.roles, setting_value)
+                        if not channel:
+                            await response.edit(embed=create_embed({
+                                "title": f"Could not find role {setting_value}",
+                                "color": discord.Color.red(),
+                                "inline": True,
+                            }, guild_data))
+                            await asyncio.sleep(WAIT_DELAY)
+                            continue
+
+                        new_guild_data = get_guild_data(context.guild.id)
+                        new_guild_data["default_role"] = role.id
+                        guild_data["default_role"] = role.mention
+                        save_guild_data(new_guild_data)
+
+                        await response.edit(embed=create_embed({
+                            "title": f"Set default role to {role.name}",
+                            "color": discord.Color.green(),
+                            "inline": True,
+                        }, guild_data))
+                        await asyncio.sleep(WAIT_DELAY)
                 else:
                     await response.edit(embed=create_embed({
                         "title": f"{setting_name} is an invalid setting",
