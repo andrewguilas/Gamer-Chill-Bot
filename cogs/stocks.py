@@ -9,8 +9,11 @@ from helper import create_embed, get_user_data, save_user_data
 from constants import UPDATE_TICKERS, TICKER_PERIOD, TICKER_INTERVAL
 
 def get_price(ticker: str, round_to: int = 2):
-    price = si.get_live_price(ticker.lower())
-    return price and round(price, round_to)
+    try:
+        price = round(si.get_live_price(ticker.lower()), 2)
+        return price
+    except:
+        return None
 
 def get_open(ticker: str, round_to: int = 2):
     ticker = ticker.upper()
@@ -81,6 +84,13 @@ class stocks(commands.Cog, description = "Stock market commands."):
 
         try:
             share_price = get_price(ticker)
+            if not share_price:
+                await response.edit(embed=create_embed({
+                    "title": f"Could not get share price of {ticker}",
+                    "color": discord.Color.red()
+                }))
+                return
+
             await response.edit(embed = create_embed({
                 "title": f"{ticker}: ${share_price}"
             }))
