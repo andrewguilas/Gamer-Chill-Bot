@@ -7,7 +7,8 @@ EXTENSIONS = [
     "acas",
     "leveling",
     "economy",
-    "stocks"
+    "stocks",
+    "bank",
 ]
 
 DEFAULT_GUILD_DATA = {
@@ -434,7 +435,7 @@ NEXT_EMOJI = "▶️"
 BACK_EMOJI = "◀️"
 CHANGE_EMOJI = "\N{gear}"
 
-IS_TESTING = False
+IS_TESTING = True
 LIVE_DATASTORE = "datastore1"
 TESTING_DATASTORE = "datastore2"
 
