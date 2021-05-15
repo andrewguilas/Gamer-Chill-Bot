@@ -26,7 +26,8 @@ DEFAULT_GUILD_DATA = {
     "acas_role": None,
     "acas_enabled": False,
     "voice_exp": 1,
-    "money_per_level": 10
+    "money_per_level": 10,
+    "bank_manager": None,
 }
 
 DEFAULT_USER_DATA = {

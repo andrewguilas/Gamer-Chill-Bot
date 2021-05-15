@@ -81,7 +81,8 @@ def get_all_user_data(sort_value: str = None):
 def get_object(objects: [], value):
     for obj in objects:
         try:
-            if obj.name == value or value == obj.mention or obj.id == int(value):
+            print(str(value), obj.mention, str(value) in obj.mention)
+            if obj.name == value or value == obj.mention or str(obj.id) in value or obj.id == int(value):
                 return obj
         except:
             pass
