@@ -380,7 +380,7 @@ COMMANDS = {
         "clear <amount>": "Clears the amount of messages in the channel.",
         "messageleaderboard": "Retrieves the users with the most messages in the server.",
     },
-    "Economy, Leveling, Stocks": {
+    "Economy, Leveling, Stocks, Bank": {
         "bal": "Retrieves your balanace.",
         "forbes": "Retrieves the users in the server with the most money.",
         "give <member> <amount>": "Gives the user money.",
@@ -390,6 +390,10 @@ COMMANDS = {
         "buyshares <ticker> <shares>": "Buys shares of the stock.",
         "sellshares <ticker> <shares>": "Sells owned shares of the stock.",
         "portfolio <user>": "Retrieves the user's points.",
+        "bank": "Retrieves the bank's balance.",
+        "print <amount>": "Adds money to the bank's balance.",
+        "loan <member> <amount>": "Transfers money from the bank to the user.",
+        "fine <member> <amount>": "Transfers money from the user to the bank.",
     },
     "Fun": {
         "8ball": "Retrieves a random response to a question.",
