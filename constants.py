@@ -437,7 +437,7 @@ NEXT_EMOJI = "▶️"
 BACK_EMOJI = "◀️"
 CHANGE_EMOJI = "\N{gear}"
 
-IS_TESTING = True
+IS_TESTING = False
 LIVE_DATASTORE = "datastore1"
 TESTING_DATASTORE = "datastore2"
 
