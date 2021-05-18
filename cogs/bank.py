@@ -69,5 +69,52 @@ class bank(commands.Cog, description = "Default bank management commands."):
                 "Error Message": error_message
             }))
 
+    @commands.command()
+    @commands.check_any(is_bank_manager())
+    @commands.guild_only()
+    async def loan(self, context, member: discord.Member, amount: float):
+        response = await context.send(embed=create_embed({
+            "title": f"Loading {member} ${amount}",
+            "color": discord.Color.gold()
+        }))
+
+        try:
+            amount = round(amount, 2)
+            if amount <= 0:
+                await response.edit(embed=create_embed({
+                    "title": "Amount must be greater than 0",
+                    "color": discord.Color.red(),
+                }))
+                return
+
+            guild_data = get_guild_data(context.guild.id)
+            if guild_data["bank_balance"] < amount:
+                await response.edit(embed=create_embed({
+                    "title": "The bank does not have enough money to loan",
+                    "color": discord.Color.red(),
+                }))
+                return
+
+            user_data = get_user_data(member.id)
+            user_data["money"] += amount
+            save_user_data(user_data)
+
+            guild_data["bank_balance"] -= amount
+            save_guild_data(guild_data)
+
+            await response.edit(embed=create_embed({
+                "title": f"Loaned {member} ${amount}",
+            }, {
+                f"{member}'s Balance": "${}".format(user_data["money"]),
+                "Bank Balance": "${}".format(guild_data["bank_balance"])
+            }))
+        except Exception as error_message:
+            await response.edit(embed=create_embed({
+                "title": "Could not loan {member} ${amount}",
+                "color": discord.Color.red(),
+            }, {
+                "Error Message": error_message
+            }))
+
 def setup(client):
     client.add_cog(bank(client))
