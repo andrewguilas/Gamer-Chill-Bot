@@ -7,7 +7,8 @@ EXTENSIONS = [
     "acas",
     "leveling",
     "economy",
-    "stocks"
+    "stocks",
+    "bank",
 ]
 
 DEFAULT_GUILD_DATA = {
@@ -25,7 +26,9 @@ DEFAULT_GUILD_DATA = {
     "acas_role": None,
     "acas_enabled": False,
     "voice_exp": 1,
-    "money_per_level": 10
+    "money_per_level": 10,
+    "bank_manager": None,
+    "bank_balance": 0,
 }
 
 DEFAULT_USER_DATA = {

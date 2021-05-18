@@ -174,6 +174,8 @@ class default(commands.Cog, description = "Default bot commands."):
                     guild_data.pop("_id")
                 if guild_data.get("guild_id"):
                     guild_data.pop("guild_id")
+                if guild_data.get("bank_balance"):
+                    guild_data.pop("bank_balance")
 
                 if guild_data.get("exp_channels") and len(guild_data["exp_channels"]) > 0:
                     channels = []
@@ -208,6 +210,13 @@ class default(commands.Cog, description = "Default bot commands."):
                     guild_data["acas_role"] = role.mention
                 else:
                     guild_data["acas_role"] = "None"
+
+                if guild_data.get("bank_manager"):
+                    member = await context.guild.fetch_member(guild_data["bank_manager"])
+                    if member:
+                        guild_data["bank_manager"] = member.mention
+                    else:
+                        guild_data["bank_manager"] = "None"
 
                 await response.edit(embed=create_embed({
                     "title": "Settings",
@@ -269,6 +278,7 @@ class default(commands.Cog, description = "Default bot commands."):
 
                 settings_list = list(DEFAULT_GUILD_DATA.keys())
                 settings_list.remove("guild_id")
+                settings_list.remove("bank_balance")
                 if not setting_name in settings_list:
                     await response.edit(embed=create_embed({
                         "title": f"{setting_name} is an invalid setting",
@@ -708,6 +718,49 @@ class default(commands.Cog, description = "Default bot commands."):
                         "inline": True,
                     }, guild_data))
                     await asyncio.sleep(WAIT_DELAY)
+                elif setting_name == "bank_manager":
+                    if setting_value.lower() == "none":
+                        new_guild_data = get_guild_data(context.guild.id)
+                        new_guild_data["bank_manager"] = None
+                        save_guild_data(new_guild_data)
+
+                        if not guild_data["bank_manager"] or guild_data["bank_manager"] == "None":
+                            await response.edit(embed=create_embed({
+                                "title": f"Bank has no bank manager",
+                                "color": discord.Color.red(),
+                                "inline": True,
+                            }, guild_data))
+                        else:
+                            guild_data["bank_manager"] = "None"
+                            await response.edit(embed=create_embed({
+                                "title": "Fired current bank manager",
+                                "color": discord.Color.green(),
+                                "inline": True,
+                            }, guild_data))
+
+                        await asyncio.sleep(WAIT_DELAY)
+                    else:
+                        member = get_object(context.guild.members, setting_value)
+                        if not member:
+                            await response.edit(embed=create_embed({
+                                "title": f"Could not find member {setting_value}",
+                                "color": discord.Color.red(),
+                                "inline": True,
+                            }, guild_data))
+                            await asyncio.sleep(WAIT_DELAY)
+                            continue
+                        
+                        new_guild_data = get_guild_data(context.guild.id)
+                        guild_data["bank_manager"] = member.mention
+                        new_guild_data["bank_manager"] = member.id
+                        save_guild_data(new_guild_data)
+
+                        await response.edit(embed=create_embed({
+                            "title": f"Hired {member.name} as a bank manager",
+                            "color": discord.Color.green(),
+                            "inline": True,
+                        }, guild_data))
+                        await asyncio.sleep(WAIT_DELAY)
                 else:
                     await response.edit(embed=create_embed({
                         "title": f"{setting_name} is an invalid setting",
