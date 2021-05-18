@@ -28,6 +28,7 @@ DEFAULT_GUILD_DATA = {
     "voice_exp": 1,
     "money_per_level": 10,
     "bank_manager": None,
+    "bank_balance": 0,
 }
 
 DEFAULT_USER_DATA = {

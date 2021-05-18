@@ -174,6 +174,8 @@ class default(commands.Cog, description = "Default bot commands."):
                     guild_data.pop("_id")
                 if guild_data.get("guild_id"):
                     guild_data.pop("guild_id")
+                if guild_data.get("bank_balance"):
+                    guild_data.pop("bank_balance")
 
                 if guild_data.get("exp_channels") and len(guild_data["exp_channels"]) > 0:
                     channels = []
@@ -276,6 +278,7 @@ class default(commands.Cog, description = "Default bot commands."):
 
                 settings_list = list(DEFAULT_GUILD_DATA.keys())
                 settings_list.remove("guild_id")
+                settings_list.remove("bank_balance")
                 if not setting_name in settings_list:
                     await response.edit(embed=create_embed({
                         "title": f"{setting_name} is an invalid setting",

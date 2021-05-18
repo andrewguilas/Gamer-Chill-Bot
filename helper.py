@@ -81,7 +81,6 @@ def get_all_user_data(sort_value: str = None):
 def get_object(objects: [], value):
     for obj in objects:
         try:
-            print(str(value), obj.mention, str(value) in obj.mention)
             if obj.name == value or value == obj.mention or str(obj.id) in value or obj.id == int(value):
                 return obj
         except:
@@ -168,4 +167,13 @@ def is_number(s):
         return True
     except ValueError:
         return False
- 
+
+def attach_prefix_to_number(number, prefix: str):
+    if number < 0:
+        number = abs(number)
+        return f"-{prefix}{number}"
+    elif number > 0:
+        return f"+{prefix}{number}"
+    elif number == 0:
+        return f"{prefix}{number}"
+
