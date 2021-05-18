@@ -105,12 +105,52 @@ class bank(commands.Cog, description = "Default bank management commands."):
             await response.edit(embed=create_embed({
                 "title": f"Loaned {member} ${amount}",
             }, {
-                f"{member}'s Balance": "${}".format(user_data["money"]),
-                "Bank Balance": "${}".format(guild_data["bank_balance"])
+                f"{member}'s Balance": "${}".format(round(user_data["money"], 2)),
+                "Bank Balance": "${}".format(round(guild_data["bank_balance"], 2))
             }))
         except Exception as error_message:
             await response.edit(embed=create_embed({
                 "title": "Could not loan {member} ${amount}",
+                "color": discord.Color.red(),
+            }, {
+                "Error Message": error_message
+            }))
+
+    @commands.command()
+    @commands.check_any(is_bank_manager())
+    @commands.guild_only()
+    async def fine(self, context, member: discord.Member, amount: float):
+        response = await context.send(embed=create_embed({
+            "title": f"Fining {member} ${amount}",
+            "color": discord.Color.gold()
+        }))
+
+        try:
+            amount = round(amount, 2)
+            if amount <= 0:
+                await response.edit(embed=create_embed({
+                    "title": "Amount must be greater than 0",
+                    "color": discord.Color.red(),
+                }))
+                return
+
+            user_data = get_user_data(member.id)
+            user_data["money"] -= amount
+            save_user_data(user_data)
+
+            guild_data = get_guild_data(context.guild.id)
+            guild_data["bank_balance"] += amount
+            save_guild_data(guild_data)
+
+            await response.edit(embed=create_embed({
+                "title": f"Fined {member} ${amount}",
+            }, {
+                f"{member}'s Balance": "${}".format(round(user_data["money"], 2)),
+                "Bank Balance": "${}".format(guild_data["bank_balance"])
+            }))
+        except Exception as error_message:
+            await response.edit(embed=create_embed({
+                "title": "Could not fine {member} ${amount}",
                 "color": discord.Color.red(),
             }, {
                 "Error Message": error_message
