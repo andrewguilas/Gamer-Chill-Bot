@@ -776,7 +776,7 @@ class default(commands.Cog, description = "Default bot commands."):
                 "Error Message": error_message
             }))
 
-    @commands.command(aliases = ["delete"], description = "Clears a set amount of text messages.", brief = "manage messages")
+    @commands.command(enabled=False, aliases = ["delete"], description = "Clears a set amount of text messages.", brief = "manage messages")
     @commands.check_any(commands.is_owner(), commands.has_permissions(manage_messages = True))
     async def clear(self, context, amount: int = 1):
         response = await context.send(embed = create_embed({
