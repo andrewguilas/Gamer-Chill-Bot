@@ -102,7 +102,7 @@ class economy(commands.Cog, description = "Economy system commands."):
                 "Error Message": error_message
             }))
 
-    @commands.command()
+    @commands.command(enabled=False)
     @commands.guild_only()
     async def give(self, context, member: discord.Member, amount: float):
         if member.bot:

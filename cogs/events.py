@@ -67,6 +67,11 @@ class events(commands.Cog, description = "Bot and server events."):
                 "title": f"Incorrect syntax",
                 "color": discord.Color.red()
             }))
+        elif isinstance(error, commands.DisabledCommand):
+            await context.send(embed = create_embed({
+                "title": f"Command disabled",
+                "color": discord.Color.red()
+            }))
 
 def setup(client):
     client.add_cog(events(client))
