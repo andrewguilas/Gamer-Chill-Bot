@@ -442,7 +442,7 @@ BACK_EMOJI = "◀️"
 CHANGE_EMOJI = "\N{gear}"
 
 IS_TESTING = False
-LIVE_DATASTORE = "datastore1"
+LIVE_DATASTORE = "datastore3"
 TESTING_DATASTORE = "datastore2"
 
 MAX_MEMES = 5
