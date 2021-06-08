@@ -47,10 +47,6 @@ class leveling(commands.Cog, description = "Leveling system commands."):
                     new_level = get_level_from_experience(user_data["experience"], LEVELING_LEVEL_DIFFICULTY)
                     if old_level != new_level:
                         user_data["money"] += guild_settings["money_per_level"]
-                        await member.send(embed=create_embed({
-                            "title": f"You leveled up to level {new_level}"
-                        }))
-
                     save_user_data(user_data)
 
     @commands.Cog.listener()
@@ -74,7 +70,7 @@ class leveling(commands.Cog, description = "Leveling system commands."):
         new_level = get_level_from_experience(user_data["experience"], LEVELING_LEVEL_DIFFICULTY)
         if old_level != new_level:
             user_data["money"] += guild_settings.get("money_per_level") or LEVELING_MONEY_PER_LEVEL * new_level
-            await author.send(embed = create_embed({
+            await message.channel.send(embed = create_embed({
                 "title": f"You leveled up to level {new_level}",
             }))
 
