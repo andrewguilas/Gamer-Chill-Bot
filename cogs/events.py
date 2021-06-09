@@ -33,7 +33,7 @@ class events(commands.Cog, description = "Bot and server events."):
                     "title": f"{member} joined"
                 }))
 
-        default_role_id = settings.get("default_role")
+        default_role_id = guild_data.get("default_role")
         if default_role_id:
             role = member.guild.get_role(default_role_id)
             if role:
@@ -55,6 +55,11 @@ class events(commands.Cog, description = "Bot and server events."):
         if isinstance(error, commands.NoPrivateMessage):
             await context.send(embed = create_embed({
                 "title": f"Commands must be used in servers",
+                "color": discord.Color.red()
+            }))
+        elif isinstance(error, commands.PrivateMessageOnly):
+            await context.send(embed = create_embed({
+                "title": f"Commands must be used in DM's",
                 "color": discord.Color.red()
             }))
         elif isinstance(error, commands.MissingPermissions) or isinstance(error, commands.CheckFailure):

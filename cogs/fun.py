@@ -124,8 +124,8 @@ class fun(commands.Cog, description = "Fun commands."):
                 "Error Message": error_message
             }))
 
-    @commands.command(enabled=False, aliases = ["m", "meme"])
-    @commands.guild_only()
+    @commands.command(aliases = ["m", "meme"])
+    @commands.dm_only()
     async def getmeme(self, context, amount: int = 1):
         try:
             if amount > MAX_MEMES:
