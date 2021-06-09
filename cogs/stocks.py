@@ -77,7 +77,6 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 await asyncio.sleep(UPDATE_TICKERS)
 
     @commands.command()
-    @commands.guild_only()
     async def getprice(self, context, ticker: str):
         ticker = ticker.upper()
         response = await context.send(embed = create_embed({
