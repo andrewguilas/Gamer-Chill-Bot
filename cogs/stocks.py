@@ -167,8 +167,8 @@ class stocks(commands.Cog, description = "Stock market commands."):
 
             # response
             save_user_data(user_data)
-            shares_owned = user_data["stocks"][ticker]["shares"]
-            average_price = user_data["stocks"][ticker]["average_price"]
+            shares_owned = round(user_data["stocks"][ticker]["shares"], 4)
+            average_price = round(user_data["stocks"][ticker]["average_price"], 2)
             await response.edit(embed = create_embed({
                 "title": f"Bought {shares_to_purchase} shares of {ticker} at ${share_price} (-${total_price})",
                 "color": discord.Color.green()
