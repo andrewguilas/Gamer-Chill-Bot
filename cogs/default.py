@@ -3,6 +3,7 @@ from discord.ext import commands
 import os
 import asyncio
 import pdb
+import datetime
 
 from helper import create_embed, get_guild_data, save_guild_data, get_object, sort_dictionary, get_first_n_items, is_number, get_object
 from constants import SETTINGS, GET_FLAGS, VC_ACCENTS, VC_LANGUAGES, DELETE_RESPONSE_DELAY, MAX_LEADERBOARD_FIELDS, CHECK_EMOJI, NEXT_EMOJI, BACK_EMOJI, COMMANDS, CHANGE_EMOJI, DEFAULT_GUILD_DATA, WAIT_DELAY
@@ -12,58 +13,47 @@ class default(commands.Cog, description = "Default bot commands."):
         self.client = client
 
     @commands.command()
-    @commands.guild_only()
     async def help(self, context):
         response = await context.send(embed = create_embed({
             "title": f"Loading commands...",
             "color": discord.Color.gold()
         }))
 
-        try:
-            pages = []
-            current_page = 0
-            for category, commands in COMMANDS.items():
-                pages.append(create_embed({
-                    "title": category,
-                    "inline": True,
-                }, commands))
+        pages = []
+        current_page = 0
+        for category, commands in COMMANDS.items():
+            pages.append(create_embed({
+                "title": category,
+                "inline": True,
+            }, commands))
 
-            await response.edit(embed = pages[current_page])
+        await response.edit(embed = pages[current_page])
 
-            while True:
-                def check_response(reaction, user):
-                    return user == context.author and reaction.message == response
+        def check_response(reaction, user):
+            return user == context.author and reaction.message == response
 
-                try:
-                    await response.add_reaction(BACK_EMOJI)
-                    await response.add_reaction(NEXT_EMOJI)
+        while True:
+            await response.add_reaction(BACK_EMOJI)
+            await response.add_reaction(NEXT_EMOJI)
 
-                    reaction, user = await self.client.wait_for("reaction_add", check = check_response, timeout = 60)
+            reaction, user = await self.client.wait_for("reaction_add", check = check_response, timeout = 60)
 
-                    if str(reaction.emoji) == NEXT_EMOJI:
-                        if current_page + 1 >= len(pages):
-                            current_page = len(pages) - 1
-                        else:
-                            current_page += 1
-                    elif str(reaction.emoji) == BACK_EMOJI:
-                        if current_page == 0:
-                            current_page = 0
-                        else:
-                            current_page -= 1
+            if str(reaction.emoji) == NEXT_EMOJI:
+                if current_page + 1 >= len(pages):
+                    current_page = len(pages) - 1
+                else:
+                    current_page += 1
+            elif str(reaction.emoji) == BACK_EMOJI:
+                if current_page == 0:
+                    current_page = 0
+                else:
+                    current_page -= 1
 
-                    await response.edit(embed = pages[current_page])
-                    await response.remove_reaction(reaction.emoji, user)
-                except asyncio.TimeoutError:
-                    await response.edit(embed = pages[current_page])
-                    await response.clear_reactions()
-                    return
-        except Exception as error_message:
-            await response.edit(embed = create_embed({
-                "title": f"Could not load commands",
-                "color": discord.Color.red()
-            }, {
-                "Error Message": error_message
-            }))
+            if context.guild:
+                await response.edit(embed = pages[current_page])
+                await response.remove_reaction(reaction.emoji, user)
+            else:
+                response = await context.send(embed=pages[current_page])
 
     @commands.command(aliases = ["whois"], description = "Retrieves info of the user.")
     async def userinfo(self, context, user: discord.Member = None):
@@ -76,32 +66,35 @@ class default(commands.Cog, description = "Default bot commands."):
         }))
 
         try:
-            roles = ""
-            for index, role in enumerate(user.roles):
-                if index > 0:
-                    roles = roles + ", "
-                roles = roles + role.name
-
-            await response.edit(embed = create_embed({
-                "title": f"{user}'s User Info",
-                "thumbnail": user.avatar_url,
-                "inline": True,
-            }, {
-                "Name": user,
-                "User ID": user.id,
-                "Nickname": user.nick,
-                "Created Account": user.created_at,
-                "Joined Server": user.joined_at,
-                "Subscribed to Nitro": user.premium_since,
-                "Is Bot": user.bot,
-                "Is Pending": user.pending,
-                "Roles": roles,
-                "Top Role": user.top_role,
-                "Activity": user.activity and user.activity.name or "None",
-                "Device": user.desktop_status and "Desktop" or user.mobile_status and "Mobile" or user.web_status and "Web" or "Unknown",
-                "Status": user.status,
-                "Is In VC": user.voice and user.voice.channel or "False",
-            }))
+            if context.guild:
+                await response.edit(embed = create_embed({
+                    "title": f"{user}'s User Info",
+                    "thumbnail": user.avatar_url,
+                }, {
+                    "Account Created": user.created_at.strftime("%m/%d/%y - %I:%M:%S %p"),
+                    "Activity": ", ".join(user.activities) or "None",
+                    "Boosted Server": user.premium_since and user.premium_since.strftime("%m/%d/%y - %I:%M:%S %p") or "No",
+                    "Bot": user.bot and "Yes" or "No",
+                    "Device": user.desktop_status and "Desktop" or user.web_status and "Website" or user.mobile_status and "Mobile" or "Unknown",
+                    "Joined Server": user.joined_at.strftime("%m/%d/%y - %I:%M:%S %p"),
+                    "Messages (Server)": len(await user.history(limit=None).flatten()),
+                    "Nickname": user.nick,
+                    "Pending": user.pending and "Yes" or "No",
+                    "Roles": " ".join([role.mention for role in user.roles]),
+                    "Status": str(user.status).capitalize(),
+                    "User ID": user.id,
+                }))
+            else:
+                await response.edit(embed = create_embed({
+                    "title": f"{user}'s User Info",
+                    "thumbnail": user.avatar_url,
+                }, {
+                    "Account Created": user.created_at.strftime("%m/%d/%y - %I:%M:%S %p"),
+                    "Bot": user.bot and "Yes" or "No",
+                    "User ID": user.id,
+                    "Mutual Guilds": len(user.mutual_guilds),
+                    "Messages (DM)": len(await user.history(limit=None).flatten()),
+                }))
         except Exception as error_message:
             await response.edit(embed = create_embed({
                 "title": f"Something went wrong when retrieving user info for {user}",
@@ -111,6 +104,7 @@ class default(commands.Cog, description = "Default bot commands."):
             }))
 
     @commands.command(aliases = ["whereami"], description = "Retrieves info of the server.")
+    @commands.guild_only()
     async def serverinfo(self, context):
         guild = context.guild
 
@@ -158,6 +152,7 @@ class default(commands.Cog, description = "Default bot commands."):
             }))
 
     @commands.command()
+    @commands.guild_only()
     @commands.check_any(commands.is_owner(), commands.has_permissions(administrator=True))
     async def settings(self, context):
         response = await context.send(embed=create_embed({
@@ -807,6 +802,7 @@ class default(commands.Cog, description = "Default bot commands."):
             }))
 
     @commands.command(description = "Lists the top messagers in the server.")
+    @commands.guild_only()
     async def messageleaderboard(self, context):
         response = await context.send(embed = create_embed({
             "title": "Loading message leaderboard...",
