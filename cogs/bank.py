@@ -25,8 +25,9 @@ class bank(commands.Cog, description = "Default bank management commands."):
 
         try:
             guild_data = get_guild_data(context.guild.id)
+            bank_balance = round(guild_data["bank_balance"], 2)
             await response.edit(embed=create_embed({
-                "title": "Bank Balance: ${}".format(guild_data["bank_balance"]),
+                "title": f"Bank Balance: ${bank_balance}",
             }))
         except Exception as error_message:
             await response.edit(embed=create_embed({
@@ -40,13 +41,13 @@ class bank(commands.Cog, description = "Default bank management commands."):
     @commands.check_any(is_bank_manager())
     @commands.guild_only()
     async def print(self, context, amount: float):
+        amount = round(amount, 2)
         response = await context.send(embed=create_embed({
             "title": f"Printing ${amount}",
             "color": discord.Color.gold()
         }))
 
         try:
-            amount = round(amount, 2)
             if amount <= 0:
                 await response.edit(embed=create_embed({
                     "title": "Amount must be greater than 0",
@@ -58,8 +59,9 @@ class bank(commands.Cog, description = "Default bank management commands."):
             guild_data["bank_balance"] += amount
             save_guild_data(guild_data)
 
+            bank_balance = round(guild_data["bank_balance"], 2)
             await response.edit(embed=create_embed({
-                "title": "Bank Balance: ${} (+${})".format(guild_data["bank_balance"], amount),
+                "title": f"Bank Balance: ${bank_balance} (+${amount})",
             }))
         except Exception as error_message:
             await response.edit(embed=create_embed({
@@ -73,13 +75,13 @@ class bank(commands.Cog, description = "Default bank management commands."):
     @commands.check_any(is_bank_manager())
     @commands.guild_only()
     async def loan(self, context, member: discord.Member, amount: float):
+        amount = round(amount, 2)
         response = await context.send(embed=create_embed({
             "title": f"Loading {member} ${amount}",
             "color": discord.Color.gold()
         }))
 
         try:
-            amount = round(amount, 2)
             if amount <= 0:
                 await response.edit(embed=create_embed({
                     "title": "Amount must be greater than 0",
@@ -102,11 +104,13 @@ class bank(commands.Cog, description = "Default bank management commands."):
             guild_data["bank_balance"] -= amount
             save_guild_data(guild_data)
 
+            user_balance = round(user_data["money"], 2)
+            bank_balance = round(guild_data["bank_balance"], 2)
             await response.edit(embed=create_embed({
                 "title": f"Loaned {member} ${amount}",
             }, {
-                f"{member}'s Balance": "${}".format(round(user_data["money"], 2)),
-                "Bank Balance": "${}".format(round(guild_data["bank_balance"], 2))
+                f"{member}'s Balance": f"${user_balance}",
+                "Bank Balance": f"${bank_balance}"
             }))
         except Exception as error_message:
             await response.edit(embed=create_embed({
@@ -120,13 +124,13 @@ class bank(commands.Cog, description = "Default bank management commands."):
     @commands.check_any(is_bank_manager())
     @commands.guild_only()
     async def fine(self, context, member: discord.Member, amount: float):
+        amount = round(amount, 2)
         response = await context.send(embed=create_embed({
             "title": f"Fining {member} ${amount}",
             "color": discord.Color.gold()
         }))
 
         try:
-            amount = round(amount, 2)
             if amount <= 0:
                 await response.edit(embed=create_embed({
                     "title": "Amount must be greater than 0",
@@ -142,11 +146,13 @@ class bank(commands.Cog, description = "Default bank management commands."):
             guild_data["bank_balance"] += amount
             save_guild_data(guild_data)
 
+            user_balance = round(user_data["money"], 2)
+            bank_balance = round(guild_data["bank_balance"], 2)
             await response.edit(embed=create_embed({
                 "title": f"Fined {member} ${amount}",
             }, {
-                f"{member}'s Balance": "${}".format(round(user_data["money"], 2)),
-                "Bank Balance": "${}".format(guild_data["bank_balance"])
+                f"{member}'s Balance": f"${user_balance}",
+                "Bank Balance": f"${bank_balance}"
             }))
         except Exception as error_message:
             await response.edit(embed=create_embed({
