@@ -35,7 +35,8 @@ DEFAULT_USER_DATA = {
     "user_id": None,
     "money": 1000,
     "experience": 0,
-    "stocks": {}
+    "stocks": {},
+    "acas_subscribed": False,
 }
 
 SETTINGS = {

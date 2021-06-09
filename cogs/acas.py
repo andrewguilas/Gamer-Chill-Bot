@@ -3,7 +3,7 @@ from discord.ext import commands, tasks
 import pytz
 from datetime import datetime
 
-from helper import create_embed, get_guild_data, get_all_guild_data
+from helper import create_embed, get_guild_data, get_all_guild_data, get_user_data, save_user_data, get_all_user_data
 from constants import ACAS_BLACKLISTED_DAYS, ACAS_REMINDER_BLOCK_TIMES, ACAS_BLOCK_TIMES, ACAS_UPDATE_DELAY
 
 class acas(commands.Cog, description = "Subscribe to different events."):
@@ -72,8 +72,20 @@ class acas(commands.Cog, description = "Subscribe to different events."):
                 # testing bot will attempt to view settings of guilds it's not connected to
                 print("ERROR: Bot cannot access guild {}".format(guild_settings["guild_id"]))
     
+        for user_data in get_all_user_data():
+            try:
+                user = self.client.get_user(user_data["user_id"])
+                if not user or not user_data["acas_subscribed"]:
+                    continue
+
+                if status == "now":
+                    await user.send(f"**Block {block_number} is starting now!**")
+                elif status == "early":
+                    await user.send(f"Block {block_number} is starting in 5 minutes")     
+            except discord.Forbidden:
+                print(f"ERROR: Bot cannot DM {user}")
+
     @commands.command(aliases = ["acas"])
-    @commands.guild_only()
     async def toggleacas(self, context):
         response = await context.send(embed = create_embed({
             "title": f"Subscribing/unsubscribing to ACAS...",
@@ -81,36 +93,53 @@ class acas(commands.Cog, description = "Subscribe to different events."):
         }))
 
         try:
-            guild_data = get_guild_data(context.guild.id)
-            
-            acas_role_id = guild_data.get("acas_role")
-            if not acas_role_id:
-                await response.edit(embed = create_embed({
-                    "title": "Cannot find ACAS role",
-                    "color": discord.Color.red()
-                }))
-                return
+            if context.guild:
+                guild_data = get_guild_data(context.guild.id)
+                
+                acas_role_id = guild_data.get("acas_role")
+                if not acas_role_id:
+                    await response.edit(embed = create_embed({
+                        "title": "Cannot find ACAS role",
+                        "color": discord.Color.red()
+                    }))
+                    return
 
-            acas_role = discord.utils.get(context.guild.roles, id = acas_role_id)
-            if not acas_role:
-                await response.edit(embed = create_embed({
-                    "title": f"Role {acas_role_id} does not exist",
-                    "color": discord.Color.red()
-                }))
-                return
+                acas_role = discord.utils.get(context.guild.roles, id = acas_role_id)
+                if not acas_role:
+                    await response.edit(embed = create_embed({
+                        "title": f"Role {acas_role_id} does not exist",
+                        "color": discord.Color.red()
+                    }))
+                    return
 
-            if acas_role in context.author.roles:
-                await context.author.remove_roles(acas_role)
-                await response.edit(embed = create_embed({
-                    "title": "Unsubscribed from ACAS",
-                    "color": discord.Color.green()
-                }))
+                if acas_role in context.author.roles:
+                    await context.author.remove_roles(acas_role)
+                    await response.edit(embed = create_embed({
+                        "title": "Unsubscribed from ACAS (server)",
+                        "color": discord.Color.green()
+                    }))
+                else:
+                    await context.author.add_roles(acas_role)
+                    await response.edit(embed = create_embed({
+                        "title": "Subscribed to ACAS (server)",
+                        "color": discord.Color.green()
+                    }))
             else:
-                await context.author.add_roles(acas_role)
-                await response.edit(embed = create_embed({
-                    "title": "Subscribed to ACAS",
-                    "color": discord.Color.green()
-                }))
+                user_data = get_user_data(context.author.id)
+                if user_data["acas_subscribed"]:
+                    user_data["acas_subscribed"] = False
+                    save_user_data(user_data)
+                    await response.edit(embed = create_embed({
+                        "title": "Unsubscribed from ACAS (DM)",
+                        "color": discord.Color.green()
+                    }))
+                else:
+                    user_data["acas_subscribed"] = True
+                    save_user_data(user_data)
+                    await response.edit(embed = create_embed({
+                        "title": "Subscribed to ACAS (DM)",
+                        "color": discord.Color.green()
+                    }))
         except Exception as error_message:
             await response.edit(embed = create_embed({
                 "title": f"Could not subscribe/unsubscribe to ACAS",
