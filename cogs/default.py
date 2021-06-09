@@ -170,7 +170,7 @@ class default(commands.Cog, description = "Default bot commands."):
                     guild_data.pop("_id")
                 if guild_data.get("guild_id"):
                     guild_data.pop("guild_id")
-                if guild_data.get("bank_balance"):
+                if guild_data.get("bank_balance") or "bank_balance" in guild_data.keys():
                     guild_data.pop("bank_balance")
 
                 if guild_data.get("exp_channels") and len(guild_data["exp_channels"]) > 0:
