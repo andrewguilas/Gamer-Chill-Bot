@@ -27,7 +27,6 @@ class fun(commands.Cog, description = "Fun commands."):
         self.client = client
 
     @commands.command(aliases = ["8ball"])
-    @commands.guild_only()
     async def eightball(self, context, *, question: str):
         response = await context.send(embed = create_embed({
             "title": "Loading response...",
@@ -49,7 +48,6 @@ class fun(commands.Cog, description = "Fun commands."):
             }))
 
     @commands.command()
-    @commands.guild_only()
     async def roll(self, context, max_number: int = 6):
         response = await context.send(embed = create_embed({
             "title": f"Rolling a die of {max_number}",
