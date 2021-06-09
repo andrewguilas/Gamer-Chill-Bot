@@ -112,6 +112,7 @@ class economy(commands.Cog, description = "Economy system commands."):
             }))
             return
 
+        amount = round(amount, 2)
         response = await context.send(embed = create_embed({
             "title": f"Giving {member} ${amount}...",
             "color": discord.Color.gold()

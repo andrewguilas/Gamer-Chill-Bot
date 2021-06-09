@@ -25,6 +25,7 @@ class default(commands.Cog, description = "Default bot commands."):
             for category, commands in COMMANDS.items():
                 pages.append(create_embed({
                     "title": category,
+                    "inline": True,
                 }, commands))
 
             await response.edit(embed = pages[current_page])
