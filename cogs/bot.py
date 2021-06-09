@@ -3,9 +3,10 @@ from discord.ext import commands
 import os
 import sys
 import time
+import asyncio
 
 from helper import create_embed, is_guild_owner, format_time
-from constants import MAX_LEADERBOARD_FIELDS
+from constants import MAX_LEADERBOARD_FIELDS, CHECK_EMOJI
 
 CLIENT_ID = os.getenv("GCB_CLIENT_ID")
 
@@ -15,7 +16,6 @@ class bot(commands.Cog, description = "Bot management and settings."):
         self.uptime = time.time()
 
     @commands.command()
-    @commands.guild_only()
     @commands.check_any(commands.is_owner(), is_guild_owner())
     async def run(self, context, *, code):
         response = await context.send(embed = create_embed({
@@ -43,7 +43,6 @@ class bot(commands.Cog, description = "Bot management and settings."):
             }))
 
     @commands.command()
-    @commands.guild_only()
     @commands.check_any(commands.is_owner())
     async def cls(self, context):
         response = await context.send(embed = create_embed({
@@ -65,8 +64,7 @@ class bot(commands.Cog, description = "Bot management and settings."):
                 "Error Message": error_message,
             }))
     
-    @commands.command()
-    @commands.guild_only()
+    @commands.command(enabled=False)
     @commands.check_any(commands.is_owner(), is_guild_owner())
     async def changeactivity(self, context, *, activity = None):
         response = await context.send(embed = create_embed({
@@ -88,8 +86,7 @@ class bot(commands.Cog, description = "Bot management and settings."):
                 "Error Message": error_message,
             }))
 
-    @commands.command()
-    @commands.guild_only()
+    @commands.command(enabled=False)
     @commands.check_any(commands.is_owner(), is_guild_owner())
     async def changestatus(self, context, *, status: str = "online"):
         response = await context.send(embed = create_embed({
@@ -112,7 +109,6 @@ class bot(commands.Cog, description = "Bot management and settings."):
             }))
 
     @commands.command()
-    @commands.guild_only()
     @commands.check_any(commands.is_owner(), is_guild_owner())
     async def restart(self, context):
         response = await context.send(embed = create_embed({
@@ -121,10 +117,10 @@ class bot(commands.Cog, description = "Bot management and settings."):
         }))
         
         def check_response(reaction, user):
-            return not user.bot and user == context.author and str(reaction.emoji) == ACCEPT_EMOJI and reaction.message == response
+            return not user.bot and user == context.author and str(reaction.emoji) == CHECK_EMOJI and reaction.message == response
 
         try:
-            await response.add_reaction(ACCEPT_EMOJI)
+            await response.add_reaction(CHECK_EMOJI)
             await self.client.wait_for("reaction_add", check = check_response, timeout = 30)
         except asyncio.TimeoutError:
             await response.edit(embed = create_embed({
@@ -141,7 +137,6 @@ class bot(commands.Cog, description = "Bot management and settings."):
             sys.exit()
 
     @commands.command()
-    @commands.guild_only()
     async def info(self, context):
         response = await context.send(embed = create_embed({
             "title": "Loading bot info...",
@@ -168,14 +163,15 @@ class bot(commands.Cog, description = "Bot management and settings."):
             users_watching = len(user_ids)
 
             await response.edit(embed = create_embed({
-                "title": "Bot Info",
+                "title": "Invite",
                 "url": invite_url,
+                "inline": True,
             }, {
                 "Ping": f"{ping} ms",
                 "Uptime": uptime_text,
                 "Connected Servers": connected_servers,
-                "Members Watching": members_watching,
-                "Users Watching": users_watching
+                "Users Watching": members_watching,
+                "Unique Users Watching": users_watching
             }))
         except Exception as error_message:
             await response.edit(embed = create_embed({
