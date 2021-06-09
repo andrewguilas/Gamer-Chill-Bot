@@ -406,7 +406,7 @@ COMMANDS = {
         "roll <number>": "Retrieves a die of number.",
         "impersonate": "Impersonates sending a message as a user.",
         "randomperson": "Retrieves a random user in the server.",
-        # "m": "Retrieves a random meme from r/meme.",
+        "m": "Retrieves a random meme from r/meme. DM's only.",
         "join": "Makes the bot join your VC.",
         "leave": "Makes the bot leave your VC.",
         "say <message>": "Makes the bot say the message.",
