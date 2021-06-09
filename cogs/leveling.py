@@ -52,7 +52,7 @@ class leveling(commands.Cog, description = "Leveling system commands."):
     @commands.Cog.listener()
     async def on_message(self, message):
         author = message.author
-        if author.bot:
+        if author.bot or not message.guild:
             return
 
         # cooldown

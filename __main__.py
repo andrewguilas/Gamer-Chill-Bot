@@ -2,12 +2,15 @@ import discord
 from discord.ext import commands
 import os
 
-from constants import EXTENSIONS, IS_TESTING
+from constants import EXTENSIONS, IS_TESTING, DEFAULT_GUILD_DATA
 from helper import create_embed, get_guild_data
 
 async def get_prefix(client, context):
-    guild_data = get_guild_data(context.guild.id)
-    return guild_data["prefix"]
+    if context.guild:
+        guild_data = get_guild_data(context.guild.id)
+        return guild_data["prefix"]
+    else:
+        return DEFAULT_GUILD_DATA["prefix"]
 
 intents = discord.Intents.default()
 intents.members = True
