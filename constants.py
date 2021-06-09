@@ -372,13 +372,13 @@ EIGHTBALL_RESPONSES = [
 
 COMMANDS = {
     "Default": {
-        "acas": "Subscribes/unsubscribes to ACAS.",
+        "acas": "Subscribes/unsubscribes to ACAS. Server command only.",
         "help": "Retrieves bot commands.",
         "userinfo <user>": "Retrieves info of the user.",
-        "serverinfo": "Retrieves server info.",
-        "settings": "Retrieves/changes settings.",
-        # "clear <amount>": "Clears the amount of messages in the channel.",
+        "serverinfo": "Retrieves server info. Server command only.",
+        "settings": "Retrieves/changes settings. Server command only.",
         "messageleaderboard": "Retrieves the users with the most messages in the server.",
+        # "clear <amount>": "Clears the amount of messages in the channel.",
     },
     "Economy": {
         "bal": "Retrieves your balanace.",
@@ -390,10 +390,10 @@ COMMANDS = {
         "leaderboard": "Retrieves the users in the server with the highest level.",
     },
     "Bank": {
-        "bank": "Retrieves the bank's balance.",
-        "print <amount>": "Adds money to the bank's balance.",
-        "loan <member> <amount>": "Transfers money from the bank to the user.",
-        "fine <member> <amount>": "Transfers money from the user to the bank.",
+        "bank": "Retrieves the bank's balance. Server command only.",
+        "print <amount>": "Adds money to the bank's balance. Server command only.",
+        "loan <member> <amount>": "Transfers money from the bank to the user. Server command only.",
+        "fine <member> <amount>": "Transfers money from the user to the bank. Server command only.",
     },
     "Stocks": {
         "getprice <ticker>": "Gets the price of the stock.",
@@ -406,10 +406,10 @@ COMMANDS = {
         "roll <number>": "Retrieves a die of number.",
         "impersonate": "Impersonates sending a message as a user.",
         "randomperson": "Retrieves a random user in the server.",
-        "m": "Retrieves a random meme from r/meme. DM's only.",
+        "m": "Retrieves a random meme from r/meme. DM command only.",
         "join": "Makes the bot join your VC.",
         "leave": "Makes the bot leave your VC.",
-        "say <message>": "Makes the bot say the message.",
+        "say <message>": "Makes the bot say the message. Server command only.",
     },
     "Bot": {
         "load <extension>": "Loads an extension.",
@@ -418,10 +418,10 @@ COMMANDS = {
         "update": "Reloads all extensions.",
         "run <code>": "Runs code through the bot.",
         "cls": "Clears the terminal.",
-        "changeactivity <activity>": "Changes the bot's activity.",
-        "changestatus <status>": "Changes the bot's status.",
         "restart": "Restarts the bot.",
         "info": "Retrieves the bot's ping, invite link, uptime, connected servers, members watching, and users watching."
+        # "changeactivity <activity>": "Changes the bot's activity.",
+        # "changestatus <status>": "Changes the bot's status.",
     },
 }
 
