@@ -10,7 +10,6 @@ class economy(commands.Cog, description = "Economy system commands."):
         self.client = client
 
     @commands.command(aliases = ["bal"])
-    @commands.guild_only()
     async def balance(self, context, member: discord.Member = None):
         if not member:
             member = context.author
@@ -56,7 +55,6 @@ class economy(commands.Cog, description = "Economy system commands."):
             }))
 
     @commands.command()
-    @commands.guild_only()
     async def forbes(self, context):
         response = await context.send(embed = create_embed({
             "title": f"Loading Forbes...",
@@ -66,7 +64,7 @@ class economy(commands.Cog, description = "Economy system commands."):
         try:
             richest_list = {}
             for user_data in get_all_user_data("money"):
-                user = context.guild.get_member(user_data["user_id"])
+                user = context.guild and context.guild.get_member(user_data["user_id"]) or self.client.get_user(user_data["user_id"])
                 if not user:
                     continue
 

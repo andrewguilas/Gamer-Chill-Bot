@@ -77,7 +77,6 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 await asyncio.sleep(UPDATE_TICKERS)
 
     @commands.command()
-    @commands.guild_only()
     async def getprice(self, context, ticker: str):
         ticker = ticker.upper()
         response = await context.send(embed = create_embed({
@@ -106,7 +105,6 @@ class stocks(commands.Cog, description = "Stock market commands."):
             }))
 
     @commands.command()
-    @commands.guild_only()
     async def buyshares(self, context, ticker: str, shares_to_purchase: float):
         ticker = ticker.upper()
         shares_to_purchase = round(shares_to_purchase, 4)
@@ -167,8 +165,8 @@ class stocks(commands.Cog, description = "Stock market commands."):
 
             # response
             save_user_data(user_data)
-            shares_owned = user_data["stocks"][ticker]["shares"]
-            average_price = user_data["stocks"][ticker]["average_price"]
+            shares_owned = round(user_data["stocks"][ticker]["shares"], 4)
+            average_price = round(user_data["stocks"][ticker]["average_price"], 2)
             await response.edit(embed = create_embed({
                 "title": f"Bought {shares_to_purchase} shares of {ticker} at ${share_price} (-${total_price})",
                 "color": discord.Color.green()
@@ -185,7 +183,6 @@ class stocks(commands.Cog, description = "Stock market commands."):
             }))
 
     @commands.command()
-    @commands.guild_only()
     async def sellshares(self, context, ticker: str, shares_to_sell: float):
         ticker = ticker.upper()
         shares_to_sell = round(shares_to_sell, 4)
@@ -250,7 +247,6 @@ class stocks(commands.Cog, description = "Stock market commands."):
             }))
 
     @commands.command()
-    @commands.guild_only()
     async def portfolio(self, context, member: discord.Member = None):
         if not member:
             member = context.author

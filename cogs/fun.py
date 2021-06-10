@@ -27,7 +27,6 @@ class fun(commands.Cog, description = "Fun commands."):
         self.client = client
 
     @commands.command(aliases = ["8ball"])
-    @commands.guild_only()
     async def eightball(self, context, *, question: str):
         response = await context.send(embed = create_embed({
             "title": "Loading response...",
@@ -49,7 +48,6 @@ class fun(commands.Cog, description = "Fun commands."):
             }))
 
     @commands.command()
-    @commands.guild_only()
     async def roll(self, context, max_number: int = 6):
         response = await context.send(embed = create_embed({
             "title": f"Rolling a die of {max_number}",
@@ -125,7 +123,6 @@ class fun(commands.Cog, description = "Fun commands."):
             }))
 
     @commands.command(aliases = ["m", "meme"])
-    @commands.dm_only()
     async def getmeme(self, context, amount: int = 1):
         try:
             if amount > MAX_MEMES:
