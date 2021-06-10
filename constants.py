@@ -29,6 +29,7 @@ DEFAULT_GUILD_DATA = {
     "money_per_level": 10,
     "bank_manager": None,
     "bank_balance": 0,
+    "daily_exp": 100,
 }
 
 DEFAULT_USER_DATA = {
@@ -37,6 +38,8 @@ DEFAULT_USER_DATA = {
     "experience": 0,
     "stocks": {},
     "acas_subscribed": False,
+    "daily_streak": 0,
+    "claimed_daily_timestamp": 0,
 }
 
 SETTINGS = {
@@ -449,6 +452,7 @@ BACK_EMOJI = "◀️"
 CHANGE_EMOJI = "\N{gear}"
 
 IS_TESTING = False
+CURRENT_VERSION = "8.1.0"
 LIVE_DATASTORE = "datastore3"
 TESTING_DATASTORE = "datastore2"
 

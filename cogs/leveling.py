@@ -69,7 +69,7 @@ class leveling(commands.Cog, description = "Leveling system commands."):
 
         new_level = get_level_from_experience(user_data["experience"], LEVELING_LEVEL_DIFFICULTY)
         if old_level != new_level:
-            user_data["money"] += guild_settings.get("money_per_level") or LEVELING_MONEY_PER_LEVEL * new_level
+            user_data["money"] += guild_settings.get("money_per_level") * new_level
             await message.channel.send(embed = create_embed({
                 "title": f"You leveled up to level {new_level}",
             }))
@@ -156,6 +156,70 @@ class leveling(commands.Cog, description = "Leveling system commands."):
         except Exception as error_message:
             await response.edit(embed = create_embed({
                 "title": f"Could not load leaderboard",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
+            }))
+
+    @commands.command()
+    @commands.guild_only()
+    async def daily(self, context):
+        response = await context.send(embed=create_embed({
+            "title": "Claiming daily reward...",
+            "color": discord.Color.gold()
+        }))
+
+        try:
+            user_data = get_user_data(context.author.id)
+            streak_message = ""
+            if time.time() - user_data["claimed_daily_timestamp"] < 60 * 60 * 24:
+                time_remaining_text = ""
+                seconds = (60 * 60 * 24) - math.floor(time.time() - user_data["claimed_daily_timestamp"])
+                if seconds < 60:
+                    time_remaining_text = f"{seconds} second(s)"
+                else:
+                    minutes = math.floor(seconds / 60)
+                    if minutes < 60:
+                        time_remaining_text = f"{minutes} minute(s)"
+                    else:
+                        hours = math.floor(minutes / 60)
+                        time_remaining_text = f"{hours} hour(s)"
+
+                await response.edit(embed=create_embed({
+                    "title": f"You must wait {time_remaining_text} to claim your daily reward",
+                    "color": discord.Color.red()
+                }))
+                return
+            else:
+                if time.time() - user_data["claimed_daily_timestamp"] < 60 * 60 * 24 * 2:
+                    user_data["daily_streak"] += 1
+                    streak_message = "Your streak is {} days.".format(user_data["daily_streak"])
+                elif user_data["daily_streak"] != 1:
+                    streak_message = "You lost your streak of {} days.".format(user_data["daily_streak"])
+                    user_data["daily_streak"] = 1
+                user_data["claimed_daily_timestamp"] = round(time.time())
+
+            guild_settings = get_guild_data(context.guild.id)
+            old_level = get_level_from_experience(user_data["experience"], LEVELING_LEVEL_DIFFICULTY)
+            user_data["experience"] += guild_settings["daily_exp"] * user_data["daily_streak"]
+
+            new_level = get_level_from_experience(user_data["experience"], LEVELING_LEVEL_DIFFICULTY)
+            if old_level != new_level:
+                user_data["money"] += guild_settings.get("money_per_level") * new_level
+                save_user_data(user_data)
+                await response.edit(embed = create_embed({
+                    "title": f"You claimed your daily reward and leveled up to level {new_level}. {streak_message}",
+                    "color": discord.Color.green()
+                }))
+            else:
+                save_user_data(user_data)
+                await response.edit(embed = create_embed({
+                    "title": f"You claimed your daily reward. {streak_message}",
+                    "color": discord.Color.green()
+                }))
+        except Exception as error_message:
+            await response.edit(embed=create_embed({
+                "title": "Could not claim daily reward",
                 "color": discord.Color.red()
             }, {
                 "Error Message": error_message
