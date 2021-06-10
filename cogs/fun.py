@@ -123,7 +123,6 @@ class fun(commands.Cog, description = "Fun commands."):
             }))
 
     @commands.command(aliases = ["m", "meme"])
-    @commands.dm_only()
     async def getmeme(self, context, amount: int = 1):
         try:
             if amount > MAX_MEMES:
