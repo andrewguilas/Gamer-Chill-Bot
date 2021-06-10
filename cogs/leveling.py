@@ -194,7 +194,7 @@ class leveling(commands.Cog, description = "Leveling system commands."):
                 if time.time() - user_data["claimed_daily_timestamp"] < 60 * 60 * 24 * 2:
                     user_data["daily_streak"] += 1
                     streak_message = "Your streak is {} days.".format(user_data["daily_streak"])
-                elif user_data["daily_streak"] != 1:
+                elif user_data["daily_streak"] != 0:
                     streak_message = "You lost your streak of {} days.".format(user_data["daily_streak"])
                     user_data["daily_streak"] = 1
                 user_data["claimed_daily_timestamp"] = round(time.time())
