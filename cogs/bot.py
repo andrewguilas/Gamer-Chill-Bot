@@ -6,7 +6,7 @@ import time
 import asyncio
 
 from helper import create_embed, is_guild_owner, format_time
-from constants import MAX_LEADERBOARD_FIELDS, CHECK_EMOJI
+from constants import MAX_LEADERBOARD_FIELDS, CHECK_EMOJI, CURRENT_VERSION
 
 CLIENT_ID = os.getenv("GCB_CLIENT_ID")
 
@@ -169,6 +169,7 @@ class bot(commands.Cog, description = "Bot management and settings."):
             }, {
                 "Ping": f"{ping} ms",
                 "Uptime": uptime_text,
+                "Version": CURRENT_VERSION,
                 "Connected Servers": connected_servers,
                 "Users Watching": members_watching,
                 "Unique Users Watching": users_watching
