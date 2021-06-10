@@ -77,7 +77,6 @@ class leveling(commands.Cog, description = "Leveling system commands."):
         save_user_data(user_data)
 
     @commands.command()
-    @commands.guild_only()
     async def rank(self, context, member: discord.Member = None):
         if not member:
             member = context.author
@@ -103,7 +102,7 @@ class leveling(commands.Cog, description = "Leveling system commands."):
             all_user_data = get_all_user_data("experience")
             guild_user_data = []
             for data in all_user_data:
-                if context.guild.get_member(data["user_id"]):
+                if context.guild and context.guild.get_member(data["user_id"]) or self.client.get_user(data["user_id"]):
                     guild_user_data.append(data)
 
             for index, member_data in enumerate(guild_user_data):
@@ -131,7 +130,6 @@ class leveling(commands.Cog, description = "Leveling system commands."):
             }))
 
     @commands.command()
-    @commands.guild_only()
     async def leaderboard(self, context):
         response = await context.send(embed = create_embed({
             "title": f"Loading leaderboard...",
@@ -139,19 +137,13 @@ class leveling(commands.Cog, description = "Leveling system commands."):
         }))
 
         try:
-            all_user_data = get_all_user_data("experience")
-            guild_user_data = []
-            for user_data in all_user_data:
-                member = context.guild.get_member(user_data["user_id"])
-                if member:
-                    guild_user_data.append(user_data)
-
             fields = {}
-            for rank, member_data in enumerate(guild_user_data):
-                member = context.guild.get_member(member_data["user_id"])
+            for user_data in get_all_user_data("experience"):
+                member = context.guild and context.guild.get_member(user_data["user_id"]) or self.client.get_user(user_data["user_id"])
                 if member:
-                    level = get_level_from_experience(member_data["experience"], LEVELING_LEVEL_DIFFICULTY)
-                    experience = member_data["experience"] - get_experience_from_level(level, LEVELING_LEVEL_DIFFICULTY)
+                    rank = len(fields) + 1
+                    level = get_level_from_experience(user_data["experience"], LEVELING_LEVEL_DIFFICULTY)
+                    experience = user_data["experience"] - get_experience_from_level(level, LEVELING_LEVEL_DIFFICULTY)
                     experience_for_level = get_experience_from_level(level + 1, LEVELING_LEVEL_DIFFICULTY) - get_experience_from_level(level, LEVELING_LEVEL_DIFFICULTY)
                     fields[f"{rank + 1}. {member.name}"] = f"Level {level} ({experience}/{experience_for_level})"
                 
