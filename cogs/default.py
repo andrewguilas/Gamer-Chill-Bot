@@ -802,33 +802,46 @@ class default(commands.Cog, description = "Default bot commands."):
             }))
 
     @commands.command(description = "Lists the top messagers in the server.")
-    @commands.guild_only()
     async def messageleaderboard(self, context):
         response = await context.send(embed = create_embed({
             "title": "Loading message leaderboard...",
-            "description": f"React with {CHECK_EMOJI} to be pinged when the message leaderboard is done",
+            "description": f"React with {CHECK_EMOJI} to be pinged when the message leaderboard is done. This process could take minutes or hours depending on the amount of messages in a server.",
             "color": discord.Color.gold()
         }))
         await response.add_reaction(CHECK_EMOJI)
 
         try:
             members = {}
-            for channel in context.guild.text_channels:
-                messages = await channel.history(limit = None).flatten()
-                for message in messages:
-                    author_name = message.author.name
-                    if not context.guild.get_member(message.author.id):
-                        continue
+            async def get_messages_in_guild(guild):
+                for channel in guild.text_channels:
+                    messages = await channel.history(limit = None).flatten()
+                    for message in messages:
+                        author = message.author
+                        if not guild.get_member(author.id):
+                            continue
 
-                    if not members.get(author_name):
-                        members[author_name] = 1
-                    else:
-                        members[author_name] += 1
+                        if not members.get(author.name):
+                            members[author.name] = 1
+                        else:
+                            members[author.name] += 1
+
+            if context.guild:
+                await get_messages_in_guild(context.guild)
+            else:
+                for guild in self.client.guilds:
+                    await get_messages_in_guild(guild)
+
+            await response.edit(embed = create_embed({
+                "title": f"Loading message leaderboard (sorting leaderboard)...",
+                "description": f"React with {CHECK_EMOJI} to be pinged when the message leaderboard is done",
+                "color": discord.Color.gold()
+            }))
 
             members = sort_dictionary(members, True)
             members = get_first_n_items(members, MAX_LEADERBOARD_FIELDS)
+
             await response.edit(embed = create_embed({
-                "title": "Message Leaderboard"
+                "title": context.guild and "Message Leaderboard (Current Server)" or "Message Leaderboard (All Servers)"
             }, members))
 
             response2 = await response.channel.fetch_message(response.id)
@@ -845,7 +858,6 @@ class default(commands.Cog, description = "Default bot commands."):
                     break
 
         except Exception as error_message:
-            # traceback.print_exc()
             await response.edit(embed = create_embed({
                 "title": "Could not load message leaderboard",
                 "color": discord.Color.red()
