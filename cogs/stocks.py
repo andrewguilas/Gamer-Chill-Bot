@@ -105,7 +105,6 @@ class stocks(commands.Cog, description = "Stock market commands."):
             }))
 
     @commands.command()
-    @commands.guild_only()
     async def buyshares(self, context, ticker: str, shares_to_purchase: float):
         ticker = ticker.upper()
         shares_to_purchase = round(shares_to_purchase, 4)
@@ -184,7 +183,6 @@ class stocks(commands.Cog, description = "Stock market commands."):
             }))
 
     @commands.command()
-    @commands.guild_only()
     async def sellshares(self, context, ticker: str, shares_to_sell: float):
         ticker = ticker.upper()
         shares_to_sell = round(shares_to_sell, 4)
@@ -249,7 +247,6 @@ class stocks(commands.Cog, description = "Stock market commands."):
             }))
 
     @commands.command()
-    @commands.guild_only()
     async def portfolio(self, context, member: discord.Member = None):
         if not member:
             member = context.author
