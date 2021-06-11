@@ -14,71 +14,39 @@ user_datastore = cluster[datastore_name]["user"]
 
 # guild data
 
-def attach_default_guild_data(guild_data):
-    new_guild_data = DEFAULT_GUILD_DATA.copy()
-    for key in new_guild_data.keys():
-        if guild_data.get(key):
-            new_guild_data[key] = guild_data[key]
-    return new_guild_data
-
 def get_guild_data(guild_id: int):
     guild_data = guild_datastore.find_one({"guild_id": guild_id})
     if not guild_data:
         guild_data = DEFAULT_GUILD_DATA.copy()
         guild_data["guild_id"] = guild_id
-        guild_data = attach_default_guild_data(guild_data)
         guild_datastore.insert_one(guild_data)
-    else:
-        guild_data = attach_default_guild_data(guild_data)
     return guild_data
 
 def save_guild_data(guild_data):
     guild_datastore.update_one({"guild_id": guild_data["guild_id"]}, {"$set": guild_data})
 
 def get_all_guild_data(sort_value: str = None):
-    all_data = sort_value and guild_datastore.find().sort(sort_value, -1) or guild_datastore.find({})
-    # all_data is a custom object
-    # not allowing item item assignment
-    new_all_data = []
-    for index, data in enumerate(list(all_data)):
-        new_all_data.insert(index, attach_default_guild_data(data))
-    return new_all_data
+    return sort_value and guild_datastore.find().sort(sort_value, -1) or guild_datastore.find({})
 
 # user data
-
-def attach_default_user_data(user_data):
-    new_user_data = DEFAULT_USER_DATA.copy()
-    for key in new_user_data.keys():
-        if user_data.get(key):
-            new_user_data[key] = user_data[key]
-    return new_user_data
 
 def get_user_data(user_id: int):
     user_data = user_datastore.find_one({"user_id": user_id})
     if not user_data:
         user_data = DEFAULT_USER_DATA.copy()
         user_data["user_id"] = user_id
-        user_data = attach_default_user_data(user_data)
         user_datastore.insert_one(user_data)
-    else:
-        user_data = attach_default_user_data(user_data)
     return user_data
 
 def save_user_data(user_data):
     user_datastore.update_one({"user_id": user_data["user_id"]}, {"$set": user_data})
 
 def get_all_user_data(sort_value: str = None):
-    all_data = sort_value and user_datastore.find().sort(sort_value, -1) or user_datastore.find({})
-    # all_data is a custom object
-    # not allowing item item assignment
-    new_all_data = []
-    for index, data in enumerate(list(all_data)):
-        new_all_data.insert(index, attach_default_user_data(data))
-    return new_all_data
+    return sort_value and user_datastore.find().sort(sort_value, -1) or user_datastore.find({})
 
 # other
 
-def get_object(objects: [], value):
+def get_object(objects: list, value):
     for obj in objects:
         try:
             if obj.name == value or value == obj.mention or str(obj.id) in value or obj.id == int(value):
@@ -86,7 +54,7 @@ def get_object(objects: [], value):
         except:
             pass
 
-def create_embed(info: {} = {}, fields: {} = {}):
+def create_embed(info: dict = {}, fields: dict = {}):
     embed = discord.Embed(
         title = info.get("title") or "",
         description = info.get("description") or "",
