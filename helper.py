@@ -11,6 +11,7 @@ datastore_name = IS_TESTING and TESTING_DATASTORE or LIVE_DATASTORE
 
 guild_datastore = cluster[datastore_name]["guild"]
 user_datastore = cluster[datastore_name]["user"]
+stocks_datastore = cluster[datastore_name]["stocks"]
 
 # guild data
 
@@ -43,6 +44,14 @@ def save_user_data(user_data):
 
 def get_all_user_data(sort_value: str = None):
     return sort_value and user_datastore.find().sort(sort_value, -1) or user_datastore.find({})
+
+# stock data
+
+def get_stock(ticker: str):
+    return stocks_datastore.find_one({"ticker": ticker})
+
+def save_stock(stock):
+    stocks_datastore.update_one({"ticker": stock["ticker"]}, {"$set": stock})
 
 # other
 

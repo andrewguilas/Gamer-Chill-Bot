@@ -430,18 +430,6 @@ COMMANDS = {
     },
 }
 
-CUSTOM_STOCKS = [
-    {
-        "name": "Gamer Chill Spot",
-        "description": "A revolutionary community for gamers.",
-        "ticker": "GCS",
-        "market_cap": 1_000_000,
-        "current_price": 100,
-        "bids": [], # highest price buyer will pay
-        "asks": [], # lowest price buyer will sell
-    }
-]
-
 ACAS_BLACKLISTED_DAYS = [4, 5, 6]
 ACAS_REMINDER_BLOCK_TIMES = ["09:20:00", "10:50:00", "12:35:00", "14:35:00"]
 ACAS_BLOCK_TIMES = ["09:25:00", "10:55:00", "12:40:00", "14:40:00"]

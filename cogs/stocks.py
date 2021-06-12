@@ -6,8 +6,8 @@ import asyncio
 import requests
 from tradingview_ta import TA_Handler, Interval
 
-from helper import create_embed, get_user_data, save_user_data
-from constants import UPDATE_TICKERS, TICKER_PERIOD, TICKER_INTERVAL, CUSTOM_STOCKS
+from helper import create_embed, get_user_data, save_user_data, get_stock, save_stock
+from constants import UPDATE_TICKERS, TICKER_PERIOD, TICKER_INTERVAL
 
 def get_price(ticker: str, round_to: int = 2):
     try:
@@ -353,12 +353,7 @@ class stocks(commands.Cog, description = "Stock market commands."):
 
         # try:
 
-        stock = None
-        for stock_info in CUSTOM_STOCKS:
-            if stock_info["ticker"] == ticker:
-                stock = stock_info
-                break
-
+        stock = get_stock(ticker)
         if not stock:
             await response.edit(embed=create_embed({
                 "title": f"Could not find stock {ticker}",
