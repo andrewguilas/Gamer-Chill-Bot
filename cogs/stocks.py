@@ -410,6 +410,21 @@ class stocks(commands.Cog, description = "Stock market commands."):
 
         try:
             user_data = get_user_data(context.author.id)
+
+            # check if user has enough money to buy the shares
+            total_price = price * shares
+            balance = user_data["money"]
+            if balance < total_price:
+                await response.edit(embed=create_embed({
+                    "title": f"You do not have enough money to bid for {shares} share(s) of {ticker} at ${price}",
+                    "color": discord.Color.red()
+                }, {
+                    "Balance": f"${balance}",
+                    "Total Price": f"${total_price}"
+                }))
+                return
+
+            # check if stock exists
             stock = get_stock(ticker)
             if not stock:
                 await response.edit(embed=create_embed({
@@ -418,21 +433,71 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 }))
                 return
 
-            for index, ask_section in enumerate(stock["asks"]):
-                if ask_section["current_price"] == price:
-                    if shares >= ask_section["shares"]:
-                        shares -= stock["asks"][index]["shares"]
-                        user_data["money"] -= stock["asks"][index]["shares"] * price
+            # fill ask orders
+            for index, ask_order in enumerate(stock["asks"]):
+                if ask_order["current_price"] == price:
+                    if shares >= ask_order["shares"]:
+                        shares_bought = stock["asks"][index]["shares"]
+                        shares -= shares_bought
+                        user_data["money"] -= shares_bought * price
+
+                        # give user shares
+                        if not user_data["stocks"].get(ticker):
+                            user_data["stocks"][ticker] = {
+                                "shares": shares_bought,
+                                "average_price": price
+                            }
+                        else:
+                            average_price = user_data["stocks"][ticker]["average_price"]
+                            shares_owned = user_data["stocks"][ticker]["shares"]
+                            total_shares = user_data["stocks"][ticker]["shares"] + shares_bought
+                            average_price = round(((average_price * shares_owned) + (price * shares_bought)) / total_shares, 2)
+                            user_data["stocks"][ticker] = {
+                                "average_price": average_price,
+                                "shares": user_data["stocks"][ticker]["shares"] + shares_bought
+                            }
+
+                        # update seller's data
+                        seller_data = get_user_data(ask_order["user_id"])
+                        seller_data["money"] += shares_bought * price
+                        save_user_data(seller_data)
+
+                        # finish trade
                         stock["asks"][index]["shares"] = 0
                     else:
-                        user_data["money"] -= stock["asks"][index]["shares"] * price
+                        user_data["money"] -= shares * price
                         stock["asks"][index]["shares"] -= shares
+
+                        # give user shares
+                        if not user_data["stocks"].get(ticker):
+                            user_data["stocks"][ticker] = {
+                                "shares": shares,
+                                "average_price": price
+                            }
+                        else:
+                            average_price = user_data["stocks"][ticker]["average_price"]
+                            shares_owned = user_data["stocks"][ticker]["shares"]
+                            total_shares = user_data["stocks"][ticker]["shares"] + shares
+                            average_price = round(((average_price * shares_owned) + (price * shares)) / total_shares, 2)
+                            user_data["stocks"][ticker] = {
+                                "average_price": average_price,
+                                "shares": user_data["stocks"][ticker]["shares"] + shares
+                            }
+
+                        # update seller's data
+                        seller_data = get_user_data(ask_order["user_id"])
+                        seller_data["money"] += shares * price
+                        save_user_data(seller_data)
+
+                        # finish trade
                         shares = 0
 
-                    if ask_section["shares"] == 0:
+                    if ask_order["shares"] == 0:
                         stock["asks"].pop(index)
+                        
                     break
 
+            # send bid order if bid could not be filled
             if shares > 0:
                 for index, bid_section in enumerate(stock["bids"]):
                     if bid_section["current_price"] == price:
