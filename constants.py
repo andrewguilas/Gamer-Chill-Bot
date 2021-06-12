@@ -9,6 +9,7 @@ EXTENSIONS = [
     "economy",
     "stocks",
     "bank",
+    "terminal"
 ]
 
 DEFAULT_GUILD_DATA = {
