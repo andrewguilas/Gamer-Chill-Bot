@@ -366,13 +366,17 @@ class stocks(commands.Cog, description = "Stock market commands."):
 
             bid_price, bids = None, None
             if len(stock["bids"]) > 0:
-                bid_price = stock["bids"][0]["current_price"]
-                bids = stock["bids"][0]["shares"]
+                for bid_section in stock["bids"]:
+                    if not bid_price or bid_section["current_price"] < bid_price:
+                        bid_price = bid_section["current_price"]
+                        bids = bid_section["shares"]
             
             ask_price, asks = None, None
             if len(stock["asks"]) > 0:
-                ask_price = stock["asks"][0]["current_price"]
-                asks = stock["asks"][0]["shares"]
+                for ask_section in stock["asks"]:
+                    if not ask_price or ask_section["current_price"] > ask_price:
+                        ask_price = ask_section["current_price"]
+                        asks = ask_section["shares"]
 
             await response.edit(embed=create_embed({
                 "title": f"{ticker} - ${current_price}",
