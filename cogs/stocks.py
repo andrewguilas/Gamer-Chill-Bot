@@ -348,44 +348,42 @@ class stocks(commands.Cog, description = "Stock market commands."):
     async def stockinfo(self, context, ticker: str):
         ticker = ticker.upper()
         response = await context.send(embed=create_embed({
-            "title": f"Retrieving stock info for {ticker}"
+            "title": f"Retrieving stock info for {ticker}",
+            "color": discord.Color.gold()
         }))
 
-        # try:
+        try:
+            stock = get_stock(ticker)
+            if not stock:
+                await response.edit(embed=create_embed({
+                    "title": f"Could not find stock {ticker}",
+                    "color": discord.Color.red()
+                }))
+                return
 
-        stock = get_stock(ticker)
-        if not stock:
+            current_price = round(stock["current_price"], 2)
+            circulating_volume = round(len(stock["asks"]))
+
+            bid_price, bids = None, None
+            if len(stock["bids"]) > 0:
+                bid_price = stock["bids"][0]["current_price"]
+                bids = stock["bids"][0]["shares"]
+            
+            ask_price, asks = None, None
+            if len(stock["asks"]) > 0:
+                ask_price = stock["asks"][0]["current_price"]
+                asks = stock["asks"][0]["shares"]
+
             await response.edit(embed=create_embed({
-                "title": f"Could not find stock {ticker}",
-                "color": discord.Color.red()
+                "title": f"{ticker} - ${current_price}",
+            }, {
+                "Name": stock["name"],
+                "Description": stock["description"],
+                "Market Cap": stock["market_cap"],
+                "Circulating Volume": circulating_volume,
+                "Bid Price": bid_price and f"${bid_price} x {bids}" or "None",
+                "Ask Price": ask_price and f"${ask_price} x {asks}" or "None"
             }))
-            return
-
-        current_price = round(stock["current_price"], 2)
-        circulating_volume = round(len(stock["asks"]))
-
-        bid_price, bids = None, None
-        if len(stock["bids"]) > 0:
-            bid_price = stock["bids"][0]["price"]
-            bids = stock["bids"][0]["shares"]
-        
-        ask_price, asks = None, None
-        if len(stock["asks"]) > 0:
-            ask_price = stock["asks"][0]["price"]
-            asks = stock["asks"][0]["shares"]
-
-        await response.edit(embed=create_embed({
-            "title": f"{ticker} - ${current_price}",
-        }, {
-            "Name": stock["name"],
-            "Description": stock["description"],
-            "Market Cap": stock["market_cap"],
-            "Circulating Volume": circulating_volume,
-            "Bid Price": bid_price and f"${bid_price} x {bids}" or "None",
-            "Ask Price": ask_price and f"${ask_price} x {asks}" or "None"
-        }))
-
-        """
         except Exception as error_message:
             await response.edit(embed=create_embed({
                 "title": f"Could not load stock info for {ticker}",
@@ -393,7 +391,73 @@ class stocks(commands.Cog, description = "Stock market commands."):
             }, {
                 "Error Message": error_message
             }))
-        """
+
+    @commands.command()
+    async def bid(self, context, ticker: str, price: int, shares: int): # buy
+        ticker = ticker.upper()
+        price = round(price, 2)
+        shares = round(shares)
+        shares_text = str(shares)
+
+        response = await context.send(embed=create_embed({
+            "title": f"Bidding for {shares} share(s) of {ticker} at ${price}...",
+            "color": discord.Color.gold()
+        }))
+
+        try:
+            user_data = get_user_data(context.author.id)
+            stock = get_stock(ticker)
+            if not stock:
+                await response.edit(embed=create_embed({
+                    "title": f"Could not find stock {ticker}",
+                    "color": discord.Color.red()
+                }))
+                return
+
+            for index, ask_section in enumerate(stock["asks"]):
+                if ask_section["current_price"] == price:
+                    if shares >= ask_section["shares"]:
+                        shares -= stock["asks"][index]["shares"]
+                        user_data["money"] -= stock["asks"][index]["shares"] * price
+                        stock["asks"][index]["shares"] = 0
+                    else:
+                        user_data["money"] -= stock["asks"][index]["shares"] * price
+                        stock["asks"][index]["shares"] -= shares
+                        shares = 0
+
+                    if ask_section["shares"] == 0:
+                        stock["asks"].pop(index)
+                    break
+
+            if shares > 0:
+                for index, bid_section in enumerate(stock["bids"]):
+                    if bid_section["current_price"] == price:
+                        stock["bids"][index]["shares"] += shares
+                        break
+                else:
+                    stock["bids"].append({
+                        "current_price": price,
+                        "shares": shares,
+                    })
+
+            save_stock(stock)
+            save_user_data(user_data)
+
+            await response.edit(embed=create_embed({
+                "title": f"Bid {int(shares_text) - shares}/{shares_text} shares of {ticker} at ${price}",
+                "color": discord.Color.green()
+            }))
+        except Exception as error_message:
+            await response.edit(embed=create_embed({
+                "title": f"Could not bid {shares}/{shares_text} shares of {ticker} at ${price}",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
+            }))
+
+    @commands.command()
+    async def ask(self, context, ticker: str, price: int, shares: int): # sell
+        pass
 
 def setup(client):
     client.add_cog(stocks(client))
