@@ -4,6 +4,7 @@ from yahoo_fin import stock_info as si
 import yfinance as yf
 import asyncio
 import requests
+from tradingview_ta import TA_Handler, Interval
 
 from helper import create_embed, get_user_data, save_user_data
 from constants import UPDATE_TICKERS, TICKER_PERIOD, TICKER_INTERVAL
@@ -23,6 +24,18 @@ def get_open(ticker: str, round_to: int = 2):
         return price 
     except:
         return None
+
+def get_recommendation(symbol: str):
+    symbol = symbol.upper()
+    try:
+        info = TA_Handler(symbol=symbol, screener="america", exchange="NASDAQ", interval=Interval.INTERVAL_1_DAY).get_analysis().summary
+        return info
+    except:
+        try:
+            info = TA_Handler(symbol=symbol, screener="crypto",exchange="binance",interval=Interval.INTERVAL_1_DAY).get_analysis().summary
+            return info
+        except:
+            return None
 
 class stocks(commands.Cog, description = "Stock market commands."):
     def __init__(self, client):
@@ -99,6 +112,46 @@ class stocks(commands.Cog, description = "Stock market commands."):
         except Exception as error_message:
             await response.edit(embed = create_embed({
                 "title": f"Could not get share price of {ticker}",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
+            }))
+
+    @commands.command()
+    async def recommend(self, context, ticker: str):
+        ticker = ticker.upper()
+        response = await context.send(embed=create_embed({
+            "title": f"Loading recommendation for {ticker}...",
+            "color": discord.Color.gold()
+        }))
+
+        try:
+            recommendation = get_recommendation(ticker)
+            if not recommendation:
+                await response.edit(embed=create_embed({
+                    "title": f"Could not load recommendation for {ticker}",
+                    "color": discord.Color.red()
+                }))
+                return
+
+            summary = recommendation["RECOMMENDATION"]
+            color = discord.Color.dark_grey()
+            if summary == "STRONG_BUY" or summary == "BUY":
+                color = discord.Color.green()
+            else:
+                color = discord.Color.red()
+
+            await response.edit(embed=create_embed({
+                "title": f"{ticker}: {summary}",
+                "color": color
+            }, {
+                "Buy": recommendation["BUY"],
+                "Neutral": recommendation["NEUTRAL"],
+                "Sell": recommendation["SELL"],
+            }))
+        except Exception as error_message:
+            await response.edit(embed=create_embed({
+                "title": f"Could not load recommendation for {ticker}",
                 "color": discord.Color.red()
             }, {
                 "Error Message": error_message
