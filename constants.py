@@ -454,7 +454,7 @@ CHANGE_EMOJI = "\N{gear}"
 
 IS_TESTING = False
 CURRENT_VERSION = "8.1.0"
-LIVE_DATASTORE = "datastore4"
+LIVE_DATASTORE = "datastore5"
 TESTING_DATASTORE = "datastore2"
 
 MAX_MEMES = 10
