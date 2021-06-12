@@ -7,7 +7,7 @@ import requests
 from tradingview_ta import TA_Handler, Interval
 
 from helper import create_embed, get_user_data, save_user_data
-from constants import UPDATE_TICKERS, TICKER_PERIOD, TICKER_INTERVAL
+from constants import UPDATE_TICKERS, TICKER_PERIOD, TICKER_INTERVAL, CUSTOM_STOCKS
 
 def get_price(ticker: str, round_to: int = 2):
     try:
@@ -341,6 +341,64 @@ class stocks(commands.Cog, description = "Stock market commands."):
             }, {
                 "Error Message": error_message
             }))
+
+    # custom stocks
+
+    @commands.command()
+    async def stockinfo(self, context, ticker: str):
+        ticker = ticker.upper()
+        response = await context.send(embed=create_embed({
+            "title": f"Retrieving stock info for {ticker}"
+        }))
+
+        # try:
+
+        stock = None
+        for stock_info in CUSTOM_STOCKS:
+            if stock_info["ticker"] == ticker:
+                stock = stock_info
+                break
+
+        if not stock:
+            await response.edit(embed=create_embed({
+                "title": f"Could not find stock {ticker}",
+                "color": discord.Color.red()
+            }))
+            return
+
+        current_price = round(stock["current_price"], 2)
+        circulating_volume = round(len(stock["asks"]))
+
+        bid_price, bids = None, None
+        if len(stock["bids"]) > 0:
+            bid_price = stock["bids"][0]["price"]
+            bids = stock["bids"][0]["shares"]
+        
+        ask_price, asks = None, None
+        if len(stock["asks"]) > 0:
+            ask_price = stock["asks"][0]["price"]
+            asks = stock["asks"][0]["shares"]
+
+        await response.edit(embed=create_embed({
+            "title": f"{ticker} - ${current_price}",
+        }, {
+            "Name": stock["name"],
+            "Description": stock["description"],
+            "Market Cap": stock["market_cap"],
+            "Circulating Volume": circulating_volume,
+            "Bid Price": bid_price and f"${bid_price} x {bids}" or "None",
+            "Ask Price": ask_price and f"${ask_price} x {asks}" or "None"
+        }))
+
+        """
+        except Exception as error_message:
+            await response.edit(embed=create_embed({
+                "title": f"Could not load stock info for {ticker}",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
+            }))
+        """
 
 def setup(client):
     client.add_cog(stocks(client))
