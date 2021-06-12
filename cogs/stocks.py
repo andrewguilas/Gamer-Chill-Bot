@@ -12,7 +12,11 @@ from constants import UPDATE_TICKERS, TICKER_PERIOD, TICKER_INTERVAL
 def get_price(ticker: str, round_to: int = 2):
     try:
         price = round(si.get_live_price(ticker.lower()), round_to)
-        return price
+        if str(price) == "nan":
+            stock = get_stock(ticker)
+            return stock and round(stock["current_price"], 2) or None
+        else:
+            return price
     except:
         return None
 
