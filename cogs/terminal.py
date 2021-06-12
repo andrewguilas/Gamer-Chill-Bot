@@ -7,10 +7,19 @@ async def say(client, channel_id, message):
     channel = client.get_channel(int(channel_id))
     await channel.send(message)
 
+async def dm(client, user_id, message):
+    user = client.get_user(int(user_id))
+    await user.send(message)
+
+async def getdm(client, user_id):
+    user = client.get_user(int(user_id))
+    async for message in user.history(limit=None):
+        print(message.content)
+
 class terminal(commands.Cog):
     def __init__(self, client):
         self.client = client
-        self.commands = [say]
+        self.commands = [say, dm, getdm]
 
     @commands.Cog.listener()
     async def on_message(self, message):
