@@ -665,7 +665,7 @@ class stocks(commands.Cog, description = "Stock market commands."):
                         "user_id": context.author.id,
                     })
 
-            user_data["stocks"][ticker]["shares"] -= shares
+            user_data["stocks"][ticker]["shares"] -= int(shares_text)
             if user_data["stocks"][ticker]["shares"] == 0:
                 user_data["stocks"].pop(ticker)
 

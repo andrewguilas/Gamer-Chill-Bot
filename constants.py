@@ -452,7 +452,7 @@ NEXT_EMOJI = "▶️"
 BACK_EMOJI = "◀️"
 CHANGE_EMOJI = "\N{gear}"
 
-IS_TESTING = True
+IS_TESTING = False
 CURRENT_VERSION = "8.1.0"
 LIVE_DATASTORE = "datastore5"
 TESTING_DATASTORE = "datastore2"
