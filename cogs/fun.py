@@ -1,20 +1,20 @@
 import discord
 from discord.ext import commands
-
 import random
 import asyncpraw
-from datetime import datetime
 import os
+from dotenv import load_dotenv
 
 from helper import create_embed
 from constants import EIGHTBALL_RESPONSES, MAX_MEMES, MEME_SUBREDDIT
 
+load_dotenv('.vscode/.env')
 reddit = asyncpraw.Reddit(
-    client_id = os.getenv("GCB_REDDIT_CLIENT_ID"),
-    client_secret = os.getenv("GCB_REDDIT_CLIENT_SECRET"),
-    password = os.getenv("GCB_REDDIT_PASSWORD"),
-    user_agent = os.getenv("GCB_REDDIT_USER_AGENT"),
-    username = os.getenv("GCB_REDDIT_USERNAME"),
+    client_id = os.getenv("REDDIT_CLIENT_ID"),
+    client_secret = os.getenv("REDDIT_CLIENT_SECRET"),
+    password = os.getenv("REDDIT_PASSWORD"),
+    user_agent = os.getenv("REDDIT_USER_AGENT"),
+    username = os.getenv("REDDIT_USERNAME"),
 )
 
 async def get_meme():

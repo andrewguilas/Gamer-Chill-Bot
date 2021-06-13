@@ -1,7 +1,10 @@
-TERMINAL_WEBHOOK_URL = "https://discord.com/api/webhooks/853323956655620116/W2gWIeA_xvIye5aalHYAsDWfGG6uTWQLbCk6AJdLXXeh9F61BQjENey25fXLcqXxyozv"
-
 import requests
+import os
+from dotenv import load_dotenv
+
+load_dotenv('.vscode/.env')
+url = os.getenv("TERMINAL_WEBHOOK_URL")
 
 while True:
     text = input("$ ")
-    requests.post(TERMINAL_WEBHOOK_URL, {"content": text})
+    requests.post(url, {"content": text})
