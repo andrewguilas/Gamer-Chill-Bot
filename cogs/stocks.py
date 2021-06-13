@@ -451,6 +451,7 @@ class stocks(commands.Cog, description = "Stock market commands."):
                         shares_bought = stock["asks"][index]["shares"]
                         shares -= shares_bought
                         user_data["money"] -= shares_bought * price
+                        stock["current_price"] = price
 
                         # give user shares
                         if not user_data["stocks"].get(ticker):
@@ -478,6 +479,7 @@ class stocks(commands.Cog, description = "Stock market commands."):
                     else:
                         user_data["money"] -= shares * price
                         stock["asks"][index]["shares"] -= shares
+                        stock["current_price"] = price
 
                         # give user shares
                         if not user_data["stocks"].get(ticker):
@@ -580,6 +582,7 @@ class stocks(commands.Cog, description = "Stock market commands."):
                         shares_sold = stock["bids"][index]["shares"]
                         shares -= shares_sold
                         user_data["money"] += shares_sold * price
+                        stock["current_price"] = price
 
                         # give buyer shares
                         buyer_data = get_user_data(bid_order["user_id"])
@@ -606,6 +609,7 @@ class stocks(commands.Cog, description = "Stock market commands."):
                     else:
                         user_data["money"] += shares * price
                         stock["bids"][index]["shares"] -= shares
+                        stock["current_price"] = price
 
                         # give buyer shares
                         buyer_data = get_user_data(bid_order["user_id"])
