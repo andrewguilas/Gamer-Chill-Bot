@@ -420,9 +420,25 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 }))
                 return
 
-            user_data = get_user_data(context.author.id)
+            if price <= 0:
+                await response.edit(embed = create_embed({
+                    "title": f"Your bid price must be greater than $0",
+                    "color": discord.Color.red()
+                }))
+                return
+
+
+            # check if stock exists
+            stock = get_stock(ticker)
+            if not stock:
+                await response.edit(embed=create_embed({
+                    "title": f"Could not find stock {ticker}",
+                    "color": discord.Color.red()
+                }))
+                return
 
             # check if user has enough money to buy the shares
+            user_data = get_user_data(context.author.id)
             total_price = price * shares
             balance = user_data["money"]
             if balance < total_price:
@@ -432,15 +448,6 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 }, {
                     "Balance": f"${balance}",
                     "Total Price": f"${total_price}"
-                }))
-                return
-
-            # check if stock exists
-            stock = get_stock(ticker)
-            if not stock:
-                await response.edit(embed=create_embed({
-                    "title": f"Could not find stock {ticker}",
-                    "color": discord.Color.red()
                 }))
                 return
 
@@ -558,10 +565,9 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 }))
                 return
 
-            user_data = get_user_data(context.author.id)
-            if not user_data["stocks"].get(ticker) or user_data["stocks"][ticker]["shares"] < shares:
+            if price <= 0:
                 await response.edit(embed = create_embed({
-                    "title": f"You don't have enough shares of {ticker} to sell",
+                    "title": f"Your ask price must be greater than $0",
                     "color": discord.Color.red()
                 }))
                 return
@@ -571,6 +577,14 @@ class stocks(commands.Cog, description = "Stock market commands."):
             if not stock:
                 await response.edit(embed=create_embed({
                     "title": f"Could not find stock {ticker}",
+                    "color": discord.Color.red()
+                }))
+                return
+
+            user_data = get_user_data(context.author.id)
+            if not user_data["stocks"].get(ticker) or user_data["stocks"][ticker]["shares"] < shares:
+                await response.edit(embed = create_embed({
+                    "title": f"You don't have enough shares of {ticker} to sell",
                     "color": discord.Color.red()
                 }))
                 return
