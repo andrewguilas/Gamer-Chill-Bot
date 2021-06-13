@@ -6,13 +6,17 @@ import asyncio
 import requests
 from tradingview_ta import TA_Handler, Interval
 
-from helper import create_embed, get_user_data, save_user_data
+from helper import create_embed, get_user_data, save_user_data, get_stock, save_stock
 from constants import UPDATE_TICKERS, TICKER_PERIOD, TICKER_INTERVAL
 
 def get_price(ticker: str, round_to: int = 2):
     try:
         price = round(si.get_live_price(ticker.lower()), round_to)
-        return price
+        if str(price) == "nan":
+            stock = get_stock(ticker)
+            return stock and round(stock["current_price"], 2) or None
+        else:
+            return price
     except:
         return None
 
@@ -337,6 +341,344 @@ class stocks(commands.Cog, description = "Stock market commands."):
         except Exception as error_message:
             await response.edit(embed = create_embed({
                 "title": f"Could not load {member}'s portfolio",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
+            }))
+
+    # custom stocks
+
+    @commands.command()
+    async def stockinfo(self, context, ticker: str):
+        ticker = ticker.upper()
+        response = await context.send(embed=create_embed({
+            "title": f"Retrieving stock info for {ticker}",
+            "color": discord.Color.gold()
+        }))
+
+        try:
+            stock = get_stock(ticker)
+            if not stock:
+                await response.edit(embed=create_embed({
+                    "title": f"Could not find stock {ticker}",
+                    "color": discord.Color.red()
+                }))
+                return
+
+            current_price = round(stock["current_price"], 2)
+            circulating_volume = round(len(stock["asks"]))
+
+            bid_price, bids = None, None
+            if len(stock["bids"]) > 0:
+                for bid_section in stock["bids"]:
+                    if not bid_price or bid_section["current_price"] < bid_price:
+                        bid_price = bid_section["current_price"]
+                        bids = bid_section["shares"]
+            
+            ask_price, asks = None, None
+            if len(stock["asks"]) > 0:
+                for ask_section in stock["asks"]:
+                    if not ask_price or ask_section["current_price"] > ask_price:
+                        ask_price = ask_section["current_price"]
+                        asks = ask_section["shares"]
+
+            await response.edit(embed=create_embed({
+                "title": f"{ticker} - ${current_price}",
+            }, {
+                "Name": stock["name"],
+                "Description": stock["description"],
+                "Market Cap": stock["market_cap"],
+                "Circulating Volume": circulating_volume,
+                "Bid Price": bid_price and f"${bid_price} x {bids}" or "None",
+                "Ask Price": ask_price and f"${ask_price} x {asks}" or "None"
+            }))
+        except Exception as error_message:
+            await response.edit(embed=create_embed({
+                "title": f"Could not load stock info for {ticker}",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
+            }))
+
+    @commands.command()
+    async def bid(self, context, ticker: str, shares: int, price: int): # buy
+        ticker = ticker.upper()
+        price = round(price, 2)
+        shares = round(shares)
+        shares_text = str(shares)
+
+        response = await context.send(embed=create_embed({
+            "title": f"Bidding for {shares} share(s) of {ticker} at ${price}...",
+            "color": discord.Color.gold()
+        }))
+
+        try:
+            if shares <= 0:
+                await response.edit(embed = create_embed({
+                    "title": f"You must bid for more than 0 shares",
+                    "color": discord.Color.red()
+                }))
+                return
+
+            if price <= 0:
+                await response.edit(embed = create_embed({
+                    "title": f"Your bid price must be greater than $0",
+                    "color": discord.Color.red()
+                }))
+                return
+
+
+            # check if stock exists
+            stock = get_stock(ticker)
+            if not stock:
+                await response.edit(embed=create_embed({
+                    "title": f"Could not find stock {ticker}",
+                    "color": discord.Color.red()
+                }))
+                return
+
+            # check if user has enough money to buy the shares
+            user_data = get_user_data(context.author.id)
+            total_price = price * shares
+            balance = user_data["money"]
+            if balance < total_price:
+                await response.edit(embed=create_embed({
+                    "title": f"You do not have enough money to bid for {shares} share(s) of {ticker} at ${price}",
+                    "color": discord.Color.red()
+                }, {
+                    "Balance": f"${balance}",
+                    "Total Price": f"${total_price}"
+                }))
+                return
+
+            # fill ask orders
+            for index, ask_order in enumerate(stock["asks"]):
+                if ask_order["current_price"] == price:
+                    if shares >= ask_order["shares"]:
+                        shares_bought = stock["asks"][index]["shares"]
+                        shares -= shares_bought
+                        user_data["money"] -= shares_bought * price
+                        stock["current_price"] = price
+
+                        # give user shares
+                        if not user_data["stocks"].get(ticker):
+                            user_data["stocks"][ticker] = {
+                                "shares": shares_bought,
+                                "average_price": price
+                            }
+                        else:
+                            average_price = user_data["stocks"][ticker]["average_price"]
+                            shares_owned = user_data["stocks"][ticker]["shares"]
+                            total_shares = user_data["stocks"][ticker]["shares"] + shares_bought
+                            average_price = round(((average_price * shares_owned) + (price * shares_bought)) / total_shares, 2)
+                            user_data["stocks"][ticker] = {
+                                "average_price": average_price,
+                                "shares": user_data["stocks"][ticker]["shares"] + shares_bought
+                            }
+
+                        # update seller's data
+                        seller_data = get_user_data(ask_order["user_id"])
+                        seller_data["money"] += shares_bought * price
+                        save_user_data(seller_data)
+
+                        # finish trade
+                        stock["asks"][index]["shares"] = 0
+                    else:
+                        user_data["money"] -= shares * price
+                        stock["asks"][index]["shares"] -= shares
+                        stock["current_price"] = price
+
+                        # give user shares
+                        if not user_data["stocks"].get(ticker):
+                            user_data["stocks"][ticker] = {
+                                "shares": shares,
+                                "average_price": price
+                            }
+                        else:
+                            average_price = user_data["stocks"][ticker]["average_price"]
+                            shares_owned = user_data["stocks"][ticker]["shares"]
+                            total_shares = user_data["stocks"][ticker]["shares"] + shares
+                            average_price = round(((average_price * shares_owned) + (price * shares)) / total_shares, 2)
+                            user_data["stocks"][ticker] = {
+                                "average_price": average_price,
+                                "shares": user_data["stocks"][ticker]["shares"] + shares
+                            }
+
+                        # update seller's data
+                        seller_data = get_user_data(ask_order["user_id"])
+                        seller_data["money"] += shares * price
+                        save_user_data(seller_data)
+
+                        # finish trade
+                        shares = 0
+
+                    if ask_order["shares"] == 0:
+                        stock["asks"].pop(index)
+                        
+                    break
+
+            # send bid order if bid could not be filled
+            if shares > 0:
+                for index, bid_section in enumerate(stock["bids"]):
+                    if bid_section["current_price"] == price:
+                        stock["bids"][index]["shares"] += shares
+                        break
+                else:
+                    stock["bids"].append({
+                        "current_price": price,
+                        "shares": shares,
+                        "user_id": context.author.id,
+                    })
+
+            save_stock(stock)
+            save_user_data(user_data)
+
+            await response.edit(embed=create_embed({
+                "title": f"Bought {int(shares_text) - shares}/{shares_text} shares of {ticker} at ${price}",
+                "color": discord.Color.green()
+            }))
+        except Exception as error_message:
+            await response.edit(embed=create_embed({
+                "title": f"Could not bid for {shares}/{shares_text} shares of {ticker} at ${price}",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
+            }))
+
+    @commands.command()
+    async def ask(self, context, ticker: str, shares: int, price: int): # sell
+        ticker = ticker.upper()
+        price = round(price, 2)
+        shares = round(shares)
+        shares_text = str(shares)
+
+        response = await context.send(embed=create_embed({
+            "title": f"Asking for {shares} share(s) of {ticker} at ${price}...",
+            "color": discord.Color.gold()
+        }))
+
+        try:
+            if shares <= 0:
+                await response.edit(embed = create_embed({
+                    "title": f"You must ask more than 0 shares",
+                    "color": discord.Color.red()
+                }))
+                return
+
+            if price <= 0:
+                await response.edit(embed = create_embed({
+                    "title": f"Your ask price must be greater than $0",
+                    "color": discord.Color.red()
+                }))
+                return
+
+            # check if stock exists
+            stock = get_stock(ticker)
+            if not stock:
+                await response.edit(embed=create_embed({
+                    "title": f"Could not find stock {ticker}",
+                    "color": discord.Color.red()
+                }))
+                return
+
+            user_data = get_user_data(context.author.id)
+            if not user_data["stocks"].get(ticker) or user_data["stocks"][ticker]["shares"] < shares:
+                await response.edit(embed = create_embed({
+                    "title": f"You don't have enough shares of {ticker} to sell",
+                    "color": discord.Color.red()
+                }))
+                return
+
+            # fill bid orders
+            for index, bid_order in enumerate(stock["bids"]):
+                if bid_order["current_price"] == price:
+                    if shares >= bid_order["shares"]:
+                        shares_sold = stock["bids"][index]["shares"]
+                        shares -= shares_sold
+                        user_data["money"] += shares_sold * price
+                        stock["current_price"] = price
+
+                        # give buyer shares
+                        buyer_data = get_user_data(bid_order["user_id"])
+                        if not buyer_data["stocks"].get(ticker):
+                            buyer_data["stocks"][ticker] = {
+                                "shares": shares_sold,
+                                "average_price": price
+                            }
+                        else:
+                            average_price = buyer_data["stocks"][ticker]["average_price"]
+                            shares_owned = buyer_data["stocks"][ticker]["shares"]
+                            total_shares = buyer_data["stocks"][ticker]["shares"] + shares_sold
+                            average_price = round(((average_price * shares_owned) + (price * shares_sold)) / total_shares, 2)
+                            buyer_data["stocks"][ticker] = {
+                                "average_price": average_price,
+                                "shares": buyer_data["stocks"][ticker]["shares"] + shares_sold
+                            }
+
+                        # update seller's data
+                        save_user_data(buyer_data)
+
+                        # finish trade
+                        stock["bids"][index]["shares"] = 0
+                    else:
+                        user_data["money"] += shares * price
+                        stock["bids"][index]["shares"] -= shares
+                        stock["current_price"] = price
+
+                        # give buyer shares
+                        buyer_data = get_user_data(bid_order["user_id"])
+                        if not buyer_data["stocks"].get(ticker):
+                            buyer_data["stocks"][ticker] = {
+                                "shares": shares,
+                                "average_price": price
+                            }
+                        else:
+                            average_price = buyer_data["stocks"][ticker]["average_price"]
+                            shares_owned = buyer_data["stocks"][ticker]["shares"]
+                            total_shares = buyer_data["stocks"][ticker]["shares"] + shares
+                            average_price = round(((average_price * shares_owned) + (price * shares)) / total_shares, 2)
+                            buyer_data["stocks"][ticker] = {
+                                "average_price": average_price,
+                                "shares": buyer_data["stocks"][ticker]["shares"] + shares
+                            }
+
+                        save_user_data(buyer_data)
+
+                        # finish trade
+                        shares = 0
+
+                    if bid_order["shares"] == 0:
+                        stock["bids"].pop(index)
+                        
+                    break
+
+            # send ask order if ask could not be filled
+            if shares > 0:
+                for index, ask_section in enumerate(stock["asks"]):
+                    if ask_section["current_price"] == price:
+                        stock["asks"][index]["shares"] += shares
+                        break
+                else:
+                    stock["asks"].append({
+                        "current_price": price,
+                        "shares": shares,
+                        "user_id": context.author.id,
+                    })
+
+            user_data["stocks"][ticker]["shares"] -= int(shares_text)
+            if user_data["stocks"][ticker]["shares"] == 0:
+                user_data["stocks"].pop(ticker)
+
+            save_user_data(user_data)
+            save_stock(stock)
+
+            await response.edit(embed=create_embed({
+                "title": f"Sold {int(shares_text) - shares}/{shares_text} shares of {ticker} at ${price}",
+                "color": discord.Color.green()
+            }))
+        except Exception as error_message:
+            await response.edit(embed=create_embed({
+                "title": f"Could not ask for {shares}/{shares_text} shares of {ticker} at ${price}",
                 "color": discord.Color.red()
             }, {
                 "Error Message": error_message
