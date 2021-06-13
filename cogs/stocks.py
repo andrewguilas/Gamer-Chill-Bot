@@ -7,6 +7,7 @@ import requests
 from tradingview_ta import TA_Handler, Interval
 from datetime import datetime
 import pytz
+import time
 
 from helper import create_embed, get_user_data, save_user_data, get_stock, save_stock
 from constants import UPDATE_TICKERS, TICKER_PERIOD, TICKER_INTERVAL, MARKET_START, MARKET_END
@@ -473,6 +474,7 @@ class stocks(commands.Cog, description = "Stock market commands."):
                         shares -= shares_bought
                         user_data["money"] -= shares_bought * price
                         stock["current_price"] = price
+                        stock["history"].insert(int(time.time()), price)
 
                         # give user shares
                         if not user_data["stocks"].get(ticker):
@@ -501,6 +503,7 @@ class stocks(commands.Cog, description = "Stock market commands."):
                         user_data["money"] -= shares * price
                         stock["asks"][index]["shares"] -= shares
                         stock["current_price"] = price
+                        stock["history"].insert(int(time.time()), price)
 
                         # give user shares
                         if not user_data["stocks"].get(ticker):
@@ -618,6 +621,7 @@ class stocks(commands.Cog, description = "Stock market commands."):
                         shares -= shares_sold
                         user_data["money"] += shares_sold * price
                         stock["current_price"] = price
+                        stock["history"].insert(int(time.time()), price)
 
                         # give buyer shares
                         buyer_data = get_user_data(bid_order["user_id"])
@@ -645,6 +649,7 @@ class stocks(commands.Cog, description = "Stock market commands."):
                         user_data["money"] += shares * price
                         stock["bids"][index]["shares"] -= shares
                         stock["current_price"] = price
+                        stock["history"].insert(int(time.time()), price)
 
                         # give buyer shares
                         buyer_data = get_user_data(bid_order["user_id"])
