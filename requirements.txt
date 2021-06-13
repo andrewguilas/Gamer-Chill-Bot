@@ -10,3 +10,4 @@ gTTS==2.2.2
 mutagen==1.45.1
 yfinance==0.1.59
 tradingview-ta==3.2.4
+python-dotenv==0.17.1
