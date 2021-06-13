@@ -8,9 +8,11 @@ from tradingview_ta import TA_Handler, Interval
 from datetime import datetime
 import pytz
 import time
+import matplotlib.pyplot as plt
+import os
 
 from helper import create_embed, get_user_data, save_user_data, get_stock, save_stock
-from constants import UPDATE_TICKERS, TICKER_PERIOD, TICKER_INTERVAL, MARKET_START, MARKET_END
+from constants import UPDATE_TICKERS, TICKER_PERIOD, TICKER_INTERVAL, MARKET_START, MARKET_END, TEMP_PATH, STOCK_CHART_PATH
 
 def is_market_open():
     now = datetime.now(tz = pytz.timezone("US/Eastern"))
@@ -400,7 +402,39 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 "Bid Price": bid_price and f"${bid_price} x {bids}" or "None",
                 "Ask Price": ask_price and f"${ask_price} x {asks}" or "None"
             }))
+
+            history_one_day = {}
+            history_all = {}
+            for timestamp, price in stock["history"].items():
+                date = datetime.fromtimestamp(float(timestamp))
+                formatted_date = date.strftime("%m/%d/%y")
+                history_all[formatted_date] = price
+
+                if date.date() == datetime.today().date():
+                    formatted_date = date.strftime("%I:%M:%S %p")
+                    history_one_day[formatted_date] = price
+
+            figure, axis = plt.subplots(2)
+
+            axis[0].plot(history_one_day.keys(), history_one_day.values())
+            axis[0].set_title("One Day")
+            axis[0].set_xlabel("Time")
+            axis[0].set_ylabel("Price")
+            
+            axis[1].plot(history_all.keys(), history_all.values())
+            axis[1].set_title("All")
+            axis[1].set_xlabel("Time")
+            axis[1].set_ylabel("Price")
+
+            if not os.path.isdir(TEMP_PATH):
+                os.mkdir(TEMP_PATH)
+            plt.savefig(STOCK_CHART_PATH)
+
+            await context.send(file=discord.File(STOCK_CHART_PATH))
         except Exception as error_message:
+            import traceback
+            traceback.print_exc()
+
             await response.edit(embed=create_embed({
                 "title": f"Could not load stock info for {ticker}",
                 "color": discord.Color.red()
