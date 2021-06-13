@@ -5,9 +5,16 @@ import yfinance as yf
 import asyncio
 import requests
 from tradingview_ta import TA_Handler, Interval
+from datetime import datetime
+import pytz
 
 from helper import create_embed, get_user_data, save_user_data, get_stock, save_stock
-from constants import UPDATE_TICKERS, TICKER_PERIOD, TICKER_INTERVAL
+from constants import UPDATE_TICKERS, TICKER_PERIOD, TICKER_INTERVAL, MARKET_START, MARKET_END
+
+def is_market_open():
+    now = datetime.now(tz = pytz.timezone("US/Eastern"))
+    day_to_minute = now.hour * 60 + now.minute # the amount of minutes since the midnight
+    return MARKET_START <= day_to_minute < MARKET_END
 
 def get_price(ticker: str, round_to: int = 2):
     try:
@@ -413,6 +420,13 @@ class stocks(commands.Cog, description = "Stock market commands."):
         }))
 
         try:
+            if not is_market_open():
+                await response.edit(embed = create_embed({
+                    "title": f"The trading day has not begun (9:00 AM - 6:00 PM)",
+                    "color": discord.Color.red()
+                }))
+                return
+
             if shares <= 0:
                 await response.edit(embed = create_embed({
                     "title": f"You must bid for more than 0 shares",
@@ -558,6 +572,13 @@ class stocks(commands.Cog, description = "Stock market commands."):
         }))
 
         try:
+            if not is_market_open():
+                await response.edit(embed = create_embed({
+                    "title": f"The trading day has not begun (9:00 AM - 6:00 PM)",
+                    "color": discord.Color.red()
+                }))
+                return
+
             if shares <= 0:
                 await response.edit(embed = create_embed({
                     "title": f"You must ask more than 0 shares",
