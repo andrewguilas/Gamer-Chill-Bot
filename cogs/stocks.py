@@ -494,8 +494,9 @@ class stocks(commands.Cog, description = "Stock market commands."):
 
                         # update seller's data
                         seller_data = get_user_data(ask_order["user_id"])
-                        seller_data["money"] += shares_bought * price
-                        save_user_data(seller_data)
+                        if user_data["user_id"] != seller_data["user_id"]:
+                            seller_data["money"] += shares_bought * price
+                            save_user_data(seller_data)
 
                         # finish trade
                         stock["asks"][index]["shares"] = 0
@@ -523,8 +524,9 @@ class stocks(commands.Cog, description = "Stock market commands."):
 
                         # update seller's data
                         seller_data = get_user_data(ask_order["user_id"])
-                        seller_data["money"] += shares * price
-                        save_user_data(seller_data)
+                        if user_data["user_id"] != seller_data["user_id"]:
+                            seller_data["money"] += shares * price
+                            save_user_data(seller_data)
 
                         # finish trade
                         shares = 0
@@ -705,6 +707,153 @@ class stocks(commands.Cog, description = "Stock market commands."):
         except Exception as error_message:
             await response.edit(embed=create_embed({
                 "title": f"Could not ask for {shares}/{shares_text} shares of {ticker} at ${price}",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
+            }))
+
+    @commands.command()
+    async def cancelorder(self, context, ticker: str, order_type: str, shares: int, price: int):
+        order_type = order_type.lower()
+        ticker = ticker.upper()
+        price = round(price, 2)
+        shares = round(shares)
+
+        response = await context.send(embed=create_embed({
+            "title": f"Canceling an existing order to {order_type} for {shares} shares of {ticker} at ${price}",
+            "color": discord.Color.gold()
+        }))
+
+        try:
+            if order_type != "ask" and order_type != "bid":
+                await response.edit(embed=create_embed({
+                    "title": f"The order type must be \"ask\" or \"bid\"",
+                    "color": discord.Color.red()
+                }))
+                return
+
+            if shares <= 0:
+                await response.edit(embed = create_embed({
+                    "title": f"You must cancel an order of more than 0 shares",
+                    "color": discord.Color.red()
+                }))
+                return
+
+            if price <= 0:
+                await response.edit(embed = create_embed({
+                    "title": f"You must cancel an order of a price greater than $0",
+                    "color": discord.Color.red()
+                }))
+                return
+
+            stock = get_stock(ticker)
+            if not stock:
+                await response.edit(embed=create_embed({
+                    "title": f"Could not find stock {ticker}",
+                    "color": discord.Color.red()
+                }))
+                return
+
+            user_data = get_user_data(context.author.id)
+
+            if order_type == "ask":
+                for index, ask_order in enumerate(stock["asks"]):
+                    ask_order_shares = ask_order["shares"]
+                    ask_order_price = ask_order["current_price"]
+                    if ask_order["user_id"] == context.author.id and shares == ask_order_shares and ask_order_price == price:
+                        if not user_data["stocks"].get(ticker):
+                            user_data["stocks"][ticker] = {
+                                "shares": ask_order_shares,
+                                "average_price": ask_order_price
+                            }
+                        else:
+                            average_price = user_data["stocks"][ticker]["average_price"]
+                            shares_owned = user_data["stocks"][ticker]["shares"]
+                            total_shares = user_data["stocks"][ticker]["shares"] + ask_order_shares
+                            average_price = round(((average_price * shares_owned) + (ask_order_price * ask_order_shares)) / total_shares, 2)
+                            user_data["stocks"][ticker] = {
+                                "average_price": average_price,
+                                "shares": user_data["stocks"][ticker]["shares"] + ask_order_shares
+                            }
+
+                        stock["asks"].pop(index)
+                        break
+                else:
+                    await response.edit(embed=create_embed({
+                        "title": f"Could not find an existing order to {order_type} for {shares} shares of {ticker} at ${price}",
+                        "color": discord.Color.red()
+                    }))
+                    return
+            elif order_type == "bid":
+                for index, bid_order in enumerate(stock["bids"]):
+                    bid_order_shares = bid_order["shares"]
+                    bid_order_price = bid_order["current_price"]
+                    if bid_order["user_id"] == context.author.id and shares == bid_order_shares and bid_order_price == price:
+                        user_data["money"] += bid_order_shares * bid_order_price
+                        stock["bids"].pop(index)
+                        break
+                else:
+                    await response.edit(embed=create_embed({
+                        "title": f"Could not find an existing order to {order_type} for {shares} shares of {ticker} at ${price}",
+                        "color": discord.Color.red()
+                    }))
+                    return
+
+            save_user_data(user_data)
+            save_stock(stock)
+
+            await response.edit(embed=create_embed({
+                "title": f"Canceled an existing order to {order_type} for {shares} shares of {ticker} at ${price}",
+                "color": discord.Color.green()
+            }))
+
+        except Exception as error_message:
+            await response.edit(embed=create_embed({
+                "title": f"Could not cancel an existing order to {order_type} for {shares} shares of {ticker} at ${price}",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
+            }))
+
+    @commands.command()
+    async def getorders(self, context, ticker: str, order_type: str):
+        order_type = order_type.lower()
+        response = await context.send(embed=create_embed({
+            "title": f"Retrieving {order_type} orders of {ticker}",
+            "color": discord.Color.gold()
+        }))
+
+        try:
+            if order_type != "ask" and order_type != "bid":
+                await response.edit(embed=create_embed({
+                    "title": f"The order type must be \"ask\" or \"bid\"",
+                    "color": discord.Color.red()
+                }))
+                return
+
+            stock = get_stock(ticker)
+            if not stock:
+                await response.edit(embed=create_embed({
+                    "title": f"Could not find stock {ticker}",
+                    "color": discord.Color.red()
+                }))
+                return
+
+            fields = {}
+            for order in order_type == "ask" and stock["asks"] or stock["bids"]:
+                current_price = order["current_price"]
+                shares = order["shares"]
+                member = context.guild.get_member(order["user_id"]) or order["user_id"]
+                fields[f"{shares} x ${current_price}"] = member
+
+            save_stock(stock)
+
+            await response.edit(embed=create_embed({
+                "title": order_type == "ask" and f"{ticker} - Ask Orders" or f"{ticker} - Bid Orders",
+            }, fields))
+        except Exception as error_message:
+            await response.edit(embed=create_embed({
+                "title": f"Could not retrieve {order_type} orders of {ticker}",
                 "color": discord.Color.red()
             }, {
                 "Error Message": error_message
