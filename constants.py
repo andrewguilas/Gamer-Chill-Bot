@@ -458,7 +458,7 @@ BACK_EMOJI = "◀️"
 CHANGE_EMOJI = "\N{gear}"
 
 IS_TESTING = False
-CURRENT_VERSION = "9.0.2"
+CURRENT_VERSION = "9.3.0"
 LIVE_DATASTORE = "datastore5"
 TESTING_DATASTORE = "datastore2"
 
@@ -472,3 +472,4 @@ WAIT_DELAY = 3
 
 TEMP_PATH = "__temp__"
 TTS_PATH = "__temp__/tts.mp3"
+STOCK_CHART_PATH = "__temp__/stock_chart.png"

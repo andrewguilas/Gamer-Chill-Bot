@@ -7,9 +7,12 @@ import requests
 from tradingview_ta import TA_Handler, Interval
 from datetime import datetime
 import pytz
+import time
+import matplotlib.pyplot as plt
+import os
 
 from helper import create_embed, get_user_data, save_user_data, get_stock, save_stock
-from constants import UPDATE_TICKERS, TICKER_PERIOD, TICKER_INTERVAL, MARKET_START, MARKET_END
+from constants import UPDATE_TICKERS, TICKER_PERIOD, TICKER_INTERVAL, MARKET_START, MARKET_END, TEMP_PATH, STOCK_CHART_PATH
 
 def is_market_open():
     now = datetime.now(tz = pytz.timezone("US/Eastern"))
@@ -389,6 +392,33 @@ class stocks(commands.Cog, description = "Stock market commands."):
                         ask_price = ask_section["current_price"]
                         asks = ask_section["shares"]
 
+            history_one_day = {}
+            history_all = {}
+            for timestamp, price in stock["history"].items():
+                date = datetime.fromtimestamp(float(timestamp))
+                formatted_date = date.strftime("%m/%d/%y")
+                history_all[formatted_date] = price
+
+                if date.date() == datetime.today().date():
+                    formatted_date = date.strftime("%I:%M:%S %p")
+                    history_one_day[formatted_date] = price
+
+            figure, axis = plt.subplots(2)
+
+            axis[0].plot(history_one_day.keys(), history_one_day.values())
+            axis[0].set_title("One Day")
+            axis[0].set_xlabel("Time")
+            axis[0].set_ylabel("Price")
+            
+            axis[1].plot(history_all.keys(), history_all.values())
+            axis[1].set_title("All")
+            axis[1].set_xlabel("Time")
+            axis[1].set_ylabel("Price")
+
+            if not os.path.isdir(TEMP_PATH):
+                os.mkdir(TEMP_PATH)
+            plt.savefig(STOCK_CHART_PATH)
+
             await response.edit(embed=create_embed({
                 "title": f"{ticker} - ${current_price}",
             }, {
@@ -399,6 +429,8 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 "Bid Price": bid_price and f"${bid_price} x {bids}" or "None",
                 "Ask Price": ask_price and f"${ask_price} x {asks}" or "None"
             }))
+
+            await context.send(file=discord.File(STOCK_CHART_PATH))
         except Exception as error_message:
             await response.edit(embed=create_embed({
                 "title": f"Could not load stock info for {ticker}",
@@ -471,12 +503,12 @@ class stocks(commands.Cog, description = "Stock market commands."):
                     if shares >= ask_order["shares"]:
                         shares_bought = stock["asks"][index]["shares"]
                         shares -= shares_bought
-                        user_data["money"] -= shares_bought * price
                         stock["current_price"] = price
+                        stock["history"][str(time.time())] = price
 
                         # give user shares
                         if not user_data["stocks"].get(ticker):
-                            user_data["stocks"][ticker] = {
+                            user_data["s$ask Gocks"][ticker] = {
                                 "shares": shares_bought,
                                 "average_price": price
                             }
@@ -492,15 +524,17 @@ class stocks(commands.Cog, description = "Stock market commands."):
 
                         # update seller's data
                         seller_data = get_user_data(ask_order["user_id"])
-                        seller_data["money"] += shares_bought * price
-                        save_user_data(seller_data)
+                        if user_data["user_id"] != seller_data["user_id"]:
+                            seller_data["money"] += shares_bought * price
+                            save_user_data(seller_data)
 
                         # finish trade
                         stock["asks"][index]["shares"] = 0
                     else:
-                        user_data["money"] -= shares * price
+                        
                         stock["asks"][index]["shares"] -= shares
                         stock["current_price"] = price
+                        stock["history"][str(time.time())] = price
 
                         # give user shares
                         if not user_data["stocks"].get(ticker):
@@ -520,8 +554,9 @@ class stocks(commands.Cog, description = "Stock market commands."):
 
                         # update seller's data
                         seller_data = get_user_data(ask_order["user_id"])
-                        seller_data["money"] += shares * price
-                        save_user_data(seller_data)
+                        if user_data["user_id"] != seller_data["user_id"]:
+                            seller_data["money"] += shares * price
+                            save_user_data(seller_data)
 
                         # finish trade
                         shares = 0
@@ -544,8 +579,9 @@ class stocks(commands.Cog, description = "Stock market commands."):
                         "user_id": context.author.id,
                     })
 
-            save_stock(stock)
+            user_data["money"] -= shares * price
             save_user_data(user_data)
+            save_stock(stock)
 
             await response.edit(embed=create_embed({
                 "title": f"Bought {int(shares_text) - shares}/{shares_text} shares of {ticker} at ${price}",
@@ -618,6 +654,7 @@ class stocks(commands.Cog, description = "Stock market commands."):
                         shares -= shares_sold
                         user_data["money"] += shares_sold * price
                         stock["current_price"] = price
+                        stock["history"][str(time.time())] = price
 
                         # give buyer shares
                         buyer_data = get_user_data(bid_order["user_id"])
@@ -645,6 +682,7 @@ class stocks(commands.Cog, description = "Stock market commands."):
                         user_data["money"] += shares * price
                         stock["bids"][index]["shares"] -= shares
                         stock["current_price"] = price
+                        stock["history"][str(time.time())] = price
 
                         # give buyer shares
                         buyer_data = get_user_data(bid_order["user_id"])
@@ -700,6 +738,153 @@ class stocks(commands.Cog, description = "Stock market commands."):
         except Exception as error_message:
             await response.edit(embed=create_embed({
                 "title": f"Could not ask for {shares}/{shares_text} shares of {ticker} at ${price}",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
+            }))
+
+    @commands.command()
+    async def cancelorder(self, context, ticker: str, order_type: str, shares: int, price: int):
+        order_type = order_type.lower()
+        ticker = ticker.upper()
+        price = round(price, 2)
+        shares = round(shares)
+
+        response = await context.send(embed=create_embed({
+            "title": f"Canceling an existing order to {order_type} for {shares} shares of {ticker} at ${price}",
+            "color": discord.Color.gold()
+        }))
+
+        try:
+            if order_type != "ask" and order_type != "bid":
+                await response.edit(embed=create_embed({
+                    "title": f"The order type must be \"ask\" or \"bid\"",
+                    "color": discord.Color.red()
+                }))
+                return
+
+            if shares <= 0:
+                await response.edit(embed = create_embed({
+                    "title": f"You must cancel an order of more than 0 shares",
+                    "color": discord.Color.red()
+                }))
+                return
+
+            if price <= 0:
+                await response.edit(embed = create_embed({
+                    "title": f"You must cancel an order of a price greater than $0",
+                    "color": discord.Color.red()
+                }))
+                return
+
+            stock = get_stock(ticker)
+            if not stock:
+                await response.edit(embed=create_embed({
+                    "title": f"Could not find stock {ticker}",
+                    "color": discord.Color.red()
+                }))
+                return
+
+            user_data = get_user_data(context.author.id)
+
+            if order_type == "ask":
+                for index, ask_order in enumerate(stock["asks"]):
+                    ask_order_shares = ask_order["shares"]
+                    ask_order_price = ask_order["current_price"]
+                    if ask_order["user_id"] == context.author.id and shares == ask_order_shares and ask_order_price == price:
+                        if not user_data["stocks"].get(ticker):
+                            user_data["stocks"][ticker] = {
+                                "shares": ask_order_shares,
+                                "average_price": ask_order_price
+                            }
+                        else:
+                            average_price = user_data["stocks"][ticker]["average_price"]
+                            shares_owned = user_data["stocks"][ticker]["shares"]
+                            total_shares = user_data["stocks"][ticker]["shares"] + ask_order_shares
+                            average_price = round(((average_price * shares_owned) + (ask_order_price * ask_order_shares)) / total_shares, 2)
+                            user_data["stocks"][ticker] = {
+                                "average_price": average_price,
+                                "shares": user_data["stocks"][ticker]["shares"] + ask_order_shares
+                            }
+
+                        stock["asks"].pop(index)
+                        break
+                else:
+                    await response.edit(embed=create_embed({
+                        "title": f"Could not find an existing order to {order_type} for {shares} shares of {ticker} at ${price}",
+                        "color": discord.Color.red()
+                    }))
+                    return
+            elif order_type == "bid":
+                for index, bid_order in enumerate(stock["bids"]):
+                    bid_order_shares = bid_order["shares"]
+                    bid_order_price = bid_order["current_price"]
+                    if bid_order["user_id"] == context.author.id and shares == bid_order_shares and bid_order_price == price:
+                        user_data["money"] += bid_order_shares * bid_order_price
+                        stock["bids"].pop(index)
+                        break
+                else:
+                    await response.edit(embed=create_embed({
+                        "title": f"Could not find an existing order to {order_type} for {shares} shares of {ticker} at ${price}",
+                        "color": discord.Color.red()
+                    }))
+                    return
+
+            save_user_data(user_data)
+            save_stock(stock)
+
+            await response.edit(embed=create_embed({
+                "title": f"Canceled an existing order to {order_type} for {shares} shares of {ticker} at ${price}",
+                "color": discord.Color.green()
+            }))
+
+        except Exception as error_message:
+            await response.edit(embed=create_embed({
+                "title": f"Could not cancel an existing order to {order_type} for {shares} shares of {ticker} at ${price}",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
+            }))
+
+    @commands.command()
+    async def getorders(self, context, ticker: str, order_type: str):
+        order_type = order_type.lower()
+        response = await context.send(embed=create_embed({
+            "title": f"Retrieving {order_type} orders of {ticker}",
+            "color": discord.Color.gold()
+        }))
+
+        try:
+            if order_type != "ask" and order_type != "bid":
+                await response.edit(embed=create_embed({
+                    "title": f"The order type must be \"ask\" or \"bid\"",
+                    "color": discord.Color.red()
+                }))
+                return
+
+            stock = get_stock(ticker)
+            if not stock:
+                await response.edit(embed=create_embed({
+                    "title": f"Could not find stock {ticker}",
+                    "color": discord.Color.red()
+                }))
+                return
+
+            fields = {}
+            for order in order_type == "ask" and stock["asks"] or stock["bids"]:
+                current_price = order["current_price"]
+                shares = order["shares"]
+                member = context.guild.get_member(order["user_id"]) or order["user_id"]
+                fields[f"{shares} x ${current_price}"] = member
+
+            save_stock(stock)
+
+            await response.edit(embed=create_embed({
+                "title": order_type == "ask" and f"{ticker} - Ask Orders" or f"{ticker} - Bid Orders",
+            }, fields))
+        except Exception as error_message:
+            await response.edit(embed=create_embed({
+                "title": f"Could not retrieve {order_type} orders of {ticker}",
                 "color": discord.Color.red()
             }, {
                 "Error Message": error_message
