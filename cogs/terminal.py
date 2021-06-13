@@ -1,6 +1,5 @@
-WEBHOOK_CHANNEL_ID = 853323932551872542
-
 from discord.ext import commands
+from constants import WEBHOOK_CHANNEL_ID
 import shlex
 
 async def say(client, channel_id, message):

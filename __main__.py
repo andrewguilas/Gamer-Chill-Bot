@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 import os
+from dotenv import load_dotenv
 
 from constants import EXTENSIONS, IS_TESTING, DEFAULT_GUILD_DATA
 from helper import create_embed, get_guild_data
@@ -12,6 +13,7 @@ async def get_prefix(client, context):
     else:
         return DEFAULT_GUILD_DATA["prefix"]
 
+load_dotenv('.vscode/.env')
 intents = discord.Intents.default()
 intents.members = True
 client = commands.Bot(command_prefix = get_prefix, intents = intents)
@@ -108,4 +110,4 @@ client.remove_command("help")
 for extension in EXTENSIONS:
     client.load_extension(f"cogs.{extension}")
 
-client.run(IS_TESTING and os.getenv("GCB_TEST_TOKEN") or os.getenv("GCB_TOKEN"))
+client.run(IS_TESTING and os.getenv("TEST_TOKEN") or os.getenv("TOKEN"))

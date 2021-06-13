@@ -4,11 +4,13 @@ import os
 import sys
 import time
 import asyncio
+from dotenv import load_dotenv
 
 from helper import create_embed, is_guild_owner, format_time
-from constants import MAX_LEADERBOARD_FIELDS, CHECK_EMOJI, CURRENT_VERSION
+from constants import CHECK_EMOJI, CURRENT_VERSION
 
-CLIENT_ID = os.getenv("GCB_CLIENT_ID")
+load_dotenv('.vscode/.env')
+CLIENT_ID = os.getenv("CLIENT_ID")
 
 class bot(commands.Cog, description = "Bot management and settings."):
     def __init__(self, client):

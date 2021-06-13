@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
-from helper import get_guild_data, save_guild_data, create_embed, get_user_data, attach_prefix_to_number, save_user_data
-import pdb
+from helper import get_guild_data, save_guild_data, create_embed, get_user_data, save_user_data
 
 def is_bank_manager():
     def predicate(context):
