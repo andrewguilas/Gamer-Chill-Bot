@@ -472,13 +472,12 @@ class stocks(commands.Cog, description = "Stock market commands."):
                     if shares >= ask_order["shares"]:
                         shares_bought = stock["asks"][index]["shares"]
                         shares -= shares_bought
-                        user_data["money"] -= shares_bought * price
                         stock["current_price"] = price
-                        stock["history"].insert(int(time.time()), price)
+                        stock["history"][str(time.time())] = price
 
                         # give user shares
                         if not user_data["stocks"].get(ticker):
-                            user_data["stocks"][ticker] = {
+                            user_data["s$ask Gocks"][ticker] = {
                                 "shares": shares_bought,
                                 "average_price": price
                             }
@@ -501,10 +500,10 @@ class stocks(commands.Cog, description = "Stock market commands."):
                         # finish trade
                         stock["asks"][index]["shares"] = 0
                     else:
-                        user_data["money"] -= shares * price
+                        
                         stock["asks"][index]["shares"] -= shares
                         stock["current_price"] = price
-                        stock["history"].insert(int(time.time()), price)
+                        stock["history"][str(time.time())] = price
 
                         # give user shares
                         if not user_data["stocks"].get(ticker):
@@ -549,8 +548,9 @@ class stocks(commands.Cog, description = "Stock market commands."):
                         "user_id": context.author.id,
                     })
 
-            save_stock(stock)
+            user_data["money"] -= shares * price
             save_user_data(user_data)
+            save_stock(stock)
 
             await response.edit(embed=create_embed({
                 "title": f"Bought {int(shares_text) - shares}/{shares_text} shares of {ticker} at ${price}",
@@ -623,7 +623,7 @@ class stocks(commands.Cog, description = "Stock market commands."):
                         shares -= shares_sold
                         user_data["money"] += shares_sold * price
                         stock["current_price"] = price
-                        stock["history"].insert(int(time.time()), price)
+                        stock["history"][str(time.time())] = price
 
                         # give buyer shares
                         buyer_data = get_user_data(bid_order["user_id"])
@@ -651,7 +651,7 @@ class stocks(commands.Cog, description = "Stock market commands."):
                         user_data["money"] += shares * price
                         stock["bids"][index]["shares"] -= shares
                         stock["current_price"] = price
-                        stock["history"].insert(int(time.time()), price)
+                        stock["history"][str(time.time())] = price
 
                         # give buyer shares
                         buyer_data = get_user_data(bid_order["user_id"])
