@@ -392,17 +392,6 @@ class stocks(commands.Cog, description = "Stock market commands."):
                         ask_price = ask_section["current_price"]
                         asks = ask_section["shares"]
 
-            await response.edit(embed=create_embed({
-                "title": f"{ticker} - ${current_price}",
-            }, {
-                "Name": stock["name"],
-                "Description": stock["description"],
-                "Market Cap": stock["market_cap"],
-                "Circulating Volume": circulating_volume,
-                "Bid Price": bid_price and f"${bid_price} x {bids}" or "None",
-                "Ask Price": ask_price and f"${ask_price} x {asks}" or "None"
-            }))
-
             history_one_day = {}
             history_all = {}
             for timestamp, price in stock["history"].items():
@@ -430,11 +419,19 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 os.mkdir(TEMP_PATH)
             plt.savefig(STOCK_CHART_PATH)
 
+            await response.edit(embed=create_embed({
+                "title": f"{ticker} - ${current_price}",
+            }, {
+                "Name": stock["name"],
+                "Description": stock["description"],
+                "Market Cap": stock["market_cap"],
+                "Circulating Volume": circulating_volume,
+                "Bid Price": bid_price and f"${bid_price} x {bids}" or "None",
+                "Ask Price": ask_price and f"${ask_price} x {asks}" or "None"
+            }))
+
             await context.send(file=discord.File(STOCK_CHART_PATH))
         except Exception as error_message:
-            import traceback
-            traceback.print_exc()
-
             await response.edit(embed=create_embed({
                 "title": f"Could not load stock info for {ticker}",
                 "color": discord.Color.red()

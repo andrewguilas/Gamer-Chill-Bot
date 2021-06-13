@@ -71,7 +71,7 @@ def create_embed(info: dict = {}, fields: dict = {}):
         title = info.get("title") or "",
         description = info.get("description") or "",
         colour = info.get("color") or discord.Color.blue(),
-        url = info.get("url") or "",
+        url = info.get("url") or f"",
     )
 
     for name, value in fields.items():
