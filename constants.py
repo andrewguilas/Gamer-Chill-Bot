@@ -405,7 +405,8 @@ COMMANDS = {
         "buyshares <ticker> <shares>": "Buys shares of the stock.",
         "sellshares <ticker> <shares>": "Sells owned shares of the stock.",
         "portfolio <user>": "Retrieves the user's points.",
-        "stockinfo <ticker>": "Get stock info for custom stocks.",
+        "stockinfo <ticker>": "Gets stock info for custom stocks.",
+        "chart <ticker>": "Get price & volume charts for custom stocks.",
         "bid <ticker> <shares> <price>": "Buys shares of a custom stock at a specific price. A seller must sell their shares in order for the buyer to receive them.",
         "ask <ticker> <shares> <price>": "Sells shares of a custom stock at a specific price. A buyer must buy the seller's shares in order for the seller to earn money."
     },
@@ -460,7 +461,7 @@ BACK_EMOJI = "◀️"
 CHANGE_EMOJI = "\N{gear}"
 
 IS_TESTING = False
-CURRENT_VERSION = "9.3.0"
+CURRENT_VERSION = "9.2.9"
 LIVE_DATASTORE = "datastore5"
 TESTING_DATASTORE = "datastore2"
 
