@@ -25,6 +25,7 @@ async def get_meme():
 class fun(commands.Cog, description = "Fun commands."):
     def __init__(self, client):
         self.client = client
+        self.recent_memes = []
 
     @commands.command(aliases = ["8ball"])
     async def eightball(self, context, *, question: str):
@@ -129,8 +130,17 @@ class fun(commands.Cog, description = "Fun commands."):
                 amount = MAX_MEMES
 
             for _ in range(amount):
-                meme = await get_meme()
-                await context.send(meme)
+                while True:
+                    meme = await get_meme()
+                    if meme in self.recent_memes:
+                        continue
+
+                    self.recent_memes.append(meme)
+                    if len(self.recent_memes) > 10:
+                        self.recent_memes.pop(0)
+
+                    await context.send(meme)
+                    break
         except Exception as error_message:
             await context.send(embed = create_embed({
                 "title": f"Could not retrieve meme",
