@@ -350,7 +350,7 @@ class stocks(commands.Cog, description = "Stock market commands."):
             }))
 
     @commands.command()
-    async def portfolio(self, context, member: discord.Member = None):
+    async def portfolio(self, context, *, member: discord.Member = None):
         if not member:
             member = context.author
 
