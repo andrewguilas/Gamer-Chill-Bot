@@ -11,7 +11,7 @@ import time
 import matplotlib.pyplot as plt
 import os
 
-from helper import create_embed, get_user_data, save_user_data, get_stock, save_stock
+from helper import create_embed, get_user_data, save_user_data, get_stock, save_stock, get_all_user_data
 from constants import UPDATE_TICKERS, TICKER_PERIOD, TICKER_INTERVAL, MARKET_START, MARKET_END, TEMP_PATH, STOCK_CHART_PATH, MARKET_HOURS_EXISTS
 
 def is_market_open():
@@ -379,7 +379,6 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 return
 
             current_price = round(stock["current_price"], 2)
-            circulating_volume = round(len(stock["asks"]))
 
             bid_price, bids = None, None
             if len(stock["bids"]) > 0:
@@ -396,6 +395,11 @@ class stocks(commands.Cog, description = "Stock market commands."):
                         ask_price = ask_section["current_price"]
                         asks = ask_section["shares"]
                         circulating_supply += ask_section["shares"]
+
+            outstanding_shares = 0
+            for user_data in get_all_user_data():
+                if user_data["stocks"].get(ticker):
+                    outstanding_shares += user_data["stocks"][ticker]["shares"]
 
             history_one_day = {}
             history_all = {}
@@ -429,8 +433,8 @@ class stocks(commands.Cog, description = "Stock market commands."):
             }, {
                 "Name": stock["name"],
                 "Description": stock["description"],
-                "Market Cap": current_price * stock["outstanding_shares"], # price * outstanding_shares
-                "Outstanding Shares": stock["outstanding_shares"], # amount of shares owned hy investors
+                "Market Cap": current_price * outstanding_shares, # price * outstanding_shares
+                "Outstanding Shares": outstanding_shares, # amount of shares owned hy investors
                 "Circulating Supply": circulating_supply, # amount of shares owned by exchange
                 "Bid Price": bid_price and f"${bid_price} x {bids}" or "None",
                 "Ask Price": ask_price and f"${ask_price} x {asks}" or "None"
