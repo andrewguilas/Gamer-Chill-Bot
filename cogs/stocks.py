@@ -36,11 +36,11 @@ def get_open(ticker: str, round_to: int = 2):
         if not stock:
             return None
 
-        for timestamp, price in stock["history"].items():
-            date = datetime.fromtimestamp(float(timestamp), tz = pytz.timezone("US/Eastern"))
+        for data in stock["history"].items():
+            date = datetime.fromtimestamp(float(data["time"]), tz = pytz.timezone("US/Eastern"))
             now = datetime.now(tz = pytz.timezone("US/Eastern"))
             if now.date() == date.today().date():
-                return price
+                return data["price"]
 
 def get_price(ticker: str, round_to: int = 2):
     try:
@@ -460,14 +460,14 @@ class stocks(commands.Cog, description = "Stock market commands."):
 
             history_one_day = {}
             history_all = {}
-            for timestamp, price in stock["history"].items():
-                date = datetime.fromtimestamp(float(timestamp))
+            for data in stock["history"]:
+                date = datetime.fromtimestamp(float(data["time"]))
                 formatted_date = date.strftime("%m/%d/%y")
-                history_all[formatted_date] = price
+                history_all[formatted_date] = data["price"]
 
                 if date.date() == datetime.today().date():
                     formatted_date = date.strftime("%I:%M:%S %p")
-                    history_one_day[formatted_date] = price
+                    history_one_day[formatted_date] = data["price"]
 
             figure, axis = plt.subplots(2)
 
@@ -540,7 +540,6 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 }))
                 return
 
-
             # check if stock exists
             stock = get_stock(ticker)
             if not stock:
@@ -571,7 +570,6 @@ class stocks(commands.Cog, description = "Stock market commands."):
                         shares_bought = stock["asks"][index]["shares"]
                         shares -= shares_bought
                         stock["current_price"] = price
-                        stock["history"][str(time.time())] = price
 
                         # give user shares
                         if not user_data["stocks"].get(ticker):
@@ -600,7 +598,6 @@ class stocks(commands.Cog, description = "Stock market commands."):
                     else:
                         stock["asks"][index]["shares"] -= shares
                         stock["current_price"] = price
-                        stock["history"][str(time.time())] = price
 
                         # give user shares
                         if not user_data["stocks"].get(ticker):
@@ -641,6 +638,12 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 })
 
             user_data["money"] -= (int(shares_text) - shares) * price
+            stock["history"].append({
+                "time": round(time.time()),
+                "price": price,
+                "shares": int(shares_text) - shares
+            })
+
             save_user_data(user_data)
             save_stock(stock)
 
@@ -715,7 +718,6 @@ class stocks(commands.Cog, description = "Stock market commands."):
                         shares -= shares_sold
                         user_data["money"] += shares_sold * price
                         stock["current_price"] = price
-                        stock["history"][str(time.time())] = price
 
                         # give buyer shares
                         buyer_data = get_user_data(bid_order["user_id"])
@@ -743,7 +745,6 @@ class stocks(commands.Cog, description = "Stock market commands."):
                         user_data["money"] += shares * price
                         stock["bids"][index]["shares"] -= shares
                         stock["current_price"] = price
-                        stock["history"][str(time.time())] = price
 
                         # give buyer shares
                         buyer_data = get_user_data(bid_order["user_id"])
@@ -783,6 +784,12 @@ class stocks(commands.Cog, description = "Stock market commands."):
             user_data["stocks"][ticker]["shares"] -= int(shares_text)
             if user_data["stocks"][ticker]["shares"] == 0:
                 user_data["stocks"].pop(ticker)
+
+            stock["history"].append({
+                "time": round(time.time()),
+                "price": price,
+                "shares": shares
+            })
 
             save_user_data(user_data)
             save_stock(stock)
