@@ -433,7 +433,7 @@ class stocks(commands.Cog, description = "Stock market commands."):
             }, {
                 "Name": stock["name"],
                 "Description": stock["description"],
-                "Market Cap": current_price * outstanding_shares, # price * outstanding_shares
+                "Market Cap": f"${current_price * outstanding_shares}", # price * outstanding_shares
                 "Outstanding Shares": outstanding_shares, # amount of shares owned hy investors
                 "Circulating Supply": circulating_supply, # amount of shares owned by exchange
                 "Bid Price": bid_price and f"${bid_price} x {bids}" or "None",
@@ -541,7 +541,6 @@ class stocks(commands.Cog, description = "Stock market commands."):
                         # finish trade
                         stock["asks"][index]["shares"] = 0
                     else:
-                        
                         stock["asks"][index]["shares"] -= shares
                         stock["current_price"] = price
                         stock["history"][str(time.time())] = price
@@ -589,7 +588,7 @@ class stocks(commands.Cog, description = "Stock market commands."):
                         "user_id": context.author.id,
                     })
 
-            user_data["money"] -= shares * price
+            user_data["money"] -= (int(shares_text) - shares) * price
             save_user_data(user_data)
             save_stock(stock)
 
