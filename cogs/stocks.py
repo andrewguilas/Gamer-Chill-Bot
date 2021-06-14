@@ -470,7 +470,7 @@ class stocks(commands.Cog, description = "Stock market commands."):
 
                 if date.date() == datetime.today().date():
                     volume += data["shares"]
-            average_volume = round(sum(volume_all.values()) / len(volume_all))
+            average_volume = len(volume_all) != 0 and round(sum(volume_all.values()) / len(volume_all)) or 0
 
             await response.edit(embed=create_embed({
                 "title": f"{ticker} - ${current_price}",
@@ -486,6 +486,8 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 "Ask Price": ask_price and f"{asks} x ${ask_price}" or "None"
             }))
         except Exception as error_message:
+            import traceback
+            traceback.print_exc()
             await response.edit(embed=create_embed({
                 "title": f"Could not load stock info for {ticker}",
                 "color": discord.Color.red()
