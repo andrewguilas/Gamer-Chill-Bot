@@ -77,7 +77,7 @@ class leveling(commands.Cog, description = "Leveling system commands."):
         save_user_data(user_data)
 
     @commands.command()
-    async def rank(self, context, member: discord.Member = None):
+    async def rank(self, context, *, member: discord.Member = None):
         if not member:
             member = context.author
     
