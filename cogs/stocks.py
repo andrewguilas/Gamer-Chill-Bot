@@ -11,10 +11,13 @@ import time
 import matplotlib.pyplot as plt
 import os
 
-from helper import create_embed, get_user_data, save_user_data, get_stock, save_stock
-from constants import UPDATE_TICKERS, TICKER_PERIOD, TICKER_INTERVAL, MARKET_START, MARKET_END, TEMP_PATH, STOCK_CHART_PATH
+from helper import create_embed, get_user_data, save_user_data, get_stock, save_stock, get_all_user_data
+from constants import UPDATE_TICKERS, TICKER_PERIOD, TICKER_INTERVAL, MARKET_START, MARKET_END, TEMP_PATH, STOCK_CHART_PATH, MARKET_HOURS_EXISTS
 
 def is_market_open():
+    if not MARKET_HOURS_EXISTS:
+        return True
+
     now = datetime.now(tz = pytz.timezone("US/Eastern"))
     day_to_minute = now.hour * 60 + now.minute # the amount of minutes since the midnight
     return MARKET_START <= day_to_minute < MARKET_END
@@ -376,7 +379,6 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 return
 
             current_price = round(stock["current_price"], 2)
-            circulating_volume = round(len(stock["asks"]))
 
             bid_price, bids = None, None
             if len(stock["bids"]) > 0:
@@ -386,11 +388,18 @@ class stocks(commands.Cog, description = "Stock market commands."):
                         bids = bid_section["shares"]
             
             ask_price, asks = None, None
+            circulating_supply = 0
             if len(stock["asks"]) > 0:
                 for ask_section in stock["asks"]:
                     if not ask_price or ask_section["current_price"] > ask_price:
                         ask_price = ask_section["current_price"]
                         asks = ask_section["shares"]
+                        circulating_supply += ask_section["shares"]
+
+            outstanding_shares = 0
+            for user_data in get_all_user_data():
+                if user_data["stocks"].get(ticker):
+                    outstanding_shares += user_data["stocks"][ticker]["shares"]
 
             history_one_day = {}
             history_all = {}
@@ -424,8 +433,9 @@ class stocks(commands.Cog, description = "Stock market commands."):
             }, {
                 "Name": stock["name"],
                 "Description": stock["description"],
-                "Market Cap": stock["market_cap"],
-                "Circulating Volume": circulating_volume,
+                "Market Cap": current_price * outstanding_shares, # price * outstanding_shares
+                "Outstanding Shares": outstanding_shares, # amount of shares owned hy investors
+                "Circulating Supply": circulating_supply, # amount of shares owned by exchange
                 "Bid Price": bid_price and f"${bid_price} x {bids}" or "None",
                 "Ask Price": ask_price and f"${ask_price} x {asks}" or "None"
             }))
@@ -508,7 +518,7 @@ class stocks(commands.Cog, description = "Stock market commands."):
 
                         # give user shares
                         if not user_data["stocks"].get(ticker):
-                            user_data["s$ask Gocks"][ticker] = {
+                            user_data["stocks"][ticker] = {
                                 "shares": shares_bought,
                                 "average_price": price
                             }
