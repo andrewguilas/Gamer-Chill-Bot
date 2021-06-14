@@ -157,3 +157,11 @@ def attach_prefix_to_number(number, prefix: str):
     elif number == 0:
         return f"{prefix}{number}"
 
+def attach_suffix_to_number(number, suffix: str):
+    if number < 0:
+        number = abs(number)
+        return f"-{number}{suffix}"
+    elif number > 0:
+        return f"+{number}{suffix}"
+    elif number == 0:
+        return f"{number}{suffix}"

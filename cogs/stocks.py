@@ -11,7 +11,7 @@ import time
 import matplotlib.pyplot as plt
 import os
 
-from helper import create_embed, get_user_data, save_user_data, get_stock, save_stock, get_all_user_data
+from helper import attach_suffix_to_number, create_embed, get_user_data, save_user_data, get_stock, save_stock, get_all_user_data
 from constants import UPDATE_TICKERS, TICKER_PERIOD, TICKER_INTERVAL, MARKET_START, MARKET_END, TEMP_PATH, STOCK_CHART_PATH, MARKET_HOURS_EXISTS, MARKET_HOURS_CLOSED
 
 def is_market_open():
@@ -25,6 +25,23 @@ def is_market_open():
     day_to_minute = now.hour * 60 + now.minute # the amount of minutes since the midnight
     return MARKET_START <= day_to_minute < MARKET_END
 
+def get_open(ticker: str, round_to: int = 2):
+    try:
+        ticker = ticker.upper()
+        data = yf.download(tickers = ticker, period = TICKER_PERIOD, interval = TICKER_INTERVAL)
+        price = round(dict(data)["Open"][0], round_to)
+        return price 
+    except:
+        stock = get_stock(ticker)
+        if not stock:
+            return None
+
+        for timestamp, price in stock["history"].items():
+            date = datetime.fromtimestamp(float(timestamp), tz = pytz.timezone("US/Eastern"))
+            now = datetime.now(tz = pytz.timezone("US/Eastern"))
+            if now.date() == date.today().date():
+                return price
+
 def get_price(ticker: str, round_to: int = 2):
     try:
         price = round(si.get_live_price(ticker.lower()), round_to)
@@ -33,15 +50,6 @@ def get_price(ticker: str, round_to: int = 2):
             return stock and round(stock["current_price"], 2) or None
         else:
             return price
-    except:
-        return None
-
-def get_open(ticker: str, round_to: int = 2):
-    try:
-        ticker = ticker.upper()
-        data = yf.download(tickers = ticker, period = TICKER_PERIOD, interval = TICKER_INTERVAL)
-        price = round(dict(data)["Open"][0], round_to)
-        return price 
     except:
         return None
 
@@ -126,8 +134,16 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 }))
                 return
 
+            open_price = get_open(ticker)
+            open_price_text = ""
+            if open_price:
+                change = round(share_price - open_price, 2)
+                change_percent = round(change / open_price * 100, 2)
+                open_price_text = attach_suffix_to_number(change_percent, "%")
+                open_price_text = f" ({open_price_text})"
+
             await response.edit(embed = create_embed({
-                "title": f"{ticker}: ${share_price}"
+                "title": f"{ticker}: ${share_price}{open_price_text}"
             }))
         except Exception as error_message:
             await response.edit(embed = create_embed({
