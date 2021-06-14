@@ -436,8 +436,8 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 "Market Cap": f"${current_price * outstanding_shares}", # price * outstanding_shares
                 "Outstanding Shares": outstanding_shares, # amount of shares owned hy investors
                 "Circulating Supply": circulating_supply, # amount of shares owned by exchange
-                "Bid Price": bid_price and f"${bid_price} x {bids}" or "None",
-                "Ask Price": ask_price and f"${ask_price} x {asks}" or "None"
+                "Bid Price": bid_price and f"{bids} x ${bid_price}" or "None",
+                "Ask Price": ask_price and f"{asks} x ${ask_price}" or "None"
             }))
 
             await context.send(file=discord.File(STOCK_CHART_PATH))
