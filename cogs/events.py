@@ -78,5 +78,14 @@ class events(commands.Cog, description = "Bot and server events."):
                 "color": discord.Color.red()
             }))
 
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        author = message.author
+        if author.bot or not message.guild:
+            return
+
+        if author.id == 467789718646685706 and message.content.lower() == "ok":
+            await message.delete()
+
 def setup(client):
     client.add_cog(events(client))
