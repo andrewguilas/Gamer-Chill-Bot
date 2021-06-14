@@ -201,6 +201,13 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 }))
                 return
 
+            if get_stock(ticker):
+                await response.edit(embed = create_embed({
+                    "title": f"Custom stocks do not support market orders yet",
+                    "color": discord.Color.red()
+                }))
+                return
+
             # handle money transaction
             total_price = round(share_price * shares_to_purchase, 2)
             user_data = get_user_data(context.author.id)
@@ -275,6 +282,13 @@ class stocks(commands.Cog, description = "Stock market commands."):
             if not share_price:
                 await response.edit(embed = create_embed({
                     "title": f"Could not get share price of {ticker}",
+                    "color": discord.Color.red()
+                }))
+                return
+                
+            if get_stock(ticker):
+                await response.edit(embed = create_embed({
+                    "title": f"Custom stocks do not support market orders yet",
                     "color": discord.Color.red()
                 }))
                 return
@@ -380,21 +394,45 @@ class stocks(commands.Cog, description = "Stock market commands."):
 
             current_price = round(stock["current_price"], 2)
 
+            bid_orders = []
+            for bid_order in stock["bids"]:
+                for index, existing_bid_order in enumerate(bid_orders):
+                    if existing_bid_order["current_price"] == bid_order["current_price"]:
+                        bid_orders[index]["shares"] += bid_order["shares"]
+                        break
+                else:
+                    bid_orders.append({
+                        "current_price": bid_order["current_price"],
+                        "shares": bid_order["shares"]
+                    })
+
+            ask_orders = []
+            for ask_order in stock["asks"]:
+                for index, existing_ask_order in enumerate(ask_orders):
+                    if existing_ask_order["current_price"] == ask_order["current_price"]:
+                        ask_orders[index]["shares"] += ask_order["shares"]
+                        break
+                else:
+                    ask_orders.append({
+                        "current_price": ask_order["current_price"],
+                        "shares": ask_order["shares"]
+                    })
+
             bid_price, bids = None, None
-            if len(stock["bids"]) > 0:
-                for bid_section in stock["bids"]:
-                    if not bid_price or bid_section["current_price"] < bid_price:
-                        bid_price = bid_section["current_price"]
-                        bids = bid_section["shares"]
+            if len(bid_orders) > 0:
+                for bid_order in bid_orders:
+                    if not bid_price or bid_order["current_price"] < bid_price:
+                        bid_price = bid_order["current_price"]
+                        bids = bid_order["shares"]
             
             ask_price, asks = None, None
             circulating_supply = 0
-            if len(stock["asks"]) > 0:
-                for ask_section in stock["asks"]:
-                    if not ask_price or ask_section["current_price"] > ask_price:
-                        ask_price = ask_section["current_price"]
-                        asks = ask_section["shares"]
-                        circulating_supply += ask_section["shares"]
+            if len(ask_orders) > 0:
+                for ask_order in ask_orders:
+                    if not ask_price or ask_order["current_price"] < ask_price:
+                        ask_price = ask_order["current_price"]
+                        asks = ask_order["shares"]
+                        circulating_supply += ask_order["shares"]
 
             outstanding_shares = 0
             for user_data in get_all_user_data():
@@ -577,16 +615,11 @@ class stocks(commands.Cog, description = "Stock market commands."):
 
             # send bid order if bid could not be filled
             if shares > 0:
-                for index, bid_section in enumerate(stock["bids"]):
-                    if bid_section["current_price"] == price:
-                        stock["bids"][index]["shares"] += shares
-                        break
-                else:
-                    stock["bids"].append({
-                        "current_price": price,
-                        "shares": shares,
-                        "user_id": context.author.id,
-                    })
+                stock["bids"].append({
+                    "current_price": price,
+                    "shares": shares,
+                    "user_id": context.author.id,
+                })
 
             user_data["money"] -= (int(shares_text) - shares) * price
             save_user_data(user_data)
@@ -722,16 +755,11 @@ class stocks(commands.Cog, description = "Stock market commands."):
 
             # send ask order if ask could not be filled
             if shares > 0:
-                for index, ask_section in enumerate(stock["asks"]):
-                    if ask_section["current_price"] == price:
-                        stock["asks"][index]["shares"] += shares
-                        break
-                else:
-                    stock["asks"].append({
-                        "current_price": price,
-                        "shares": shares,
-                        "user_id": context.author.id,
-                    })
+                stock["asks"].append({
+                    "current_price": price,
+                    "shares": shares,
+                    "user_id": context.author.id,
+                })
 
             user_data["stocks"][ticker]["shares"] -= int(shares_text)
             if user_data["stocks"][ticker]["shares"] == 0:
