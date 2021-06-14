@@ -12,13 +12,16 @@ import matplotlib.pyplot as plt
 import os
 
 from helper import create_embed, get_user_data, save_user_data, get_stock, save_stock, get_all_user_data
-from constants import UPDATE_TICKERS, TICKER_PERIOD, TICKER_INTERVAL, MARKET_START, MARKET_END, TEMP_PATH, STOCK_CHART_PATH, MARKET_HOURS_EXISTS
+from constants import UPDATE_TICKERS, TICKER_PERIOD, TICKER_INTERVAL, MARKET_START, MARKET_END, TEMP_PATH, STOCK_CHART_PATH, MARKET_HOURS_EXISTS, MARKET_HOURS_CLOSED
 
 def is_market_open():
     if not MARKET_HOURS_EXISTS:
         return True
 
     now = datetime.now(tz = pytz.timezone("US/Eastern"))
+    if now.today().weekday() in MARKET_HOURS_CLOSED:
+        return False
+
     day_to_minute = now.hour * 60 + now.minute # the amount of minutes since the midnight
     return MARKET_START <= day_to_minute < MARKET_END
 
