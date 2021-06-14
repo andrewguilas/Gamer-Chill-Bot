@@ -55,8 +55,8 @@ class default(commands.Cog, description = "Default bot commands."):
             else:
                 response = await context.send(embed=pages[current_page])
 
-    @commands.command(aliases = ["whois"], description = "Retrieves info of the user.")
-    async def userinfo(self, context, user: discord.Member = None):
+    @commands.command(description = "Retrieves info of the user.")
+    async def userinfo(self, context, *, user: discord.Member = None):
         if not user:
             user = context.author
 
@@ -103,7 +103,7 @@ class default(commands.Cog, description = "Default bot commands."):
                 "Error Message": error_message,
             }))
 
-    @commands.command(aliases = ["whereami"], description = "Retrieves info of the server.")
+    @commands.command(description = "Retrieves info of the server.")
     @commands.guild_only()
     async def serverinfo(self, context):
         guild = context.guild
