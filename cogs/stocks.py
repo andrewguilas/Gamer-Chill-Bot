@@ -458,6 +458,20 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 if user_data["stocks"].get(ticker):
                     outstanding_shares += user_data["stocks"][ticker]["shares"]
 
+            volume, volume_all = 0, {}
+            for data in stock["history"]:
+                date = datetime.fromtimestamp(float(data["time"]))
+                formatted_date = date.strftime("%m/%d")
+
+                if volume_all.get(formatted_date):
+                    volume_all[formatted_date] += data["shares"]
+                else:
+                    volume_all[formatted_date] = data["shares"]
+
+                if date.date() == datetime.today().date():
+                    volume += data["shares"]
+            average_volume = round(sum(volume_all.values()) / len(volume_all))
+
             await response.edit(embed=create_embed({
                 "title": f"{ticker} - ${current_price}",
             }, {
@@ -466,6 +480,8 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 "Market Cap": f"${current_price * outstanding_shares}", # price * outstanding_shares
                 "Outstanding Shares": outstanding_shares, # amount of shares owned hy investors
                 "Circulating Supply": circulating_supply, # amount of shares owned by exchange
+                "Volume": volume,
+                "Average Volume": average_volume,
                 "Bid Price": bid_price and f"{bids} x ${bid_price}" or "None",
                 "Ask Price": ask_price and f"{asks} x ${ask_price}" or "None"
             }))
@@ -496,7 +512,7 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 formatted_date = date.strftime("%m/%d")
                 history_all[formatted_date] = data["price"]
 
-                if volume_all.get("formatted_date"):
+                if volume_all.get(formatted_date):
                     volume_all[formatted_date] += data["shares"]
                 else:
                     volume_all[formatted_date] = data["shares"]
@@ -505,7 +521,7 @@ class stocks(commands.Cog, description = "Stock market commands."):
                     formatted_date = date.strftime("%I:%M %p")
                     history_one_day[formatted_date] = data["price"]
 
-                    if volume_one_day.get("formatted_date"):
+                    if volume_one_day.get(formatted_date):
                         volume_one_day[formatted_date] += data["shares"]
                     else:
                         volume_one_day[formatted_date] = data["shares"]
