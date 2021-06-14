@@ -514,7 +514,7 @@ class stocks(commands.Cog, description = "Stock market commands."):
 
                         # give user shares
                         if not user_data["stocks"].get(ticker):
-                            user_data["s$ask Gocks"][ticker] = {
+                            user_data["stocks"][ticker] = {
                                 "shares": shares_bought,
                                 "average_price": price
                             }
