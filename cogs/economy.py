@@ -65,7 +65,7 @@ class economy(commands.Cog, description = "Economy system commands."):
             richest_list = {}
             for user_data in get_all_user_data("money"):
                 user = context.guild and context.guild.get_member(user_data["user_id"]) or self.client.get_user(user_data["user_id"])
-                if not user:
+                if not user or user.bot:
                     continue
 
                 net_worth = 0
