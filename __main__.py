@@ -20,7 +20,7 @@ client = commands.Bot(command_prefix = get_prefix, intents = intents)
 
 @client.command(description = "Enables a cog.", brief = "administrator")
 @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
-async def load(context, extension: str):
+async def load(context, *, extension: str):
     response = await context.send(embed = create_embed({
         "title": f"Loading {extension}...",
         "color": discord.Color.gold(),
@@ -42,7 +42,7 @@ async def load(context, extension: str):
 
 @client.command(description = "Disables a cog.", brief = "administrator")
 @commands.check_any(commands.is_owner(), commands.has_permissions(administrator = True))
-async def unload(context , extension):
+async def unload(context, *, extension):
     response = await context.send(embed = create_embed({
         "title": f"Unloading {extension}...",
         "color": discord.Color.gold(),
@@ -63,7 +63,7 @@ async def unload(context , extension):
         }))        
 
 @client.command(description = "Reloads a cog.")
-async def reload(context, extension):
+async def reload(context, *, extension):
     response = await context.send(embed = create_embed({
         "title": f"Reloading {extension}...",
         "color": discord.Color.gold(),

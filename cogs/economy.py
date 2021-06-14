@@ -10,7 +10,7 @@ class economy(commands.Cog, description = "Economy system commands."):
         self.client = client
 
     @commands.command(aliases = ["bal"])
-    async def balance(self, context, member: discord.Member = None):
+    async def balance(self, context, *, member: discord.Member = None):
         if not member:
             member = context.author
 
