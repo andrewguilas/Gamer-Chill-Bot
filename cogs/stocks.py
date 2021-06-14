@@ -17,7 +17,7 @@ from constants import UPDATE_TICKERS, TICKER_PERIOD, TICKER_INTERVAL, MARKET_STA
 def is_market_open():
     if not MARKET_HOURS_EXISTS:
         return True
-        
+
     now = datetime.now(tz = pytz.timezone("US/Eastern"))
     day_to_minute = now.hour * 60 + now.minute # the amount of minutes since the midnight
     return MARKET_START <= day_to_minute < MARKET_END
@@ -389,11 +389,13 @@ class stocks(commands.Cog, description = "Stock market commands."):
                         bids = bid_section["shares"]
             
             ask_price, asks = None, None
+            circulating_supply = 0
             if len(stock["asks"]) > 0:
                 for ask_section in stock["asks"]:
                     if not ask_price or ask_section["current_price"] > ask_price:
                         ask_price = ask_section["current_price"]
                         asks = ask_section["shares"]
+                        circulating_supply += ask_section["shares"]
 
             history_one_day = {}
             history_all = {}
@@ -427,8 +429,9 @@ class stocks(commands.Cog, description = "Stock market commands."):
             }, {
                 "Name": stock["name"],
                 "Description": stock["description"],
-                "Market Cap": stock["market_cap"],
-                "Circulating Volume": circulating_volume,
+                "Market Cap": current_price * stock["outstanding_shares"], # price * outstanding_shares
+                "Outstanding Shares": stock["outstanding_shares"], # amount of shares owned hy investors
+                "Circulating Supply": circulating_supply, # amount of shares owned by exchange
                 "Bid Price": bid_price and f"${bid_price} x {bids}" or "None",
                 "Ask Price": ask_price and f"${ask_price} x {asks}" or "None"
             }))
