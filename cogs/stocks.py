@@ -458,33 +458,6 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 if user_data["stocks"].get(ticker):
                     outstanding_shares += user_data["stocks"][ticker]["shares"]
 
-            history_one_day = {}
-            history_all = {}
-            for data in stock["history"]:
-                date = datetime.fromtimestamp(float(data["time"]))
-                formatted_date = date.strftime("%m/%d/%y")
-                history_all[formatted_date] = data["price"]
-
-                if date.date() == datetime.today().date():
-                    formatted_date = date.strftime("%I:%M:%S %p")
-                    history_one_day[formatted_date] = data["price"]
-
-            figure, axis = plt.subplots(2)
-
-            axis[0].plot(history_one_day.keys(), history_one_day.values())
-            axis[0].set_title("One Day")
-            axis[0].set_xlabel("Time")
-            axis[0].set_ylabel("Price")
-            
-            axis[1].plot(history_all.keys(), history_all.values())
-            axis[1].set_title("All")
-            axis[1].set_xlabel("Time")
-            axis[1].set_ylabel("Price")
-
-            if not os.path.isdir(TEMP_PATH):
-                os.mkdir(TEMP_PATH)
-            plt.savefig(STOCK_CHART_PATH)
-
             await response.edit(embed=create_embed({
                 "title": f"{ticker} - ${current_price}",
             }, {
@@ -496,10 +469,72 @@ class stocks(commands.Cog, description = "Stock market commands."):
                 "Bid Price": bid_price and f"{bids} x ${bid_price}" or "None",
                 "Ask Price": ask_price and f"{asks} x ${ask_price}" or "None"
             }))
+        except Exception as error_message:
+            await response.edit(embed=create_embed({
+                "title": f"Could not load stock info for {ticker}",
+                "color": discord.Color.red()
+            }, {
+                "Error Message": error_message
+            }))
+
+    @commands.command()
+    async def chart(self, context, ticker: str):
+        ticker = ticker.upper()
+        try:
+            stock = get_stock(ticker)
+            if not stock:
+                await context.send(embed=create_embed({
+                    "title": f"Could not find stock {ticker}",
+                    "color": discord.Color.red()
+                }))
+                return
+
+            history_one_day, history_all = {}, {}
+            volume_one_day, volume_all = {}, {}
+            for data in stock["history"]:
+                date = datetime.fromtimestamp(float(data["time"]))
+                formatted_date = date.strftime("%m/%d")
+                history_all[formatted_date] = data["price"]
+
+                if volume_all.get("formatted_date"):
+                    volume_all[formatted_date] += data["shares"]
+                else:
+                    volume_all[formatted_date] = data["shares"]
+
+                if date.date() == datetime.today().date():
+                    formatted_date = date.strftime("%I:%M %p")
+                    history_one_day[formatted_date] = data["price"]
+
+                    if volume_one_day.get("formatted_date"):
+                        volume_one_day[formatted_date] += data["shares"]
+                    else:
+                        volume_one_day[formatted_date] = data["shares"]
+
+            figure, axis = plt.subplots(2, 2)
+
+            axis[0, 0].plot(history_one_day.keys(), history_one_day.values())
+            axis[0, 0].set_title("Price (One Day)")
+            axis[0, 0].set_xticks([])
+            
+            axis[0, 1].plot(history_all.keys(), history_all.values())
+            axis[0, 1].set_title("Price (All)")
+            axis[0, 1].set_xticks([])
+
+            axis[1, 0].bar(volume_one_day.keys(), volume_one_day.values())
+            axis[1, 0].set_title("Volume (One Day)")
+
+            axis[1, 1].bar(volume_all.keys(), volume_all.values())
+            axis[1, 1].set_title("Volume (All)")
+
+            figure.tight_layout()
+
+            if not os.path.isdir(TEMP_PATH):
+                os.mkdir(TEMP_PATH)
+            plt.savefig(STOCK_CHART_PATH)
 
             await context.send(file=discord.File(STOCK_CHART_PATH))
         except Exception as error_message:
-            await response.edit(embed=create_embed({
+            await context.send(embed=create_embed({
                 "title": f"Could not load stock info for {ticker}",
                 "color": discord.Color.red()
             }, {
