@@ -28,7 +28,7 @@ def is_market_open():
 def get_open(ticker: str, round_to: int = 2):
     try:
         ticker = ticker.upper()
-        data = yf.download(tickers = ticker, period = TICKER_PERIOD, interval = TICKER_INTERVAL)
+        data = yf.download(tickers=ticker, period=TICKER_PERIOD, interval=TICKER_INTERVAL, progress=False)
         price = round(dict(data)["Open"][0], round_to)
         return price 
     except:
