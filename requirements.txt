@@ -5,7 +5,7 @@ async-timeout==3.0.1
 pytz
 pymongo==3.11.2
 yahoo-fin==0.8.8
-asyncpraw==7.2.0
+asyncpraw==7.3.1
 gTTS==2.2.2
 mutagen==1.45.1
 yfinance==0.1.59
