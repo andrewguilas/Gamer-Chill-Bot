@@ -1,9 +1,5 @@
-*.pyc
-/.vscode
-/__pycache__
-*/__pycache__
-/__temp__
-*/__temp__
-*.un
 *~
-*.env
+*.pyc
+*.un
+*.mp3
+.env
