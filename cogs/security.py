@@ -13,7 +13,7 @@ class security(commands.Cog):
             try:
                 await member.send(embed=create_embed({
                     'title': 'You are not whitelisted to join the server',
-                    'description': 'Contact the server owner to be whitelisted',
+                    'description': 'Contact an administrator to be whitelisted',
                     'color': discord.Color.red()
                 }))
             except:
@@ -24,7 +24,7 @@ class security(commands.Cog):
             self.whitelisted.remove(member.id)
 
     @commands.command()
-    @commands.check_any(commands.is_owner(), is_guild_owner())
+    @commands.check_any(commands.is_owner(), is_guild_owner(), commands.has_permissions(administrator=True))
     async def whitelist(self, context, user_id):
         response = await context.send(embed=create_embed({
             'title': f'Whitelisting {user_id}',
