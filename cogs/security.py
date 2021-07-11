@@ -20,6 +20,8 @@ class security(commands.Cog):
                 pass
             
             await member.kick()
+        else:
+            self.whitelisted.remove(member.id)
 
     @commands.command()
     @commands.check_any(commands.is_owner(), is_guild_owner())
