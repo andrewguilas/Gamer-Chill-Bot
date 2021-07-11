@@ -4,6 +4,7 @@ EXTENSIONS = [
     'default',
     'fun',
     'vc',
+    'security',
 ]
 
 EIGHTBALL_RESPONSES = [
@@ -61,7 +62,7 @@ COMMANDS = {
     },
 }
 
-IS_TESTING = False
+IS_TESTING = True
 MAX_LEADERBOARD_FIELDS = 10
 DELETE_RESPONSE_DELAY = 3
 MAX_MEMES = 10
