@@ -25,32 +25,37 @@ class security(commands.Cog):
 
     @commands.command()
     @commands.check_any(commands.is_owner(), is_guild_owner(), commands.has_permissions(administrator=True))
-    async def whitelist(self, context, user_id):
+    async def whitelist(self, context, user_id=None):
         response = await context.send(embed=create_embed({
             'title': f'Whitelisting {user_id}',
             'color': discord.Color.gold()
         }))
 
         try:
-            user_id = int(user_id)
-            if user_id in self.whitelisted:
+            if user_id:
+                user_id = int(user_id)
+                if user_id in self.whitelisted:
+                    self.whitelisted.remove(user_id)
+                    await response.edit(embed=create_embed({
+                        'title': f'Blacklisted {user_id}',
+                        'color': discord.Color.green()
+                    }))
+                elif context.guild.get_member(user_id):
+                    await response.edit(embed=create_embed({
+                        'title': f'{user_id} is already in the server',
+                        'color': discord.Color.red()
+                    }))
+                else:
+                    self.whitelisted.append(user_id)
+                    await response.edit(embed=create_embed({
+                        'title': f'Whitelisted {user_id}',
+                        'color': discord.Color.green()
+                    }))
+            else:
+                users = ', '.join([str(id) for id in self.whitelisted]) or 'None'
                 await response.edit(embed=create_embed({
-                    'title': f'{user_id} is already whitelisted',
-                    'color': discord.Color.red()
+                    'title': f'Whitelisted Users: {users}'
                 }))
-                return
-            elif context.guild.get_member(user_id):
-                await response.edit(embed=create_embed({
-                    'title': f'{user_id} is already in the server',
-                    'color': discord.Color.red()
-                }))
-                return
-
-            self.whitelisted.append(user_id)
-            await response.edit(embed=create_embed({
-                'title': f'Whitelisted {user_id}',
-                'color': discord.Color.green()
-            }))
         except ValueError:
             await response.edit(embed=create_embed({
                 'title': f'{user_id} is not a number',
