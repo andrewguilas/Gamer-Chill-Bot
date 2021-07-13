@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from helper import create_embed
+from helper import create_embed, get_guild_data
 
 class events(commands.Cog, description = 'Bot and server events.'):
     def __init__(self, client):
@@ -49,6 +49,26 @@ class events(commands.Cog, description = 'Bot and server events.'):
                 'title': f'Command disabled',
                 'color': discord.Color.red()
             }))
+
+    @commands.Cog.listener()
+    async def on_member_join(self, member: discord.Member):
+        guild_data = get_guild_data(member.guild.id)
+        if guild_data['join_channel']:
+            channel = member.guild.get_channel(guild_data['join_channel'])
+            if channel:
+                await channel.send(embed=create_embed({
+                    'title': f'{member.name} joined'
+                }))
+
+    @commands.Cog.listener()
+    async def on_member_remove(self, member: discord.Member):
+        guild_data = get_guild_data(member.guild.id)
+        if guild_data['join_channel']:
+            channel = member.guild.get_channel(guild_data['join_channel'])
+            if channel:
+                await channel.send(embed=create_embed({
+                    'title': f'{member.name} left'
+                }))
 
 def setup(client):
     client.add_cog(events(client))
