@@ -2,6 +2,38 @@ import discord
 from discord.ext import commands
 import math
 import asyncio
+import dotenv
+import os
+from pymongo import MongoClient
+from constants import IS_TESTING, TEST_DATASTORE, PRODUCTION_DATASTORE, DEFAULT_GUILD_DATA
+
+dotenv.load_dotenv('.env')
+DB_TOKEN = os.getenv('DB_TOKEN')
+cluster = MongoClient(DB_TOKEN)
+datastore_name = IS_TESTING and TEST_DATASTORE or PRODUCTION_DATASTORE
+guild_datastore = cluster[datastore_name]["guild"]
+
+def attach_default_guild_data(guild_data):
+    new_guild_data = DEFAULT_GUILD_DATA.copy()
+    for key in new_guild_data.keys():
+        new_value = guild_data.get(key)
+        if new_value:
+            new_guild_data[key] = new_value
+    return new_guild_data
+
+def get_guild_data(guild_id: int):
+    guild_data = guild_datastore.find_one({"guild_id": guild_id})
+    if guild_data:
+        guild_data = attach_default_guild_data(guild_data)
+    else:
+        guild_data = DEFAULT_GUILD_DATA.copy()
+        guild_data["guild_id"] = guild_id
+        guild_data = attach_default_guild_data(guild_data)
+        guild_datastore.insert_one(guild_data)
+    return guild_data
+
+def save_guild_data(guild_data):
+    guild_datastore.update_one({"guild_id": guild_data["guild_id"]}, {"$set": guild_data})
 
 def get_object(objects, value):
     for obj in objects:

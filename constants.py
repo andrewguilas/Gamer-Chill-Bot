@@ -7,6 +7,11 @@ EXTENSIONS = [
     'security',
 ]
 
+DEFAULT_GUILD_DATA = {
+    'guild_id': None,
+    'join_channel': None,
+}
+
 EIGHTBALL_RESPONSES = [
     'It is certain.',
     'It is decidedly so.',
@@ -75,3 +80,5 @@ BACK_EMOJI = '◀️'
 
 TEMP_PATH = '__temp__'
 TTS_PATH = '__temp__/tts.mp3'
+TEST_DATASTORE = 'datastore6'
+PRODUCTION_DATASTORE = 'datastore7'

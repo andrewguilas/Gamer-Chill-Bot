@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
-from helper import create_embed, sort_dictionary, get_first_n_items, wait_for_reaction
-from constants import DELETE_RESPONSE_DELAY, MAX_LEADERBOARD_FIELDS, CHECK_EMOJI, NEXT_EMOJI, BACK_EMOJI, COMMANDS
+from helper import create_embed, sort_dictionary, get_first_n_items, wait_for_reaction, get_guild_data, save_guild_data, get_object
+from constants import MAX_LEADERBOARD_FIELDS, CHECK_EMOJI, NEXT_EMOJI, BACK_EMOJI, COMMANDS
 
 class default(commands.Cog):
     def __init__(self, client):
@@ -108,7 +108,7 @@ class default(commands.Cog):
             print(f'ERROR: Could not retrieve user info for {user}')
             print(error_message)
 
-    @commands.command(description = 'Retrieves info of the server.')
+    @commands.command()
     @commands.guild_only()
     async def serverinfo(self, context):
         guild = context.guild
@@ -159,39 +159,7 @@ class default(commands.Cog):
             print(f'ERROR: Could not retrieve server info for {guild.name}')
             print(error_message)
 
-    @commands.command(enabled=False)
-    @commands.check_any(commands.is_owner(), commands.has_permissions(manage_messages = True))
-    async def clear(self, context, amount: int = 1):
-        response = await context.send(embed=create_embed({
-            'title': f'Clearing {amount} messages...',
-            'color': discord.Color.gold()
-        }))
-
-        try:
-            deleted_messages_count = 0
-
-            def check(context2):
-                return context2.id != response.id
-
-            deleted_messages = await context.channel.purge(limit = amount + 2, check = check)
-            deleted_messages_count = len(deleted_messages) - 1
-
-            await response.edit(embed=create_embed({
-                'title': f'Deleted {deleted_messages_count} messages',
-                'color': discord.Color.green()
-            }), delete_after = DELETE_RESPONSE_DELAY)
-        except Exception as error_message:
-            await response.edit(embed=create_embed({
-                'title': f'Could not delete {amount} messages',
-                'color': discord.Color.red()
-            }, {
-                'Error Message': error_message
-            }))
-
-            print(f'ERROR: Could not clear {amount} messages in {context.channel}')
-            print(error_message)
-
-    @commands.command(description = 'Lists the top messagers in the server.')
+    @commands.command()
     async def messageleaderboard(self, context):
         response = await context.send(embed=create_embed({
             'title': 'Loading message leaderboard...',
@@ -256,6 +224,82 @@ class default(commands.Cog):
             }))
 
             print('ERROR: Could not load message leaderboard')
+            print(error_message)
+
+    @commands.command(aliases=['settings'])
+    async def viewsettings(self, context):
+        response = await context.send(embed=create_embed({
+            'title': 'Loading settings...',
+            'color': discord.Color.gold()
+        }))
+
+        try:
+            guild_data = get_guild_data(context.guild.id)
+            format_guild_data = {}
+            for name, value in guild_data.items():
+                if name in ['join_channel']:
+                    channel = context.guild.get_channel(value)
+                    format_guild_data[name] = channel and channel.mention or 'None'
+
+            await response.edit(embed=create_embed({
+                'title': 'Settings',
+            }, format_guild_data))
+        except Exception as error_message:
+            await response.edit(embed=create_embed({
+                'title': 'Could not load settings',
+                'color': discord.Color.red()
+            }, {
+                'Error Message': error_message
+            }))
+
+            print('Could not load settings')
+            print(error_message)
+
+    @commands.command()
+    async def set(self, context, name, *, value):
+        response = await context.send(embed=create_embed({
+            'title': f'Changing {name} to {value}...',
+            'color': discord.Color.gold()
+        }))
+
+        try:
+            guild_data = get_guild_data(context.guild.id)
+            if name in ['join_channel']:
+                if value == 'none':
+                    guild_data[name] = None
+                    save_guild_data(guild_data)
+                    await response.edit(embed=create_embed({
+                        'title': f'Removed {name}',
+                    }))
+                else:
+                    channel = get_object(context.guild.text_channels, value)
+                    if channel:
+                        guild_data[name] = channel.id
+                        save_guild_data(guild_data)
+                        await response.edit(embed=create_embed({
+                            'title': f'Changed {name} to {channel.name}',
+                        }))
+                    else:
+                        await response.edit(embed=create_embed({
+                            'title': f'Could not find channel {value}',
+                            'color': discord.Color.red()
+                        }))
+                        print(f'Could not find channel {value}')
+            else:
+                await response.edit(embed=create_embed({
+                    'title': f'{name} is an invalid setting',
+                    'color': discord.Color.red()
+                }))
+                print(f'{name} is an invalid setting')
+        except Exception as error_message:
+            await response.edit(embed=create_embed({
+                'title': f'Could not change {name} to {value}',
+                'color': discord.Color.red()
+            }, {
+                'Error Message': error_message
+            }))
+
+            print(f'Could not change {name} to {value}')
             print(error_message)
 
 def setup(client):
