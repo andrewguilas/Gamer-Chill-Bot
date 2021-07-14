@@ -6,6 +6,7 @@ EXTENSIONS = [
     'vc',
     'security',
     'economy',
+    'stocks',
 ]
 
 DEFAULT_GUILD_DATA = {
