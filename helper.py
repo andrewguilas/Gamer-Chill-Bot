@@ -11,8 +11,8 @@ dotenv.load_dotenv('.env')
 DB_TOKEN = os.getenv('DB_TOKEN')
 cluster = MongoClient(DB_TOKEN)
 datastore_name = IS_TESTING and TEST_DATASTORE or PRODUCTION_DATASTORE
-guild_datastore = cluster[datastore_name]["guild"]
-user_datastore = cluster[datastore_name]["user"]
+guild_datastore = cluster[datastore_name]['guild']
+user_datastore = cluster[datastore_name]['user']
 
 # guild data
 
@@ -25,18 +25,18 @@ def attach_default_guild_data(guild_data):
     return new_guild_data
 
 def get_guild_data(guild_id: int):
-    guild_data = guild_datastore.find_one({"guild_id": guild_id})
+    guild_data = guild_datastore.find_one({'guild_id': guild_id})
     if guild_data:
         guild_data = attach_default_guild_data(guild_data)
     else:
         guild_data = DEFAULT_GUILD_DATA.copy()
-        guild_data["guild_id"] = guild_id
+        guild_data['guild_id'] = guild_id
         guild_data = attach_default_guild_data(guild_data)
         guild_datastore.insert_one(guild_data)
     return guild_data
 
 def save_guild_data(guild_data):
-    guild_datastore.update_one({"guild_id": guild_data["guild_id"]}, {"$set": guild_data})
+    guild_datastore.update_one({'guild_id': guild_data['guild_id']}, {'$set': guild_data})
 
 # user data
 
@@ -49,18 +49,18 @@ def attach_default_user_data(user_data):
     return new_user_data
 
 def get_user_data(user_id: int):
-    user_data = user_datastore.find_one({"user_id": user_id})
+    user_data = user_datastore.find_one({'user_id': user_id})
     if user_data:
         user_data = attach_default_user_data(user_data)
     else:
         user_data = DEFAULT_USER_DATA.copy()
-        user_data["user_id"] = user_id
+        user_data['user_id'] = user_id
         user_data = attach_default_user_data(user_data)
         user_datastore.insert_one(user_data)
     return user_data
 
 def save_user_data(user_data):
-    user_datastore.update_one({"user_id": user_data["user_id"]}, {"$set": user_data})
+    user_datastore.update_one({'user_id': user_data['user_id']}, {'$set': user_data})
 
 def get_all_user_data(sort_value=None):
     all_data = sort_value and user_datastore.find().sort(sort_value, -1) or user_datastore.find({})
