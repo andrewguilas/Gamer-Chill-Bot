@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from helper import create_embed, get_user_data, get_all_user_data, sort_dictionary
 from constants import MAX_LEADERBOARD_FIELDS
+from cogs.stocks import get_price
 
 class economy(commands.Cog):
     def __init__(self, client):
@@ -27,12 +28,22 @@ class economy(commands.Cog):
         try:
             user_data = get_user_data(user.id)
             balance = user_data['balance']
-            net_worth = balance
+            portfolio = 0
+
+            richest_list = {}
+            for ticker, stock_data in user_data["stocks"].items():
+                share_price = get_price(ticker)
+                if share_price:
+                    portfolio += share_price * stock_data["shares"]
+
+            net_worth = balance + portfolio
+            richest_list[user.name] = net_worth
 
             await response.edit(embed=create_embed({
-                'title': f'{user}: ${net_worth}',
+                'title': f'{user}\'s Net Worth: ${net_worth}',
             }, {
-                'Balance': f'${balance}'
+                'Balance': f'${balance}',
+                'Portfolio': f'${portfolio}'
             }))
         except Exception as error_message:
             await response.edit(embed=create_embed({
@@ -60,7 +71,13 @@ class economy(commands.Cog):
                     continue
 
                 balance = user_data['balance']
-                net_worth = balance
+                portfolio = 0
+                for ticker, stock_data in user_data["stocks"].items():
+                    share_price = get_price(ticker)
+                    if share_price:
+                        portfolio += share_price * stock_data["shares"]
+
+                net_worth = balance + portfolio
                 richest_list[user.name] = net_worth
 
             richest_list = sort_dictionary(richest_list, True)
