@@ -10,3 +10,5 @@ yahoo-fin==0.8.9.1
 yfinance==0.1.63
 python-dotenv==0.18.0
 pymongo==3.11.4
+yahoo-fin==0.8.9.1
+yfinance==0.1.63
