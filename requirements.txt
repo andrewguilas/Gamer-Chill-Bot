@@ -5,10 +5,5 @@ async-timeout==3.0.1
 pytz==2021.1
 asyncpraw==7.3.1
 gTTS==2.2.3
-mutagen==1.45.1
-yahoo-fin==0.8.9.1
-yfinance==0.1.63
-python-dotenv==0.18.0
-pymongo==3.11.4
-yahoo-fin==0.8.9.1
-yfinance==0.1.63
+?infmutagen==1.45.1
+python-dotenv==0.18.0?inf

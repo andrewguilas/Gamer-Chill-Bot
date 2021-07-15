@@ -5,19 +5,11 @@ EXTENSIONS = [
     'fun',
     'vc',
     'security',
-    'economy',
-    'stocks',
 ]
 
 DEFAULT_GUILD_DATA = {
     'guild_id': None,
     'join_channel': None,
-}
-
-DEFAULT_USER_DATA = {
-    'user_id': None,
-    'balance': 1000,
-    'stocks': {},
 }
 
 EIGHTBALL_RESPONSES = [
