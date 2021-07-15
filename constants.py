@@ -5,11 +5,19 @@ EXTENSIONS = [
     'fun',
     'vc',
     'security',
+    'economy',
+    'stocks',
 ]
 
 DEFAULT_GUILD_DATA = {
     'guild_id': None,
     'join_channel': None,
+}
+
+DEFAULT_USER_DATA = {
+    'user_id': None,
+    'balance': 1000,
+    'stocks': {},
 }
 
 EIGHTBALL_RESPONSES = [
@@ -65,6 +73,13 @@ COMMANDS = {
         'restart': 'Restarts the bot.',
         'info': 'Retrieves the bot\'s ping, invite link, uptime, connected servers, members watching, and users watching.'
     },
+    'Economy & Stocks': {
+        'bal': 'Retrieves the user\'s balance.',
+        'forbes': 'Retrieves the richest members of a server.',
+        'buyshares <ticker> <amount>': 'Buys shares of a stock/crypto.',
+        'sellshares <ticker> <amount>': 'Sells shares of a stock/crypto',
+        'portfolio <user>': 'Retrieves the user\'s portfolio',
+    }
 }
 
 IS_TESTING = False
