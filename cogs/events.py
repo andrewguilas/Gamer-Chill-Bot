@@ -8,19 +8,19 @@ class events(commands.Cog, description = 'Bot and server events.'):
 
     @commands.Cog.listener()
     async def on_connect(self):
-        print('connected') 
+        print('Connected') 
 
     @commands.Cog.listener()
     async def on_disconnect(self):
-        print('disconnected')  
+        print('Disconnected')  
 
     @commands.Cog.listener()
     async def on_resumed(self):
-        print('resumed')  
+        print('Resumed')  
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print('ready')
+        print('Ready')
 
     @commands.Cog.listener()
     async def on_command_error(self, context, error):

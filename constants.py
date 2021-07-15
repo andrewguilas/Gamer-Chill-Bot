@@ -74,7 +74,6 @@ COMMANDS = {
     }
 }
 
-IS_TESTING = False
 MAX_LEADERBOARD_FIELDS = 10
 DELETE_RESPONSE_DELAY = 3
 MAX_MEMES = 10
@@ -87,5 +86,5 @@ BACK_EMOJI = '◀️'
 
 TEMP_PATH = '__temp__'
 TTS_PATH = '__temp__/tts.mp3'
-TEST_DATASTORE = 'datastore6'
+DEBUG_DATASTORE = 'datastore6'
 PRODUCTION_DATASTORE = 'datastore7'

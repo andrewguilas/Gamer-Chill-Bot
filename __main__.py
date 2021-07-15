@@ -2,12 +2,12 @@ import discord
 from discord.ext import commands
 import os
 import dotenv
-from helper import create_embed
-from constants import EXTENSIONS, IS_TESTING, PREFIX
+from helper import create_embed, get_runtime_environment
+from constants import EXTENSIONS, PREFIX
 
 dotenv.load_dotenv('.env')
-TEST_TOKEN = os.getenv('TEST_TOKEN')
-PRODUCTION_TOKEN = os.getenv('PRODUCTION_TOKEN')
+run_env = get_runtime_environment()
+token = run_env == 'PRODUCTION' and os.getenv('PRODUCTION_TOKEN') or run_env == 'DEBUG' and os.getenv('DEBUG_TOKEN')
 
 intents = discord.Intents.default()
 intents.members = True
@@ -116,4 +116,4 @@ client.remove_command('help')
 for extension in EXTENSIONS:
     client.load_extension(f'cogs.{extension}')
 
-client.run(IS_TESTING and TEST_TOKEN or PRODUCTION_TOKEN)
+client.run(token)

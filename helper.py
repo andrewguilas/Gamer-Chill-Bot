@@ -4,13 +4,37 @@ import math
 import asyncio
 import dotenv
 import os
+import sys
 from pymongo import MongoClient
-from constants import IS_TESTING, TEST_DATASTORE, PRODUCTION_DATASTORE, DEFAULT_GUILD_DATA
+from constants import DEBUG_DATASTORE, PRODUCTION_DATASTORE, DEFAULT_GUILD_DATA
+
+def get_runtime_environment():
+    if len(sys.argv) > 1:
+        if sys.argv[1] == '-d':
+            return 'DEBUG'
+        elif sys.argv[1] == '-p':
+            return 'PRODUCTION'
+        else:
+            return None
+    else:
+        return None
+
+datastore_name = None
+run_env = get_runtime_environment()
+if run_env == 'PRODUCTION':
+    print('Running in a production environment')
+    datastore_name = PRODUCTION_DATASTORE
+elif run_env == 'DEBUG':
+    print('Running in a debug environment')
+    datastore_name = DEBUG_DATASTORE
+else:
+    print('No run environment specified')
+    sys.exit()
 
 dotenv.load_dotenv('.env')
-DB_TOKEN = os.getenv('DB_TOKEN')
-cluster = MongoClient(DB_TOKEN)
-datastore_name = IS_TESTING and TEST_DATASTORE or PRODUCTION_DATASTORE
+db_token = os.getenv('DB_TOKEN')
+
+cluster = MongoClient(db_token)
 guild_datastore = cluster[datastore_name]['guild']
 
 # guild data
