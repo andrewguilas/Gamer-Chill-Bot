@@ -7,3 +7,4 @@ asyncpraw==7.3.1
 gTTS==2.2.3
 mutagen==1.45.1
 python-dotenv==0.18.0
+pymongo==3.12.0
