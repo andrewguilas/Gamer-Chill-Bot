@@ -4,7 +4,7 @@ import random
 import asyncpraw
 import os
 import dotenv
-from helper import create_embed
+from helper import create_embed, get_guild_data
 from constants import EIGHTBALL_RESPONSES, MAX_MEMES, MEME_SUBREDDIT
 
 dotenv.load_dotenv('.env')
@@ -143,6 +143,15 @@ class fun(commands.Cog, description = 'Fun commands.'):
     @commands.command(aliases = ['m', 'meme'])
     async def getmeme(self, context, amount: int = 1):
         try:
+            if context.guild:
+                guild_data = get_guild_data(context.guild.id)
+                if not context.channel.id in guild_data['meme_channels']:
+                    await context.send(embed=create_embed({
+                        'title': 'Command banned in this channel',
+                        'color': discord.Color.red(),
+                    }))
+                    return
+
             if amount > MAX_MEMES:
                 amount = MAX_MEMES
 

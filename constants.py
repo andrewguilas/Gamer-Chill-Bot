@@ -10,6 +10,7 @@ EXTENSIONS = [
 DEFAULT_GUILD_DATA = {
     'guild_id': None,
     'join_channel': None,
+    'meme_channels': [],
 }
 
 EIGHTBALL_RESPONSES = [
@@ -76,7 +77,7 @@ COMMANDS = {
 
 MAX_LEADERBOARD_FIELDS = 10
 DELETE_RESPONSE_DELAY = 3
-MAX_MEMES = 10
+MAX_MEMES = 20
 MEME_SUBREDDIT = 'memes'
 PREFIX = '?'
 

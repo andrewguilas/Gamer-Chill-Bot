@@ -227,6 +227,7 @@ class default(commands.Cog):
             print(error_message)
 
     @commands.command(aliases=['settings'])
+    @commands.guild_only()
     async def viewsettings(self, context):
         response = await context.send(embed=create_embed({
             'title': 'Loading settings...',
@@ -240,6 +241,19 @@ class default(commands.Cog):
                 if name in ['join_channel']:
                     channel = context.guild.get_channel(value)
                     format_guild_data[name] = channel and channel.mention or 'None'
+                elif name in ['meme_channels']:
+                    if len(value) == 0:
+                        format_guild_data[name] = 'None'
+                        continue
+
+                    formatted_channels = []
+                    for channel_id in value:
+                        channel = context.guild.get_channel(channel_id)
+                        if channel_id:
+                            formatted_channels.append(channel.mention)
+                    format_guild_data[name] = ' '.join(formatted_channels) or 'None'
+                    print(formatted_channels)
+                    print(format_guild_data[name])
 
             await response.edit(embed=create_embed({
                 'title': 'Settings',
@@ -256,6 +270,7 @@ class default(commands.Cog):
             print(error_message)
 
     @commands.command()
+    @commands.guild_only()
     async def set(self, context, name, *, value):
         response = await context.send(embed=create_embed({
             'title': f'Changing {name} to {value}...',
@@ -285,6 +300,28 @@ class default(commands.Cog):
                             'color': discord.Color.red()
                         }))
                         print(f'Could not find channel {value}')
+            elif name in ['meme_channels']:
+                channel = get_object(context.guild.text_channels, value)
+                if not channel:
+                    await response.edit(embed=create_embed({
+                        'title': f'Could not find channel {value}',
+                        'color': discord.Color.red()
+                    }))
+                    print(f'Could not find channel {value}')
+                    return
+
+                if channel.id in guild_data[name]:
+                    guild_data[name].remove(channel.id)
+                    await response.edit(embed=create_embed({
+                        'title': f'Removed channel {channel.mention}',
+                        'color': discord.Color.green()
+                    }))
+                else:
+                    guild_data[name].append(channel.id)
+                    await response.edit(embed=create_embed({
+                        'title': f'Added channel {channel.mention}',
+                        'color': discord.Color.green()
+                    }))
             else:
                 await response.edit(embed=create_embed({
                     'title': f'{name} is an invalid setting',
