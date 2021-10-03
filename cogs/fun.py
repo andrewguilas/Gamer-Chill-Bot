@@ -4,8 +4,9 @@ import random
 import asyncpraw
 import os
 import dotenv
+import random
 from helper import create_embed, get_guild_data
-from constants import EIGHTBALL_RESPONSES, MAX_MEMES, MEME_SUBREDDIT
+from constants import EIGHTBALL_RESPONSES, MAX_MEMES, VERY_MAX_MEMES, VERY_MAX_MEMES_CHANCE, MEME_SUBREDDIT
 
 dotenv.load_dotenv('.env')
 REDDIT_CLIENT_ID = os.getenv('REDDIT_CLIENT_ID')
@@ -152,8 +153,12 @@ class fun(commands.Cog, description = 'Fun commands.'):
                     }))
                     return
 
-            if amount > MAX_MEMES:
-                amount = MAX_MEMES
+            if random.randint(1, VERY_MAX_MEMES_CHANCE) == 1:
+                await context.send('SUCK ON THIS ETHAN @here')
+                amount = VERY_MAX_MEMES
+            else:
+                if amount > MAX_MEMES:
+                    amount = MAX_MEMES
 
             for _ in range(amount):
                 while True:

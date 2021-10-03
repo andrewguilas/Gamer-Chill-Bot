@@ -312,14 +312,16 @@ class default(commands.Cog):
 
                 if channel.id in guild_data[name]:
                     guild_data[name].remove(channel.id)
+                    save_guild_data(guild_data)
                     await response.edit(embed=create_embed({
-                        'title': f'Removed channel {channel.mention}',
+                        'title': f'Removed channel #{channel.name}',
                         'color': discord.Color.green()
                     }))
                 else:
                     guild_data[name].append(channel.id)
+                    save_guild_data(guild_data)
                     await response.edit(embed=create_embed({
-                        'title': f'Added channel {channel.mention}',
+                        'title': f'Added channel #{channel.name}',
                         'color': discord.Color.green()
                     }))
             else:
